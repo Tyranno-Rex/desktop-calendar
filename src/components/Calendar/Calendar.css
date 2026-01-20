@@ -1,0 +1,197 @@
+.calendar {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 10px 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Header */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 10px;
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.nav-btn:hover {
+  background: var(--bg-cell-hover);
+  color: var(--text-color);
+}
+
+.month-year {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.month-year span {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-color);
+  letter-spacing: -0.3px;
+}
+
+.today-btn {
+  background: var(--accent-color);
+  border: none;
+  color: white;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.today-btn:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+/* Calendar Grid */
+.calendar-grid {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.weekday-cell {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weekday-cell:first-child,
+.weekday-cell:last-child {
+  color: var(--weekend-color);
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex: 1;
+}
+
+/* Day Cell */
+.day-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  cursor: pointer;
+  position: relative;
+  padding: 3px 4px;
+  min-height: 0;
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-cell);
+  transition: background 0.15s;
+  overflow: hidden;
+}
+
+.day-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.day-cell:hover {
+  background: var(--bg-cell-hover);
+}
+
+.day-cell.other-month {
+  background: transparent;
+}
+
+.day-cell.other-month .day-number {
+  color: var(--text-muted);
+}
+
+.day-cell.today .day-number {
+  background: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.day-cell.selected {
+  background: rgba(91, 160, 245, 0.12);
+}
+
+.day-cell.weekend .day-number {
+  color: var(--weekend-color);
+}
+
+.day-cell.weekend.other-month .day-number {
+  color: rgba(255, 107, 107, 0.4);
+}
+
+.day-number {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 2px;
+}
+
+/* Events inside cell - 참고 이미지처럼 텍스트로 표시 */
+.day-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  overflow: hidden;
+  flex: 1;
+}
+
+.day-event {
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+.day-event-more {
+  font-size: 9px;
+  color: var(--text-secondary);
+  padding: 1px 4px;
+}

@@ -1,0 +1,197 @@
+.popup-container {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  -webkit-app-region: drag;
+}
+
+.popup-date {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  -webkit-app-region: no-drag;
+}
+
+.popup-day {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-color);
+  line-height: 1;
+}
+
+.popup-date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.popup-weekday {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.popup-month {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.popup-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+  -webkit-app-region: no-drag;
+}
+
+.popup-close:hover {
+  color: var(--text-color);
+}
+
+.popup-content {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.popup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.popup-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.popup-input {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.popup-input:focus {
+  border-color: var(--accent-color);
+}
+
+.popup-textarea {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 14px;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.popup-textarea:focus {
+  border-color: var(--accent-color);
+}
+
+.popup-colors {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.popup-color-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.popup-color-btn:hover {
+  transform: scale(1.1);
+}
+
+.popup-color-btn.active {
+  border-color: white;
+  box-shadow: 0 0 0 2px var(--accent-color);
+}
+
+.popup-footer {
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+  justify-content: flex-end;
+}
+
+.popup-btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.15s, opacity 0.15s;
+}
+
+.popup-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.popup-btn-delete {
+  background: #e74c3c;
+  color: white;
+  margin-right: auto;
+}
+
+.popup-btn-delete:hover {
+  filter: brightness(1.1);
+}
+
+.popup-btn-cancel {
+  background: var(--bg-secondary);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.popup-btn-cancel:hover {
+  background: var(--bg-tertiary);
+}
+
+.popup-btn-save {
+  background: var(--accent-color);
+  color: white;
+}
+
+.popup-btn-save:hover:not(:disabled) {
+  filter: brightness(1.1);
+}

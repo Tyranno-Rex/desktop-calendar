@@ -1,0 +1,53 @@
+.title-bar {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 4px 0 12px;
+  background: rgba(0, 0, 0, 0.2);
+  -webkit-app-region: drag;
+}
+
+.title-bar-drag {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.title-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* 윈도우 스타일 컨트롤 버튼 */
+.window-controls {
+  display: flex;
+  -webkit-app-region: no-drag;
+  height: 100%;
+}
+
+.window-btn {
+  width: 46px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: background 0.15s;
+}
+
+.window-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.window-btn.close:hover {
+  background: #e81123;
+  color: white;
+}
+
+.window-btn svg {
+  flex-shrink: 0;
+}

@@ -1,0 +1,28 @@
+{
+  "appId": "com.desktop-calendar.app",
+  "productName": "Desktop Calendar",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*"
+  ],
+  "win": {
+    "target": ["nsis", "portable"],
+    "icon": "public/icon.png",
+    "signAndEditExecutable": false
+  },
+  "mac": {
+    "target": ["dmg", "zip"],
+    "icon": "public/icon.png"
+  },
+  "linux": {
+    "target": ["AppImage", "deb"],
+    "icon": "public/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true
+  }
+}
