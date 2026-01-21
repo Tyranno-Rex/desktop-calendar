@@ -11,8 +11,14 @@ let FindWindowExA: ((parent: number, childAfter: number, className: string | nul
 let SetParent: ((child: number, parent: number) => number) | null = null;
 let SendMessageTimeoutA: ((hwnd: number, msg: number, wParam: number, lParam: number, flags: number, timeout: number, result: number[]) => number) | null = null;
 let GetAsyncKeyState: ((vKey: number) => number) | null = null;
+let GetAncestor: ((hwnd: number, flags: number) => number) | null = null;
+let GetClassName: ((hwnd: number, buffer: Buffer, maxCount: number) => number) | null = null;
+
+// WindowFromPoint: POINT 구조체를 64비트 값으로 전달 (Windows ABI에서 8바이트 struct는 레지스터로 전달)
+let WindowFromPointRaw: ((pointPacked: bigint) => number) | null = null;
 
 const VK_LBUTTON = 0x01;
+const GA_ROOT = 2; // GetAncestor flag for root window
 const DOUBLE_CLICK_TIME = 500; // ms
 
 // Windows API 초기화
@@ -29,6 +35,12 @@ function initWindowsAPI() {
     SetParent = user32.func('SetParent', 'int', ['int', 'int']);
     SendMessageTimeoutA = user32.func('SendMessageTimeoutA', 'int', ['int', 'uint', 'int', 'int', 'uint', 'uint', 'int*']);
     GetAsyncKeyState = user32.func('GetAsyncKeyState', 'short', ['int']);
+    GetAncestor = user32.func('GetAncestor', 'int', ['int', 'uint']);
+    GetClassName = user32.func('GetClassNameA', 'int', ['int', 'uint8*', 'int']);
+
+    // WindowFromPoint: POINT 구조체를 64비트 값으로 전달
+    // Windows ABI에서 8바이트 struct는 레지스터로 전달되므로 int64로 처리
+    WindowFromPointRaw = user32.func('WindowFromPoint', 'int', ['int64']);
   } catch (error) {
     console.error('Failed to load Windows API:', error);
   }
@@ -177,6 +189,87 @@ function removeFromDesktop() {
   console.log('Window removed from desktop');
 }
 
+// 좌표 패킹 함수 (x, y -> int64)
+// POINT 구조체를 64비트로 pack: lower 32 bits = x, upper 32 bits = y
+function packPoint(x: number, y: number): bigint {
+  const bigX = BigInt(Math.round(x));
+  const bigY = BigInt(Math.round(y));
+  // 32비트 마스킹 (음수 좌표 처리)
+  const u32X = bigX & 0xFFFFFFFFn;
+  const u32Y = bigY & 0xFFFFFFFFn;
+  return u32X | (u32Y << 32n);
+}
+
+// 특정 좌표가 속한 모니터의 DPI 배율 구하기 (Electron API 사용)
+function getScaleFactorForPoint(x: number, y: number): number {
+  const display = screen.getDisplayNearestPoint({ x, y });
+  return display.scaleFactor;
+}
+
+// WindowFromPoint 래퍼 함수 (DPI 보정 포함)
+function windowFromPoint(logicalX: number, logicalY: number): number {
+  if (!WindowFromPointRaw) return 0;
+
+  // DPI 보정: Logical -> Physical 좌표 변환
+  const scale = getScaleFactorForPoint(logicalX, logicalY);
+  const physicalX = logicalX * scale;
+  const physicalY = logicalY * scale;
+
+  const packed = packPoint(physicalX, physicalY);
+  return WindowFromPointRaw(packed);
+}
+
+// 창의 클래스 이름 가져오기
+function getWindowClassName(hwnd: number): string {
+  if (!GetClassName || !hwnd) return '';
+
+  const buffer = Buffer.alloc(256);
+  const length = GetClassName(hwnd, buffer, 256);
+  if (length > 0) {
+    return buffer.toString('utf8', 0, length);
+  }
+  return '';
+}
+
+// 클릭 위치에 다른 앱 창이 있는지 확인
+function isOtherWindowAtPoint(x: number, y: number): boolean {
+  if (!mainWindow || !WindowFromPointRaw) return false;
+  if (!isEmbeddedInDesktop) return false; // Desktop Mode 아니면 체크 안함
+
+  // 클릭 위치의 창 가져오기 (DPI 보정 포함)
+  const hwndAtPoint = windowFromPoint(x, y);
+  if (!hwndAtPoint || hwndAtPoint === 0) return false;
+
+  // 클릭된 창의 클래스 이름 확인 (직접 클릭된 창과 루트 창 모두)
+  const directClassName = getWindowClassName(hwndAtPoint);
+  const rootHwnd = GetAncestor ? GetAncestor(hwndAtPoint, GA_ROOT) : hwndAtPoint;
+  const rootClassName = getWindowClassName(rootHwnd || hwndAtPoint);
+
+  const scale = getScaleFactorForPoint(x, y);
+  console.log(`[Click Check] Logical: (${x}, ${y}), Scale: ${scale}, HWND: ${hwndAtPoint}, DirectClass: "${directClassName}", RootClass: "${rootClassName}"`);
+
+  // 바탕화면 계층 구조 클래스들 (Allow List)
+  const desktopClasses = [
+    'WorkerW',           // 바탕화면 배경 (Windows 10/11)
+    'Progman',           // 바탕화면 프로그램 매니저 (구버전 호환)
+    'SHELLDLL_DefView',  // 바탕화면 뷰 컨테이너
+    'SysListView32',     // 바탕화면 아이콘 영역
+  ];
+
+  // 직접 클릭된 창 또는 루트 창이 바탕화면 관련이면 허용
+  const isDesktopDirect = desktopClasses.some(dc => directClassName.includes(dc));
+  const isDesktopRoot = desktopClasses.some(dc => rootClassName.includes(dc));
+
+  if (isDesktopDirect || isDesktopRoot) {
+    console.log('[Click Check] Desktop-related window, allowing click ✅');
+    return false; // 다른 앱 아님 -> 클릭 허용
+  }
+
+  // 다른 앱의 창이 있음
+  console.log('[Click Check] Other app window detected, blocking click ❌');
+  return true; // 다른 앱 있음 -> 클릭 차단
+}
+
 // 마우스가 창 영역 안에 있는지 확인하고 날짜 셀 위치 계산
 function getClickedDateInWindow(): string | null {
   if (!mainWindow) return null;
@@ -187,6 +280,11 @@ function getClickedDateInWindow(): string | null {
   // 창 영역 안에 있는지 확인
   if (mousePos.x < bounds.x || mousePos.x > bounds.x + bounds.width ||
       mousePos.y < bounds.y || mousePos.y > bounds.y + bounds.height) {
+    return null;
+  }
+
+  // 클릭 위치에 다른 앱 창이 있으면 무시
+  if (isOtherWindowAtPoint(mousePos.x, mousePos.y)) {
     return null;
   }
 

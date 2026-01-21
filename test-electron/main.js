@@ -1,0 +1,1 @@
+const { app, BrowserWindow } = require("electron"); app.whenReady().then(() => { console.log("Electron is working\!"); const win = new BrowserWindow({ width: 400, height: 300 }); win.loadURL("data:text/html,<h1>Hello</h1>"); });
