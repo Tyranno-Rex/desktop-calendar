@@ -42,8 +42,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onEventsUpdated: (callback: (events: CalendarEvent[]) => void): void => {
     ipcRenderer.on('events-updated', (_, events) => callback(events));
   },
-  // Desktop Mode 클릭 이벤트
+  // Desktop Mode 마우스 이벤트
   onDesktopClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
     ipcRenderer.on('desktop-click', (_, data) => callback(data));
+  },
+  onDesktopMouseDown: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
+    ipcRenderer.on('desktop-mousedown', (_, data) => callback(data));
+  },
+  onDesktopMouseMove: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
+    ipcRenderer.on('desktop-mousemove', (_, data) => callback(data));
+  },
+  onDesktopMouseUp: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
+    ipcRenderer.on('desktop-mouseup', (_, data) => callback(data));
   },
 });

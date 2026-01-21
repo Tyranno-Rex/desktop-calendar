@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import type { Settings } from '../../types';
 import './Settings.css';
 
@@ -16,7 +16,7 @@ export function SettingsPanel({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
-  const panelRef = useRef<HTMLDivElement>(null);
+  const dragHandleRef = useRef<HTMLDivElement>(null);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -24,10 +24,8 @@ export function SettingsPanel({
     }
   };
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // 닫기 버튼 클릭 시 드래그 시작하지 않음
-    if ((e.target as HTMLElement).closest('.btn-close')) return;
-
+  const handleDragHandleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
     setIsDragging(true);
     dragStartRef.current = {
       x: e.clientX - position.x,
@@ -35,41 +33,49 @@ export function SettingsPanel({
     };
   }, [position]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  useEffect(() => {
     if (!isDragging) return;
 
-    setPosition({
-      x: e.clientX - dragStartRef.current.x,
-      y: e.clientY - dragStartRef.current.y
-    });
-  }, [isDragging]);
+    const handleMouseMove = (e: MouseEvent) => {
+      setPosition({
+        x: e.clientX - dragStartRef.current.x,
+        y: e.clientY - dragStartRef.current.y
+      });
+    };
 
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
 
   return (
     <div
       className="settings-backdrop"
       onClick={handleBackdropClick}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
     >
       <div
         className="settings-panel"
-        ref={panelRef}
         style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
-          cursor: isDragging ? 'grabbing' : 'default'
+          transform: `translate(${position.x}px, ${position.y}px)`
         }}
       >
-        <div
-          className="settings-header"
-          onMouseDown={handleMouseDown}
-          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-        >
-          <h3>Settings</h3>
+        <div className="settings-header">
+          <div
+            className="settings-drag-handle"
+            ref={dragHandleRef}
+            onMouseDown={handleDragHandleMouseDown}
+            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+          >
+            <h3>Settings</h3>
+          </div>
           <button className="btn-close" onClick={onClose}>
             &times;
           </button>

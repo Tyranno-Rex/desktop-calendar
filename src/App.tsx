@@ -29,26 +29,72 @@ function App() {
     }
   }, [refreshEvents]);
 
-  // Desktop Mode: 클릭 이벤트를 받아서 해당 위치의 요소에 클릭 이벤트 발생
+  // Desktop Mode: 마우스 이벤트를 받아서 해당 위치의 요소에 이벤트 발생
   useEffect(() => {
-    if (window.electronAPI?.onDesktopClick) {
-      window.electronAPI.onDesktopClick((data) => {
-        const element = document.elementFromPoint(data.x, data.y);
-        if (element) {
-          // 클릭 이벤트 시뮬레이션
-          const clickEvent = new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            view: window,
-            clientX: data.x,
-            clientY: data.y,
-            screenX: data.screenX,
-            screenY: data.screenY
-          });
-          element.dispatchEvent(clickEvent);
-        }
+    const api = window.electronAPI;
+    if (!api) return;
+
+    // 클릭 이벤트
+    api.onDesktopClick?.((data) => {
+      const element = document.elementFromPoint(data.x, data.y);
+      if (element) {
+        const clickEvent = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX: data.x,
+          clientY: data.y,
+          screenX: data.screenX,
+          screenY: data.screenY
+        });
+        element.dispatchEvent(clickEvent);
+      }
+    });
+
+    // mousedown 이벤트
+    api.onDesktopMouseDown?.((data) => {
+      const element = document.elementFromPoint(data.x, data.y);
+      if (element) {
+        const mousedownEvent = new MouseEvent('mousedown', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX: data.x,
+          clientY: data.y,
+          screenX: data.screenX,
+          screenY: data.screenY
+        });
+        element.dispatchEvent(mousedownEvent);
+      }
+    });
+
+    // mousemove 이벤트 (window에 전달)
+    api.onDesktopMouseMove?.((data) => {
+      const mousemoveEvent = new MouseEvent('mousemove', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: data.x,
+        clientY: data.y,
+        screenX: data.screenX,
+        screenY: data.screenY
       });
-    }
+      window.dispatchEvent(mousemoveEvent);
+    });
+
+    // mouseup 이벤트 (window에 전달)
+    api.onDesktopMouseUp?.((data) => {
+      const mouseupEvent = new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: data.x,
+        clientY: data.y,
+        screenX: data.screenX,
+        screenY: data.screenY
+      });
+      window.dispatchEvent(mouseupEvent);
+    });
   }, []);
 
   // 단일 클릭: 날짜 선택만

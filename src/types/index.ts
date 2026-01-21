@@ -39,8 +39,11 @@ export interface ElectronAPI {
   popupSaveEvent: (event: CalendarEvent) => Promise<boolean>;
   popupDeleteEvent: (eventId: string) => Promise<boolean>;
   onEventsUpdated: (callback: (events: CalendarEvent[]) => void) => void;
-  // Desktop Mode 클릭 이벤트
+  // Desktop Mode 마우스 이벤트
   onDesktopClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
+  onDesktopMouseDown: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
+  onDesktopMouseMove: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
+  onDesktopMouseUp: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
 }
 
 declare global {

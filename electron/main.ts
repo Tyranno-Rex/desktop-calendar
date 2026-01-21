@@ -350,6 +350,11 @@ function isClickInWindow(): { inWindow: boolean; relX: number; relY: number } {
   return { inWindow: true, relX, relY };
 }
 
+// 드래그 추적을 위한 변수
+let isDraggingInWindow = false;
+let lastMouseX = 0;
+let lastMouseY = 0;
+
 // 더블클릭 감지를 위한 마우스 모니터링
 function startMouseMonitoring() {
   if (mouseCheckInterval) return;
@@ -359,15 +364,30 @@ function startMouseMonitoring() {
 
     const mouseState = GetAsyncKeyState(VK_LBUTTON);
     const isMouseDown = (mouseState & 0x8000) !== 0;
+    const mousePos = screen.getCursorScreenPoint();
+    const bounds = mainWindow.getBounds();
+    const relX = mousePos.x - bounds.x;
+    const relY = mousePos.y - bounds.y;
 
     // 마우스 버튼이 눌린 순간 감지
     if (isMouseDown && !wasMouseDown) {
       const now = Date.now();
-      const mousePos = screen.getCursorScreenPoint();
       const clickInfo = isClickInWindow();
 
       if (clickInfo.inWindow) {
-        // 싱글 클릭: 렌더러에 클릭 이벤트 전달 (버튼 등 UI 요소 작동)
+        isDraggingInWindow = true;
+        lastMouseX = mousePos.x;
+        lastMouseY = mousePos.y;
+
+        // mousedown 이벤트 전달
+        mainWindow.webContents.send('desktop-mousedown', {
+          x: clickInfo.relX,
+          y: clickInfo.relY,
+          screenX: mousePos.x,
+          screenY: mousePos.y
+        });
+
+        // 싱글 클릭 이벤트도 전달 (버튼 등 UI 요소 작동)
         mainWindow.webContents.send('desktop-click', {
           x: clickInfo.relX,
           y: clickInfo.relY,
@@ -398,6 +418,31 @@ function startMouseMonitoring() {
           lastClickY = mousePos.y;
         }
       }
+    }
+
+    // 마우스가 움직이는 중 (드래그)
+    if (isMouseDown && isDraggingInWindow) {
+      if (mousePos.x !== lastMouseX || mousePos.y !== lastMouseY) {
+        mainWindow.webContents.send('desktop-mousemove', {
+          x: relX,
+          y: relY,
+          screenX: mousePos.x,
+          screenY: mousePos.y
+        });
+        lastMouseX = mousePos.x;
+        lastMouseY = mousePos.y;
+      }
+    }
+
+    // 마우스 버튼을 뗀 순간
+    if (!isMouseDown && wasMouseDown && isDraggingInWindow) {
+      mainWindow.webContents.send('desktop-mouseup', {
+        x: relX,
+        y: relY,
+        screenX: mousePos.x,
+        screenY: mousePos.y
+      });
+      isDraggingInWindow = false;
     }
 
     wasMouseDown = isMouseDown;
