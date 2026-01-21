@@ -50,12 +50,54 @@ export function EventPopup() {
   const [color, setColor] = useState('#4a9eff');
   const [hue, setHue] = useState(210);
   const [isEdit, setIsEdit] = useState(false);
+  const [ready, setReady] = useState(false);
 
   const colorBarRef = useRef<HTMLDivElement>(null);
   const [isDraggingColor, setIsDraggingColor] = useState(false);
 
+  // 폼 초기화
+  const resetForm = useCallback(() => {
+    setTitle('');
+    setDescription('');
+    setColor('#4a9eff');
+    setHue(210);
+    setEventId(null);
+    setIsEdit(false);
+  }, []);
+
+  // 팝업 데이터 처리
+  const handlePopupData = useCallback(async (data: { type: string; date: string; event?: CalendarEvent }) => {
+    resetForm();
+
+    if (data.date) {
+      setDate(new Date(data.date));
+    }
+
+    if (data.event?.id) {
+      setEventId(data.event.id);
+      setIsEdit(true);
+      // 이벤트 데이터 로드
+      const events = await window.electronAPI?.getEvents();
+      const event = events?.find(e => e.id === data.event!.id);
+      if (event) {
+        setTitle(event.title);
+        setDescription(event.description || '');
+        if (event.color) {
+          setColor(event.color);
+          const hsl = hexToHsl(event.color);
+          setHue(hsl.h);
+        }
+      }
+    }
+
+    setReady(true);
+  }, [resetForm]);
+
   useEffect(() => {
-    // URL에서 파라미터 추출
+    // IPC로 데이터 수신 (미리 로드된 팝업용)
+    window.electronAPI?.onPopupData?.(handlePopupData);
+
+    // URL에서 파라미터 추출 (기존 호환성 유지)
     const hash = window.location.hash;
     const params = new URLSearchParams(hash.split('?')[1] || '');
 
@@ -64,6 +106,7 @@ export function EventPopup() {
 
     if (dateStr) {
       setDate(new Date(dateStr));
+      setReady(true);
     }
 
     if (eventIdParam) {
@@ -71,7 +114,7 @@ export function EventPopup() {
       setIsEdit(true);
       loadEvent(eventIdParam);
     }
-  }, []);
+  }, [handlePopupData]);
 
   // 색상이 변경될 때 hue 업데이트
   useEffect(() => {
@@ -168,6 +211,11 @@ export function EventPopup() {
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDraggingColor, updateColorFromPosition]);
+
+  // 팝업이 준비되지 않았으면 빈 컨테이너만 표시
+  if (!ready) {
+    return <div className="popup-container popup-loading" />;
+  }
 
   return (
     <div className="popup-container">

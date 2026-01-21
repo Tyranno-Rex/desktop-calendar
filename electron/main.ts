@@ -152,6 +152,8 @@ class SimpleStore {
 let store: SimpleStore;
 let mainWindow: BrowserWindowType | null = null;
 let popupWindow: BrowserWindowType | null = null;
+let popupReady = false;
+let pendingPopupData: { type: string; date: string; event?: CalendarEvent; x: number; y: number } | null = null;
 let tray: TrayType | null = null;
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
@@ -712,12 +714,9 @@ ipcMain.on('open-popup', (_, data: { type: string; date: string; event?: Calenda
   createPopupWindow(data);
 });
 
-// 팝업 창 닫기
+// 팝업 창 닫기 (숨기기로 변경)
 ipcMain.on('close-popup', () => {
-  if (popupWindow) {
-    popupWindow.close();
-    popupWindow = null;
-  }
+  hidePopup();
 });
 
 // 팝업에서 이벤트 저장
@@ -755,14 +754,86 @@ ipcMain.handle('popup-delete-event', (_, eventId: string) => {
   return true;
 });
 
-function createPopupWindow(data: { type: string; date: string; event?: CalendarEvent; x: number; y: number }) {
-  // 기존 팝업이 있으면 닫기
-  if (popupWindow) {
-    popupWindow.close();
-    popupWindow = null;
-  }
+// 팝업 창 미리 생성 (속도 개선)
+function preCreatePopupWindow() {
+  if (popupWindow) return;
 
   const savedSettings = store.get('settings');
+
+  popupWindow = new BrowserWindow({
+    width: 320,
+    height: 400,
+    minWidth: 280,
+    minHeight: 300,
+    x: -1000, // 화면 밖에 숨김
+    y: -1000,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    resizable: true,
+    minimizable: false,
+    maximizable: false,
+    focusable: true,
+    show: false, // 처음에는 숨김
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  });
+
+  popupWindow.setOpacity(savedSettings?.opacity ?? 0.95);
+
+  // 팝업 기본 페이지 로드
+  if (isDev) {
+    popupWindow.loadURL('http://localhost:5173/#/popup');
+  } else {
+    popupWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
+      hash: '/popup'
+    });
+  }
+
+  popupWindow.webContents.on('did-finish-load', () => {
+    popupReady = true;
+    // 대기 중인 데이터가 있으면 바로 표시
+    if (pendingPopupData) {
+      showPopupWithData(pendingPopupData);
+      pendingPopupData = null;
+    }
+  });
+
+  // 포커스 잃으면 팝업 숨기기 (닫지 않고 재사용)
+  popupWindow.on('blur', () => {
+    setTimeout(() => {
+      if (popupWindow && !popupWindow.isFocused()) {
+        hidePopup();
+      }
+    }, 100);
+  });
+
+  popupWindow.on('closed', () => {
+    popupWindow = null;
+    popupReady = false;
+  });
+}
+
+// 팝업 숨기기 (재사용 위해 닫지 않음)
+function hidePopup() {
+  if (popupWindow) {
+    popupWindow.hide();
+    popupWindow.setPosition(-1000, -1000);
+  }
+}
+
+// 팝업에 데이터 전송하고 표시
+function showPopupWithData(data: { type: string; date: string; event?: CalendarEvent; x: number; y: number }) {
+  if (!popupWindow) {
+    preCreatePopupWindow();
+    pendingPopupData = data;
+    return;
+  }
+
   const popupWidth = 320;
   const popupHeight = 400;
 
@@ -778,52 +849,27 @@ function createPopupWindow(data: { type: string; date: string; event?: CalendarE
     y = screenHeight - popupHeight - 10;
   }
 
-  popupWindow = new BrowserWindow({
-    width: popupWidth,
-    height: popupHeight,
-    minWidth: 280,
-    minHeight: 300,
-    x,
-    y,
-    transparent: true,
-    frame: false,
-    alwaysOnTop: true, // 팝업은 항상 맨 앞
-    skipTaskbar: true,
-    resizable: true,
-    minimizable: false,
-    maximizable: false,
-    focusable: true,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
-    },
-  });
+  // 위치 설정
+  popupWindow.setPosition(Math.round(x), Math.round(y));
+  popupWindow.setSize(popupWidth, popupHeight);
 
-  popupWindow.setOpacity(savedSettings?.opacity ?? 0.95);
+  // 데이터 전송
+  popupWindow.webContents.send('popup-data', data);
 
-  // 팝업 HTML 로드
-  if (isDev) {
-    popupWindow.loadURL(`http://localhost:5173/#/popup?type=${data.type}&date=${data.date}&eventId=${data.event?.id || ''}`);
+  // 표시
+  popupWindow.show();
+  popupWindow.focus();
+}
+
+function createPopupWindow(data: { type: string; date: string; event?: CalendarEvent; x: number; y: number }) {
+  if (popupReady && popupWindow) {
+    // 이미 준비된 팝업이 있으면 바로 표시
+    showPopupWithData(data);
   } else {
-    popupWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
-      hash: `/popup?type=${data.type}&date=${data.date}&eventId=${data.event?.id || ''}`
-    });
+    // 아직 준비 안됐으면 데이터 저장 후 생성
+    pendingPopupData = data;
+    preCreatePopupWindow();
   }
-
-  // 포커스 잃으면 팝업 닫기
-  popupWindow.on('blur', () => {
-    setTimeout(() => {
-      if (popupWindow && !popupWindow.isFocused()) {
-        popupWindow.close();
-        popupWindow = null;
-      }
-    }, 100);
-  });
-
-  popupWindow.on('closed', () => {
-    popupWindow = null;
-  });
 }
 
 // 리사이즈 핸들러
@@ -908,6 +954,10 @@ app.whenReady().then(() => {
   store = new SimpleStore();
   createWindow();
   createTray();
+  // 팝업 미리 생성 (속도 개선)
+  setTimeout(() => {
+    preCreatePopupWindow();
+  }, 1000);
 });
 
 app.on('window-all-closed', () => {

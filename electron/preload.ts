@@ -44,6 +44,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onEventsUpdated: (callback: (events: CalendarEvent[]) => void): void => {
     ipcRenderer.on('events-updated', (_, events) => callback(events));
   },
+  // 팝업 데이터 수신 (미리 로드된 팝업용)
+  onPopupData: (callback: (data: { type: string; date: string; event?: CalendarEvent; x: number; y: number }) => void): void => {
+    ipcRenderer.on('popup-data', (_, data) => callback(data));
+  },
   // Desktop Mode 마우스 이벤트
   onDesktopClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
     ipcRenderer.on('desktop-click', (_, data) => callback(data));

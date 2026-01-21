@@ -7,6 +7,7 @@ const defaultSettings: Settings = {
   desktopMode: false,
   theme: 'dark',
   fontSize: 14,
+  resizeMode: false,
 };
 
 export function useSettings() {
