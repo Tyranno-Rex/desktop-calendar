@@ -188,6 +188,12 @@
   text-overflow: ellipsis;
   line-height: 1.3;
   font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.day-event:hover {
+  filter: brightness(1.15);
 }
 
 .day-event-more {

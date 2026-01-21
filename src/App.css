@@ -80,69 +80,84 @@ body {
   z-index: 100;
 }
 
+/* 활성화된 리사이즈 핸들 스타일 */
+.resize-handle-active {
+  background: var(--accent-color);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.resize-handle-active:hover {
+  opacity: 1;
+}
+
 /* 모서리 핸들 - 4방향 */
 .resize-handle-nw {
   top: 0;
   left: 0;
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   cursor: nw-resize;
+  border-radius: 0 0 4px 0;
 }
 
 .resize-handle-ne {
   top: 0;
   right: 0;
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   cursor: ne-resize;
+  border-radius: 0 0 0 4px;
 }
 
 .resize-handle-sw {
   bottom: 0;
   left: 0;
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   cursor: sw-resize;
+  border-radius: 0 4px 0 0;
 }
 
 .resize-handle-se {
   right: 0;
   bottom: 0;
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   cursor: se-resize;
+  border-radius: 4px 0 0 0;
 }
 
 /* 변 핸들 - 4방향 */
 .resize-handle-n {
   top: 0;
-  left: 8px;
-  width: calc(100% - 16px);
-  height: 4px;
+  left: 12px;
+  width: calc(100% - 24px);
+  height: 5px;
   cursor: n-resize;
 }
 
 .resize-handle-s {
   bottom: 0;
-  left: 8px;
-  width: calc(100% - 16px);
-  height: 4px;
+  left: 12px;
+  width: calc(100% - 24px);
+  height: 5px;
   cursor: s-resize;
 }
 
 .resize-handle-w {
   left: 0;
-  top: 8px;
-  width: 4px;
-  height: calc(100% - 16px);
+  top: 12px;
+  width: 5px;
+  height: calc(100% - 24px);
   cursor: w-resize;
 }
 
 .resize-handle-e {
   right: 0;
-  top: 8px;
-  width: 4px;
-  height: calc(100% - 16px);
+  top: 12px;
+  width: 5px;
+  height: calc(100% - 24px);
   cursor: e-resize;
 }
 

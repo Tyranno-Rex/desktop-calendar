@@ -87,6 +87,7 @@ interface Settings {
   desktopMode: boolean;
   theme: string;
   fontSize: number;
+  resizeMode: boolean;
 }
 
 interface CalendarEvent {
@@ -352,6 +353,9 @@ function isClickInWindow(): { inWindow: boolean; relX: number; relY: number } {
 
 // 드래그 추적을 위한 변수
 let isDraggingInWindow = false;
+let hasDragged = false; // 드래그가 발생했는지 추적
+let mouseDownX = 0;
+let mouseDownY = 0;
 let lastMouseX = 0;
 let lastMouseY = 0;
 
@@ -371,11 +375,13 @@ function startMouseMonitoring() {
 
     // 마우스 버튼이 눌린 순간 감지
     if (isMouseDown && !wasMouseDown) {
-      const now = Date.now();
       const clickInfo = isClickInWindow();
 
       if (clickInfo.inWindow) {
         isDraggingInWindow = true;
+        hasDragged = false;
+        mouseDownX = mousePos.x;
+        mouseDownY = mousePos.y;
         lastMouseX = mousePos.x;
         lastMouseY = mousePos.y;
 
@@ -386,11 +392,45 @@ function startMouseMonitoring() {
           screenX: mousePos.x,
           screenY: mousePos.y
         });
+      }
+    }
 
-        // 싱글 클릭 이벤트도 전달 (버튼 등 UI 요소 작동)
+    // 마우스가 움직이는 중 (드래그)
+    if (isMouseDown && isDraggingInWindow) {
+      if (mousePos.x !== lastMouseX || mousePos.y !== lastMouseY) {
+        // 5px 이상 움직이면 드래그로 판정
+        const moveDistance = Math.abs(mousePos.x - mouseDownX) + Math.abs(mousePos.y - mouseDownY);
+        if (moveDistance > 5) {
+          hasDragged = true;
+        }
+
+        mainWindow.webContents.send('desktop-mousemove', {
+          x: relX,
+          y: relY,
+          screenX: mousePos.x,
+          screenY: mousePos.y
+        });
+        lastMouseX = mousePos.x;
+        lastMouseY = mousePos.y;
+      }
+    }
+
+    // 마우스 버튼을 뗀 순간
+    if (!isMouseDown && wasMouseDown && isDraggingInWindow) {
+      const now = Date.now();
+
+      mainWindow.webContents.send('desktop-mouseup', {
+        x: relX,
+        y: relY,
+        screenX: mousePos.x,
+        screenY: mousePos.y
+      });
+
+      // 드래그가 없었을 때만 click 이벤트 발생
+      if (!hasDragged) {
         mainWindow.webContents.send('desktop-click', {
-          x: clickInfo.relX,
-          y: clickInfo.relY,
+          x: relX,
+          y: relY,
           screenX: mousePos.x,
           screenY: mousePos.y
         });
@@ -418,31 +458,9 @@ function startMouseMonitoring() {
           lastClickY = mousePos.y;
         }
       }
-    }
 
-    // 마우스가 움직이는 중 (드래그)
-    if (isMouseDown && isDraggingInWindow) {
-      if (mousePos.x !== lastMouseX || mousePos.y !== lastMouseY) {
-        mainWindow.webContents.send('desktop-mousemove', {
-          x: relX,
-          y: relY,
-          screenX: mousePos.x,
-          screenY: mousePos.y
-        });
-        lastMouseX = mousePos.x;
-        lastMouseY = mousePos.y;
-      }
-    }
-
-    // 마우스 버튼을 뗀 순간
-    if (!isMouseDown && wasMouseDown && isDraggingInWindow) {
-      mainWindow.webContents.send('desktop-mouseup', {
-        x: relX,
-        y: relY,
-        screenX: mousePos.x,
-        screenY: mousePos.y
-      });
       isDraggingInWindow = false;
+      hasDragged = false;
     }
 
     wasMouseDown = isMouseDown;
@@ -606,6 +624,7 @@ ipcMain.handle('get-settings', () => {
     desktopMode: false,
     theme: 'dark',
     fontSize: 14,
+    resizeMode: false,
   };
 });
 
@@ -613,6 +632,7 @@ ipcMain.handle('save-settings', (_, settings: Settings) => {
   store.set('settings', settings);
   if (mainWindow) {
     mainWindow.setOpacity(settings.opacity);
+    mainWindow.setResizable(settings.resizeMode);
 
     if (settings.desktopMode) {
       // Desktop Mode: Z-order 맨 뒤로

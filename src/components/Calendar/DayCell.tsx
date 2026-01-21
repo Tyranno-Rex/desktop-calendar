@@ -11,6 +11,7 @@ interface DayCellProps {
   events: CalendarEvent[];
   onClick: () => void;
   onDoubleClick: (e: React.MouseEvent) => void;
+  onEventClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
 }
 
 export const DayCell = memo(function DayCell({
@@ -21,6 +22,7 @@ export const DayCell = memo(function DayCell({
   events,
   onClick,
   onDoubleClick,
+  onEventClick,
 }: DayCellProps) {
   const dayNumber = format(date, 'd');
   const dayOfWeek = getDay(date);
@@ -51,6 +53,10 @@ export const DayCell = memo(function DayCell({
               className="day-event"
               style={{ backgroundColor: event.color || '#5ba0f5' }}
               title={event.title}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEventClick?.(event, e);
+              }}
             >
               {event.title}
             </div>

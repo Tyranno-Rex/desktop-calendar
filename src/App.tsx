@@ -156,6 +156,22 @@ function App() {
     }
   };
 
+  // 캘린더에서 이벤트 클릭 시 편집 팝업 열기
+  const handleEventClick = useCallback((event: CalendarEvent, clickEvent: React.MouseEvent) => {
+    if (settings.desktopMode && window.electronAPI?.openPopup) {
+      window.electronAPI.openPopup({
+        type: 'edit-event',
+        date: event.date,
+        event,
+        x: clickEvent.screenX,
+        y: clickEvent.screenY,
+      });
+    } else {
+      setEditingEvent(event);
+      setShowEventModal(true);
+    }
+  }, [settings.desktopMode]);
+
   const handleSaveEvent = async (event: Omit<CalendarEvent, 'id'>) => {
     await addEvent(event);
   };
@@ -188,20 +204,21 @@ function App() {
           getEventsForDate={getEventsForDate}
           onSelectDate={handleSelectDate}
           onOpenDate={handleOpenDate}
+          onEventClick={handleEventClick}
           selectedDate={selectedDate}
         />
       </div>
 
       {/* 리사이즈 핸들 - 4방향 모서리 */}
-      <ResizeHandle direction="nw" />
-      <ResizeHandle direction="ne" />
-      <ResizeHandle direction="sw" />
-      <ResizeHandle direction="se" />
+      <ResizeHandle direction="nw" visible={settings.resizeMode} />
+      <ResizeHandle direction="ne" visible={settings.resizeMode} />
+      <ResizeHandle direction="sw" visible={settings.resizeMode} />
+      <ResizeHandle direction="se" visible={settings.resizeMode} />
       {/* 리사이즈 핸들 - 4방향 변 */}
-      <ResizeHandle direction="n" />
-      <ResizeHandle direction="s" />
-      <ResizeHandle direction="w" />
-      <ResizeHandle direction="e" />
+      <ResizeHandle direction="n" visible={settings.resizeMode} />
+      <ResizeHandle direction="s" visible={settings.resizeMode} />
+      <ResizeHandle direction="w" visible={settings.resizeMode} />
+      <ResizeHandle direction="e" visible={settings.resizeMode} />
 
       {/* 날짜 클릭 시 일정 상세 팝업 */}
       {showDayDetail && selectedDate && (

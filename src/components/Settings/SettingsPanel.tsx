@@ -166,6 +166,23 @@ export function SettingsPanel({
               <span className="toggle-slider"></span>
             </label>
           </div>
+
+          <div className="setting-item">
+            <label>
+              Resize Mode
+              <span className="setting-hint">Show handles to resize window</span>
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={settings.resizeMode}
+                onChange={(e) =>
+                  onUpdateSettings({ resizeMode: e.target.checked })
+                }
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
         </div>
       </div>
     </div>

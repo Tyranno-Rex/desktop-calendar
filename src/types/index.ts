@@ -12,6 +12,7 @@ export interface Settings {
   desktopMode: boolean;
   theme: 'dark' | 'light';
   fontSize: number;
+  resizeMode: boolean;
 }
 
 export interface PopupData {

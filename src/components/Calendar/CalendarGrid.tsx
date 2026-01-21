@@ -13,6 +13,7 @@ interface CalendarGridProps {
   getEventsForDate: (date: Date) => CalendarEvent[];
   onSelectDate: (date: Date) => void;
   onOpenDate: (date: Date, e: React.MouseEvent) => void;
+  onEventClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
 }
 
 export function CalendarGrid({
@@ -23,6 +24,7 @@ export function CalendarGrid({
   getEventsForDate,
   onSelectDate,
   onOpenDate,
+  onEventClick,
 }: CalendarGridProps) {
   return (
     <div className="calendar-grid">
@@ -44,6 +46,7 @@ export function CalendarGrid({
             events={getEventsForDate(date)}
             onClick={() => onSelectDate(date)}
             onDoubleClick={(e) => onOpenDate(date, e)}
+            onEventClick={onEventClick}
           />
         ))}
       </div>
