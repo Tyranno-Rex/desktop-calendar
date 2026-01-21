@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import type { Settings } from '../../types';
 import './Settings.css';
 
@@ -13,16 +13,62 @@ export function SettingsPanel({
   onUpdateSettings,
   onClose,
 }: SettingsPanelProps) {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const panelRef = useRef<HTMLDivElement>(null);
+
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
   };
 
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // 닫기 버튼 클릭 시 드래그 시작하지 않음
+    if ((e.target as HTMLElement).closest('.btn-close')) return;
+
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    };
+  }, [position]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging) return;
+
+    setPosition({
+      x: e.clientX - dragStartRef.current.x,
+      y: e.clientY - dragStartRef.current.y
+    });
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
   return (
-    <div className="settings-backdrop" onClick={handleBackdropClick}>
-      <div className="settings-panel">
-        <div className="settings-header">
+    <div
+      className="settings-backdrop"
+      onClick={handleBackdropClick}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
+      <div
+        className="settings-panel"
+        ref={panelRef}
+        style={{
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          cursor: isDragging ? 'grabbing' : 'default'
+        }}
+      >
+        <div
+          className="settings-header"
+          onMouseDown={handleMouseDown}
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        >
           <h3>Settings</h3>
           <button className="btn-close" onClick={onClose}>
             &times;

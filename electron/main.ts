@@ -326,6 +326,30 @@ function getClickedDateInWindow(): string | null {
   return `${year}-${month}-${day}`;
 }
 
+// 클릭이 창 영역 안에 있는지만 확인 (다른 앱 체크 포함)
+function isClickInWindow(): { inWindow: boolean; relX: number; relY: number } {
+  if (!mainWindow) return { inWindow: false, relX: 0, relY: 0 };
+
+  const mousePos = screen.getCursorScreenPoint();
+  const bounds = mainWindow.getBounds();
+
+  // 창 영역 안에 있는지 확인
+  if (mousePos.x < bounds.x || mousePos.x > bounds.x + bounds.width ||
+      mousePos.y < bounds.y || mousePos.y > bounds.y + bounds.height) {
+    return { inWindow: false, relX: 0, relY: 0 };
+  }
+
+  // 클릭 위치에 다른 앱 창이 있으면 무시
+  if (isOtherWindowAtPoint(mousePos.x, mousePos.y)) {
+    return { inWindow: false, relX: 0, relY: 0 };
+  }
+
+  const relX = mousePos.x - bounds.x;
+  const relY = mousePos.y - bounds.y;
+
+  return { inWindow: true, relX, relY };
+}
+
 // 더블클릭 감지를 위한 마우스 모니터링
 function startMouseMonitoring() {
   if (mouseCheckInterval) return;
@@ -340,28 +364,39 @@ function startMouseMonitoring() {
     if (isMouseDown && !wasMouseDown) {
       const now = Date.now();
       const mousePos = screen.getCursorScreenPoint();
+      const clickInfo = isClickInWindow();
 
-      // 더블클릭 판정: 500ms 이내, 같은 위치 근처
-      const timeDiff = now - lastClickTime;
-      const posDiff = Math.abs(mousePos.x - lastClickX) + Math.abs(mousePos.y - lastClickY);
+      if (clickInfo.inWindow) {
+        // 싱글 클릭: 렌더러에 클릭 이벤트 전달 (버튼 등 UI 요소 작동)
+        mainWindow.webContents.send('desktop-click', {
+          x: clickInfo.relX,
+          y: clickInfo.relY,
+          screenX: mousePos.x,
+          screenY: mousePos.y
+        });
 
-      if (timeDiff < DOUBLE_CLICK_TIME && posDiff < 10) {
-        // 더블클릭! 날짜 확인 후 팝업 열기
-        const clickedDate = getClickedDateInWindow();
-        if (clickedDate) {
-          console.log('Double click detected on date:', clickedDate);
-          createPopupWindow({
-            type: 'add-event',
-            date: clickedDate,
-            x: mousePos.x,
-            y: mousePos.y
-          });
+        // 더블클릭 판정: 500ms 이내, 같은 위치 근처
+        const timeDiff = now - lastClickTime;
+        const posDiff = Math.abs(mousePos.x - lastClickX) + Math.abs(mousePos.y - lastClickY);
+
+        if (timeDiff < DOUBLE_CLICK_TIME && posDiff < 10) {
+          // 더블클릭! 날짜 확인 후 팝업 열기
+          const clickedDate = getClickedDateInWindow();
+          if (clickedDate) {
+            console.log('Double click detected on date:', clickedDate);
+            createPopupWindow({
+              type: 'add-event',
+              date: clickedDate,
+              x: mousePos.x,
+              y: mousePos.y
+            });
+          }
+          lastClickTime = 0; // 리셋
+        } else {
+          lastClickTime = now;
+          lastClickX = mousePos.x;
+          lastClickY = mousePos.y;
         }
-        lastClickTime = 0; // 리셋
-      } else {
-        lastClickTime = now;
-        lastClickX = mousePos.x;
-        lastClickY = mousePos.y;
       }
     }
 
@@ -637,13 +672,15 @@ function createPopupWindow(data: { type: string; date: string; event?: CalendarE
   popupWindow = new BrowserWindow({
     width: popupWidth,
     height: popupHeight,
+    minWidth: 280,
+    minHeight: 300,
     x,
     y,
     transparent: true,
     frame: false,
     alwaysOnTop: true, // 팝업은 항상 맨 앞
     skipTaskbar: true,
-    resizable: false,
+    resizable: true,
     minimizable: false,
     maximizable: false,
     focusable: true,

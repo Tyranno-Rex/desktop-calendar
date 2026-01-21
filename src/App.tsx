@@ -29,6 +29,28 @@ function App() {
     }
   }, [refreshEvents]);
 
+  // Desktop Mode: 클릭 이벤트를 받아서 해당 위치의 요소에 클릭 이벤트 발생
+  useEffect(() => {
+    if (window.electronAPI?.onDesktopClick) {
+      window.electronAPI.onDesktopClick((data) => {
+        const element = document.elementFromPoint(data.x, data.y);
+        if (element) {
+          // 클릭 이벤트 시뮬레이션
+          const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            clientX: data.x,
+            clientY: data.y,
+            screenX: data.screenX,
+            screenY: data.screenY
+          });
+          element.dispatchEvent(clickEvent);
+        }
+      });
+    }
+  }, []);
+
   // 단일 클릭: 날짜 선택만
   const handleSelectDate = useCallback((date: Date) => {
     setSelectedDate(date);

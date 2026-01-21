@@ -42,4 +42,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onEventsUpdated: (callback: (events: CalendarEvent[]) => void): void => {
     ipcRenderer.on('events-updated', (_, events) => callback(events));
   },
+  // Desktop Mode 클릭 이벤트
+  onDesktopClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
+    ipcRenderer.on('desktop-click', (_, data) => callback(data));
+  },
 });

@@ -1,20 +1,58 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
 import type { CalendarEvent } from '../../types';
 import './Popup.css';
 
-const COLORS = [
-  '#4a9eff', '#10b981', '#f59e0b', '#ef4444',
-  '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'
-];
+// HSL to Hex 변환
+function hslToHex(h: number, s: number, l: number): string {
+  s /= 100;
+  l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+// Hex to HSL 변환
+function hexToHsl(hex: string): { h: number; s: number; l: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return { h: 200, s: 70, l: 50 };
+
+  let r = parseInt(result[1], 16) / 255;
+  let g = parseInt(result[2], 16) / 255;
+  let b = parseInt(result[3], 16) / 255;
+
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
 
 export function EventPopup() {
   const [date, setDate] = useState<Date>(new Date());
   const [eventId, setEventId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [color, setColor] = useState(COLORS[0]);
+  const [color, setColor] = useState('#4a9eff');
+  const [hue, setHue] = useState(210);
   const [isEdit, setIsEdit] = useState(false);
+
+  const colorBarRef = useRef<HTMLDivElement>(null);
+  const [isDraggingColor, setIsDraggingColor] = useState(false);
 
   useEffect(() => {
     // URL에서 파라미터 추출
@@ -31,9 +69,14 @@ export function EventPopup() {
     if (eventIdParam) {
       setEventId(eventIdParam);
       setIsEdit(true);
-      // 기존 이벤트 데이터 로드
       loadEvent(eventIdParam);
     }
+  }, []);
+
+  // 색상이 변경될 때 hue 업데이트
+  useEffect(() => {
+    const hsl = hexToHsl(color);
+    setHue(hsl.h);
   }, []);
 
   const loadEvent = async (id: string) => {
@@ -42,7 +85,11 @@ export function EventPopup() {
     if (event) {
       setTitle(event.title);
       setDescription(event.description || '');
-      setColor(event.color || COLORS[0]);
+      if (event.color) {
+        setColor(event.color);
+        const hsl = hexToHsl(event.color);
+        setHue(hsl.h);
+      }
     }
   };
 
@@ -72,8 +119,68 @@ export function EventPopup() {
     window.electronAPI?.closePopup();
   };
 
+  // 리사이즈 핸들러
+  const handleResizeStart = (direction: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    window.electronAPI?.startResize(direction);
+
+    const handleMouseUp = () => {
+      window.electronAPI?.stopResize();
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // 색상 바 클릭/드래그 핸들러
+  const updateColorFromPosition = useCallback((clientX: number) => {
+    if (!colorBarRef.current) return;
+
+    const rect = colorBarRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const newHue = Math.round((x / rect.width) * 360);
+
+    setHue(newHue);
+    setColor(hslToHex(newHue, 70, 50));
+  }, []);
+
+  const handleColorBarMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingColor(true);
+    updateColorFromPosition(e.clientX);
+  };
+
+  useEffect(() => {
+    if (!isDraggingColor) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      updateColorFromPosition(e.clientX);
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingColor(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingColor, updateColorFromPosition]);
+
   return (
     <div className="popup-container">
+      {/* 리사이즈 핸들 */}
+      <div className="resize-handle resize-n" onMouseDown={handleResizeStart('n')} />
+      <div className="resize-handle resize-s" onMouseDown={handleResizeStart('s')} />
+      <div className="resize-handle resize-e" onMouseDown={handleResizeStart('e')} />
+      <div className="resize-handle resize-w" onMouseDown={handleResizeStart('w')} />
+      <div className="resize-handle resize-ne" onMouseDown={handleResizeStart('ne')} />
+      <div className="resize-handle resize-nw" onMouseDown={handleResizeStart('nw')} />
+      <div className="resize-handle resize-se" onMouseDown={handleResizeStart('se')} />
+      <div className="resize-handle resize-sw" onMouseDown={handleResizeStart('sw')} />
+
       <div className="popup-header">
         <div className="popup-date">
           <span className="popup-day">{format(date, 'd')}</span>
@@ -109,15 +216,24 @@ export function EventPopup() {
 
         <div className="popup-field">
           <label className="popup-label">Color</label>
-          <div className="popup-colors">
-            {COLORS.map((c) => (
-              <button
-                key={c}
-                className={`popup-color-btn ${color === c ? 'active' : ''}`}
-                style={{ backgroundColor: c }}
-                onClick={() => setColor(c)}
+          <div className="color-picker-container">
+            <div
+              className="color-bar"
+              ref={colorBarRef}
+              onMouseDown={handleColorBarMouseDown}
+            >
+              <div
+                className="color-bar-thumb"
+                style={{
+                  left: `${(hue / 360) * 100}%`,
+                  backgroundColor: color
+                }}
               />
-            ))}
+            </div>
+            <div
+              className="color-preview"
+              style={{ backgroundColor: color }}
+            />
           </div>
         </div>
       </div>
