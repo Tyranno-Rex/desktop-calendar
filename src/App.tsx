@@ -197,7 +197,7 @@ function App() {
 
   return (
     <div className={`app ${settings.theme}`} style={{ fontSize: settings.fontSize }}>
-      <TitleBar onSettings={() => setShowSettings(true)} />
+      <TitleBar onSettings={() => setShowSettings(true)} resizeMode={settings.resizeMode} />
 
       <div className="app-content">
         <Calendar

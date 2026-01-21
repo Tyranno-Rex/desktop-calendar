@@ -52,3 +52,17 @@
 .window-btn svg {
   flex-shrink: 0;
 }
+
+/* Resize Mode에서 이동 가능 표시 */
+.title-bar-movable {
+  background: var(--accent-color);
+  opacity: 0.9;
+}
+
+.title-bar-movable .title-bar-drag {
+  -webkit-app-region: no-drag;
+}
+
+.title-bar-movable .title-text {
+  color: white;
+}

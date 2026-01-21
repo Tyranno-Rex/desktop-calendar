@@ -3,9 +3,10 @@ import './TitleBar.css';
 
 interface TitleBarProps {
   onSettings: () => void;
+  resizeMode?: boolean;
 }
 
-export const TitleBar = memo(function TitleBar({ onSettings }: TitleBarProps) {
+export const TitleBar = memo(function TitleBar({ onSettings, resizeMode = false }: TitleBarProps) {
   const handleMinimize = useCallback(() => {
     window.electronAPI?.minimizeWindow();
   }, []);
@@ -14,9 +15,28 @@ export const TitleBar = memo(function TitleBar({ onSettings }: TitleBarProps) {
     window.electronAPI?.closeWindow();
   }, []);
 
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    if (!resizeMode) return;
+    e.preventDefault();
+    window.electronAPI?.startMove();
+
+    const handleMouseUp = () => {
+      window.electronAPI?.stopMove();
+      window.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [resizeMode]);
+
   return (
-    <div className="title-bar">
-      <div className="title-bar-drag">
+    <div className={`title-bar ${resizeMode ? 'title-bar-movable' : ''}`}>
+      <div
+        className="title-bar-drag"
+        onMouseDown={handleDragStart}
+        style={{ cursor: resizeMode ? 'move' : 'default' }}
+      >
         <span className="title-text">Calendar</span>
       </div>
 

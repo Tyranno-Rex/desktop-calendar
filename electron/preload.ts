@@ -29,6 +29,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   sendToDesktop: (): void => ipcRenderer.send('send-to-desktop'),
   startResize: (direction: string): void => ipcRenderer.send('start-resize', direction),
   stopResize: (): void => ipcRenderer.send('stop-resize'),
+  startMove: (): void => ipcRenderer.send('start-move'),
+  stopMove: (): void => ipcRenderer.send('stop-move'),
   onSettingsUpdated: (callback: (settings: Partial<Settings>) => void): void => {
     ipcRenderer.on('settings-updated', (_, settings) => callback(settings));
   },

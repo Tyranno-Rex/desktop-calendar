@@ -663,6 +663,50 @@ ipcMain.on('close-window', () => {
   mainWindow?.hide();
 });
 
+// 창 이동 핸들러
+let moveInterval: NodeJS.Timeout | null = null;
+
+ipcMain.on('start-move', () => {
+  if (!mainWindow) return;
+
+  if (moveInterval) {
+    clearInterval(moveInterval);
+    moveInterval = null;
+  }
+
+  const startBounds = mainWindow.getBounds();
+  const mouseStartPos = screen.getCursorScreenPoint();
+
+  moveInterval = setInterval(() => {
+    if (!mainWindow) {
+      if (moveInterval) {
+        clearInterval(moveInterval);
+        moveInterval = null;
+      }
+      return;
+    }
+
+    const mousePos = screen.getCursorScreenPoint();
+    const deltaX = mousePos.x - mouseStartPos.x;
+    const deltaY = mousePos.y - mouseStartPos.y;
+
+    mainWindow.setBounds({
+      x: Math.round(startBounds.x + deltaX),
+      y: Math.round(startBounds.y + deltaY),
+      width: startBounds.width,
+      height: startBounds.height,
+    });
+  }, 16);
+});
+
+ipcMain.on('stop-move', () => {
+  if (moveInterval) {
+    clearInterval(moveInterval);
+    moveInterval = null;
+    saveWindowBounds();
+  }
+});
+
 // 팝업 창 열기 (Desktop Mode에서도 앞에 표시됨)
 ipcMain.on('open-popup', (_, data: { type: string; date: string; event?: CalendarEvent; x: number; y: number }) => {
   createPopupWindow(data);

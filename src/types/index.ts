@@ -33,6 +33,8 @@ export interface ElectronAPI {
   sendToDesktop: () => void;
   startResize: (direction: string) => void;
   stopResize: () => void;
+  startMove: () => void;
+  stopMove: () => void;
   onSettingsUpdated: (callback: (settings: Partial<Settings>) => void) => void;
   // 팝업 관련 API
   openPopup: (data: PopupData) => void;
