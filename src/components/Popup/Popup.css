@@ -177,6 +177,117 @@
   padding-left: 44px;
 }
 
+/* Custom Time Picker */
+.popup-time-picker {
+  position: relative;
+}
+
+.popup-time-button {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-color);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.15s;
+}
+
+.popup-time-button:hover {
+  border-color: var(--text-muted);
+}
+
+.popup-time-button span {
+  flex: 1;
+  text-align: left;
+}
+
+/* 수평 시간 선택기 */
+.time-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-select-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.time-select-btn {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  transition: all 0.15s;
+}
+
+.time-select-btn:hover {
+  border-color: var(--text-muted);
+}
+
+.time-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.time-dropdown-item {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--text-color);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.1s;
+}
+
+.time-dropdown-item:hover {
+  background: var(--bg-cell-hover);
+}
+
+.time-dropdown-item.selected {
+  background: var(--accent-color);
+  color: white;
+  font-weight: 500;
+}
+
+.time-clear-btn-inline {
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.time-clear-btn-inline:hover {
+  background: var(--bg-cell-hover);
+  color: var(--text-color);
+}
+
 /* Textarea */
 .popup-textarea {
   width: 100%;

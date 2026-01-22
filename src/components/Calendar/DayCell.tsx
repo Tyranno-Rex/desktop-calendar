@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { getDay } from 'date-fns';
 import type { CalendarEvent } from '../../types';
 import './Calendar.css';
@@ -9,6 +9,14 @@ const getLocalDateString = (date: Date) => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+};
+
+// 시간 비교 함수 (시간 없으면 맨 뒤로)
+const compareTime = (a: CalendarEvent, b: CalendarEvent) => {
+  if (!a.time && !b.time) return 0;
+  if (!a.time) return 1;
+  if (!b.time) return -1;
+  return a.time.localeCompare(b.time);
 };
 
 interface DayCellProps {
@@ -49,9 +57,16 @@ export const DayCell = memo(function DayCell({
     .filter(Boolean)
     .join(' ');
 
+  // 이벤트 정렬: 미완료(시간순) -> 완료(시간순)
+  const sortedEvents = useMemo(() => {
+    const incomplete = events.filter(e => !e.completed).sort(compareTime);
+    const completed = events.filter(e => e.completed).sort(compareTime);
+    return [...incomplete, ...completed];
+  }, [events]);
+
   const maxVisibleEvents = 3;
-  const visibleEvents = events.slice(0, maxVisibleEvents);
-  const remainingCount = events.length - maxVisibleEvents;
+  const visibleEvents = sortedEvents.slice(0, maxVisibleEvents);
+  const remainingCount = sortedEvents.length - maxVisibleEvents;
 
   return (
     <div
@@ -66,9 +81,9 @@ export const DayCell = memo(function DayCell({
         </span>
 
         {/* 패널이 열려있을 때: 점으로 표시 */}
-        {!showEventDetails && events.length > 0 && (
+        {!showEventDetails && sortedEvents.length > 0 && (
           <div className="day-dots">
-            {Array.from({ length: Math.min(events.length, 3) }).map((_, i) => (
+            {Array.from({ length: Math.min(sortedEvents.length, 3) }).map((_, i) => (
               <div
                 key={i}
                 className="day-dot"
@@ -78,7 +93,7 @@ export const DayCell = memo(function DayCell({
         )}
 
         {/* 패널이 닫혀있을 때: 이벤트 상세 표시 (시간+제목) */}
-        {showEventDetails && events.length > 0 && (
+        {showEventDetails && sortedEvents.length > 0 && (
           <div className="day-events-detail">
             {visibleEvents.map((event) => (
               <div

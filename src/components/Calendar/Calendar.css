@@ -7,33 +7,35 @@
   height: 100%;
 }
 
-/* Header - Reference style: 좌측 월/년, 우측 네비게이션 */
+/* Header - 중앙 네비게이션, 우측 Today */
 .calendar-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 16px 24px;
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
+  position: relative;
+}
+
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .month-year {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  min-width: 140px;
+  justify-content: center;
 }
 
 .month-year span {
-  font-size: 24px;
-  font-weight: 400;
+  font-size: 20px;
+  font-weight: 500;
   color: var(--text-color);
   letter-spacing: -0.5px;
-}
-
-.nav-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .nav-btn {
@@ -55,20 +57,33 @@
   color: var(--text-color);
 }
 
-.today-btn {
-  background: var(--accent-color);
-  border: none;
-  color: white;
-  font-size: 14px;
+.nav-btn.nav-arrow {
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
   font-weight: 500;
-  padding: 8px 16px;
-  border-radius: 8px;
+}
+
+.nav-btn.nav-arrow:hover {
+  color: var(--accent-color);
+}
+
+.today-btn {
+  position: absolute;
+  right: 24px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .today-btn:hover {
-  background: var(--accent-hover);
+  color: var(--accent-color);
 }
 
 /* Calendar Grid - Reference style */

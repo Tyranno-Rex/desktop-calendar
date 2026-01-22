@@ -104,32 +104,42 @@ export function SettingsPanel({
             <label>
               Opacity: {Math.round(settings.opacity * 100)}%
             </label>
-            <input
-              type="range"
-              min="30"
-              max="100"
-              value={settings.opacity * 100}
-              onChange={(e) =>
-                onUpdateSettings({ opacity: Number(e.target.value) / 100 })
-              }
-              className="slider"
-            />
+            <div className="stepper-control">
+              <button
+                className="stepper-btn"
+                onClick={() => onUpdateSettings({ opacity: Math.max(0.3, settings.opacity - 0.1) })}
+              >
+                -
+              </button>
+              <span className="stepper-value">{Math.round(settings.opacity * 100)}%</span>
+              <button
+                className="stepper-btn"
+                onClick={() => onUpdateSettings({ opacity: Math.min(1, settings.opacity + 0.1) })}
+              >
+                +
+              </button>
+            </div>
           </div>
 
           <div className="setting-item">
             <label>
               Font Size: {settings.fontSize}px
             </label>
-            <input
-              type="range"
-              min="10"
-              max="20"
-              value={settings.fontSize}
-              onChange={(e) =>
-                onUpdateSettings({ fontSize: Number(e.target.value) })
-              }
-              className="slider"
-            />
+            <div className="stepper-control">
+              <button
+                className="stepper-btn"
+                onClick={() => onUpdateSettings({ fontSize: Math.max(10, settings.fontSize - 1) })}
+              >
+                -
+              </button>
+              <span className="stepper-value">{settings.fontSize}px</span>
+              <button
+                className="stepper-btn"
+                onClick={() => onUpdateSettings({ fontSize: Math.min(20, settings.fontSize + 1) })}
+              >
+                +
+              </button>
+            </div>
           </div>
 
           <div className="setting-item">

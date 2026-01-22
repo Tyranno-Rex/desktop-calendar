@@ -35,11 +35,20 @@ export function SchedulePanel({
     if (!selectedDate) return [];
     const dateStr = getLocalDateString(selectedDate);
     const filtered = events.filter((event) => event.date === dateStr);
-    // 완료된 항목을 아래로 정렬
-    return filtered.sort((a, b) => {
-      if (a.completed === b.completed) return 0;
-      return a.completed ? 1 : -1;
-    });
+
+    // 시간 비교 함수 (시간 없으면 맨 뒤로)
+    const compareTime = (a: CalendarEvent, b: CalendarEvent) => {
+      if (!a.time && !b.time) return 0;
+      if (!a.time) return 1;
+      if (!b.time) return -1;
+      return a.time.localeCompare(b.time);
+    };
+
+    // 완료 여부로 분리 후 각각 시간순 정렬
+    const incomplete = filtered.filter(e => !e.completed).sort(compareTime);
+    const completed = filtered.filter(e => e.completed).sort(compareTime);
+
+    return [...incomplete, ...completed];
   }, [selectedDate, events]);
 
   const formatDate = (date: Date | null) => {
