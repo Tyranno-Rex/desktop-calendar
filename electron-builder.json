@@ -8,10 +8,15 @@
     "dist/**/*",
     "dist-electron/**/*"
   ],
+  "asar": true,
+  "asarUnpack": [
+    "**/*.node"
+  ],
   "win": {
     "target": ["nsis", "portable"],
     "icon": "public/icon.png",
-    "signAndEditExecutable": false
+    "signAndEditExecutable": false,
+    "extraResources": []
   },
   "mac": {
     "target": ["dmg", "zip"],

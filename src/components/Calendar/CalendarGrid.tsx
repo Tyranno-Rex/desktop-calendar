@@ -14,6 +14,7 @@ interface CalendarGridProps {
   onSelectDate: (date: Date) => void;
   onOpenDate: (date: Date, e: React.MouseEvent) => void;
   onEventClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
+  showEventDetails?: boolean;
 }
 
 export function CalendarGrid({
@@ -25,6 +26,7 @@ export function CalendarGrid({
   onSelectDate,
   onOpenDate,
   onEventClick,
+  showEventDetails = false,
 }: CalendarGridProps) {
   return (
     <div className="calendar-grid">
@@ -47,6 +49,7 @@ export function CalendarGrid({
             onClick={() => onSelectDate(date)}
             onDoubleClick={(e) => onOpenDate(date, e)}
             onEventClick={onEventClick}
+            showEventDetails={showEventDetails}
           />
         ))}
       </div>

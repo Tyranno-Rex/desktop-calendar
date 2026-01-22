@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
+import { AnimatePresence } from 'motion/react';
 import { Calendar } from './components/Calendar';
 import { EventModal, DayDetailModal } from './components/Event';
 import { SettingsPanel } from './components/Settings';
+import { SchedulePanel } from './components/SchedulePanel';
 import { TitleBar } from './components/TitleBar';
 import { ResizeHandle } from './components/ResizeHandle';
 import { useEvents } from './hooks/useEvents';
@@ -11,13 +13,14 @@ import type { CalendarEvent } from './types';
 import './App.css';
 
 function App() {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [showSettings, setShowSettings] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showDayDetail, setShowDayDetail] = useState(false);
+  const [showSchedulePanel, setShowSchedulePanel] = useState(true);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | undefined>();
 
-  const { addEvent, updateEvent, deleteEvent, getEventsForDate, refreshEvents, loading: eventsLoading } = useEvents();
+  const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, refreshEvents, loading: eventsLoading } = useEvents();
   const { settings, updateSettings, loading: settingsLoading } = useSettings();
 
   // 팝업에서 이벤트가 변경되면 메인 창에서 새로고침
@@ -97,10 +100,13 @@ function App() {
     });
   }, []);
 
-  // 단일 클릭: 날짜 선택만
+  // 단일 클릭: 날짜 선택 + 패널 열기
   const handleSelectDate = useCallback((date: Date) => {
     setSelectedDate(date);
-  }, []);
+    if (!showSchedulePanel) {
+      setShowSchedulePanel(true);
+    }
+  }, [showSchedulePanel]);
 
   // 더블 클릭: 팝업/모달 열기
   const handleOpenDate = useCallback((date: Date, clickEvent: React.MouseEvent) => {
@@ -184,6 +190,16 @@ function App() {
     await deleteEvent(id);
   };
 
+  // 패널에서 일정 추가
+  const handlePanelAddEvent = useCallback(async (event: Omit<CalendarEvent, 'id'>) => {
+    await addEvent(event);
+  }, [addEvent]);
+
+  // 패널에서 일정 삭제
+  const handlePanelDeleteEvent = useCallback(async (id: string) => {
+    await deleteEvent(id);
+  }, [deleteEvent]);
+
   const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
 
   if (eventsLoading || settingsLoading) {
@@ -197,16 +213,40 @@ function App() {
 
   return (
     <div className={`app ${settings.theme}`} style={{ fontSize: settings.fontSize }}>
-      <TitleBar onSettings={() => setShowSettings(true)} resizeMode={settings.resizeMode} />
+      <TitleBar
+        onSettings={() => setShowSettings(true)}
+        resizeMode={settings.resizeMode}
+        showPanelToggle={!settings.desktopMode}
+        isPanelOpen={showSchedulePanel}
+        onTogglePanel={() => setShowSchedulePanel(!showSchedulePanel)}
+      />
 
       <div className="app-content">
-        <Calendar
-          getEventsForDate={getEventsForDate}
-          onSelectDate={handleSelectDate}
-          onOpenDate={handleOpenDate}
-          onEventClick={handleEventClick}
-          selectedDate={selectedDate}
-        />
+        <div className={`app-main ${showSchedulePanel ? 'with-panel' : ''}`}>
+          <Calendar
+            getEventsForDate={getEventsForDate}
+            onSelectDate={handleSelectDate}
+            onOpenDate={handleOpenDate}
+            onEventClick={handleEventClick}
+            selectedDate={selectedDate}
+            showEventDetails={!showSchedulePanel}
+          />
+        </div>
+
+        {/* 사이드 패널 - Desktop Mode가 아닐 때만 표시 */}
+        {!settings.desktopMode && (
+          <AnimatePresence>
+            {showSchedulePanel && (
+              <SchedulePanel
+                selectedDate={selectedDate}
+                events={events}
+                onAddEvent={handlePanelAddEvent}
+                onEditEvent={handleEditEvent}
+                onDeleteEvent={handlePanelDeleteEvent}
+              />
+            )}
+          </AnimatePresence>
+        )}
       </div>
 
       {/* 리사이즈 핸들 - 4방향 모서리 */}

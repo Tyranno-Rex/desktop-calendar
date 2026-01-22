@@ -2,8 +2,10 @@ export interface CalendarEvent {
   id: string;
   title: string;
   date: string;
+  time?: string;
   description?: string;
   color?: string;
+  completed?: boolean;
 }
 
 export interface Settings {

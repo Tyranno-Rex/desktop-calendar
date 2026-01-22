@@ -1,27 +1,38 @@
 :root {
-  --bg-primary: rgba(15, 15, 20, 0.88);
-  --bg-secondary: rgba(25, 25, 32, 0.95);
-  --bg-cell: rgba(255, 255, 255, 0.02);
-  --bg-cell-hover: rgba(255, 255, 255, 0.06);
-  --text-color: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.55);
-  --text-muted: rgba(255, 255, 255, 0.3);
-  --accent-color: #5ba0f5;
-  --border-color: rgba(255, 255, 255, 0.06);
-  --weekend-color: #ff6b6b;
+  /* Light theme (default) - Reference style */
+  --bg-primary: #ffffff;
+  --bg-secondary: #ffffff;
+  --bg-cell: #ffffff;
+  --bg-cell-hover: #f9fafb;
+  --text-color: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --accent-color: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-light: #eff6ff;
+  --accent-text: #1d4ed8;
+  --border-color: #e5e7eb;
+  --weekend-color: #ef4444;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
-.app.light {
-  --bg-primary: rgba(255, 255, 255, 0.88);
-  --bg-secondary: rgba(248, 248, 252, 0.95);
-  --bg-cell: rgba(0, 0, 0, 0.015);
-  --bg-cell-hover: rgba(0, 0, 0, 0.04);
-  --text-color: #1a1a2e;
-  --text-secondary: rgba(0, 0, 0, 0.55);
-  --text-muted: rgba(0, 0, 0, 0.25);
+.app.dark {
+  --bg-primary: rgba(17, 24, 39, 0.95);
+  --bg-secondary: rgba(31, 41, 55, 0.98);
+  --bg-cell: rgba(55, 65, 81, 0.3);
+  --bg-cell-hover: rgba(55, 65, 81, 0.5);
+  --text-color: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
   --accent-color: #3b82f6;
-  --border-color: rgba(0, 0, 0, 0.06);
-  --weekend-color: #ef4444;
+  --accent-hover: #60a5fa;
+  --accent-light: rgba(59, 130, 246, 0.15);
+  --accent-text: #93c5fd;
+  --border-color: rgba(75, 85, 99, 0.5);
+  --weekend-color: #f87171;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
 }
 
 * {
@@ -34,7 +45,7 @@ body {
   margin: 0;
   padding: 0;
   background: transparent;
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -50,20 +61,34 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
-  border-radius: 0;
   overflow: hidden;
+  position: relative;
+}
+
+.app.dark {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--border-color);
-  position: relative;
 }
 
 .app-content {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   overflow: hidden;
   min-height: 0;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  transition: flex 0.3s ease;
+}
+
+.app-main.with-panel {
+  flex: 3;
 }
 
 .app-content.loading {
@@ -162,7 +187,7 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -170,10 +195,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 2px;
+  background: var(--border-color);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--text-muted);
 }
