@@ -26,7 +26,7 @@ function App() {
   const [showSchedulePanel, setShowSchedulePanel] = useState(true);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | undefined>();
 
-  const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, refreshEvents, loading: eventsLoading } = useEvents();
+  const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, refreshEvents, syncWithGoogle, loading: eventsLoading } = useEvents();
   const { settings, updateSettings, loading: settingsLoading } = useSettings();
 
   // 팝업에서 이벤트가 변경되면 메인 창에서 새로고침
@@ -288,6 +288,7 @@ function App() {
           settings={settings}
           onUpdateSettings={updateSettings}
           onClose={() => setShowSettings(false)}
+          onGoogleSync={syncWithGoogle}
         />
       )}
     </div>

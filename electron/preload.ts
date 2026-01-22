@@ -64,4 +64,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onDesktopDblClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
     ipcRenderer.on('desktop-dblclick', (_, data) => callback(data));
   },
+
+  // Google Calendar API
+  googleAuthStatus: (): Promise<boolean> => ipcRenderer.invoke('google-auth-status'),
+  googleAuthLogin: (): Promise<{ success: boolean; error?: string }> => ipcRenderer.invoke('google-auth-login'),
+  googleAuthLogout: (): Promise<{ success: boolean }> => ipcRenderer.invoke('google-auth-logout'),
+  googleCalendarGetEvents: (timeMin?: string, timeMax?: string): Promise<{ success: boolean; events?: any[]; error?: string }> =>
+    ipcRenderer.invoke('google-calendar-get-events', timeMin, timeMax),
+  googleCalendarCreateEvent: (event: any): Promise<{ success: boolean; event?: any; error?: string }> =>
+    ipcRenderer.invoke('google-calendar-create-event', event),
+  googleCalendarUpdateEvent: (googleEventId: string, updates: any): Promise<{ success: boolean; event?: any; error?: string }> =>
+    ipcRenderer.invoke('google-calendar-update-event', googleEventId, updates),
+  googleCalendarDeleteEvent: (googleEventId: string): Promise<{ success: boolean; error?: string }> =>
+    ipcRenderer.invoke('google-calendar-delete-event', googleEventId),
 });

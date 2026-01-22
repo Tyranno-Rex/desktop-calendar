@@ -6,6 +6,8 @@ export interface CalendarEvent {
   description?: string;
   color?: string;
   completed?: boolean;
+  googleEventId?: string;
+  isGoogleEvent?: boolean;
 }
 
 export interface Settings {
@@ -52,6 +54,14 @@ export interface ElectronAPI {
   onDesktopMouseMove: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
   onDesktopMouseUp: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
   onDesktopDblClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
+  // Google Calendar API
+  googleAuthStatus: () => Promise<boolean>;
+  googleAuthLogin: () => Promise<{ success: boolean; error?: string }>;
+  googleAuthLogout: () => Promise<{ success: boolean }>;
+  googleCalendarGetEvents: (timeMin?: string, timeMax?: string) => Promise<{ success: boolean; events?: any[]; error?: string }>;
+  googleCalendarCreateEvent: (event: any) => Promise<{ success: boolean; event?: any; error?: string }>;
+  googleCalendarUpdateEvent: (googleEventId: string, updates: any) => Promise<{ success: boolean; event?: any; error?: string }>;
+  googleCalendarDeleteEvent: (googleEventId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 declare global {

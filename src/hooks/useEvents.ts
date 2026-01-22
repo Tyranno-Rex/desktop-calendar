@@ -13,9 +13,19 @@ const getLocalDateString = (date: Date) => {
 export function useEvents() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [googleConnected, setGoogleConnected] = useState(false);
 
   useEffect(() => {
     loadEvents();
+    checkGoogleAuth();
+  }, []);
+
+  // Google 인증 상태 확인
+  const checkGoogleAuth = useCallback(async () => {
+    if (window.electronAPI?.googleAuthStatus) {
+      const isConnected = await window.electronAPI.googleAuthStatus();
+      setGoogleConnected(isConnected);
+    }
   }, []);
 
   const loadEvents = useCallback(async () => {
@@ -36,9 +46,55 @@ export function useEvents() {
     }
   }, []);
 
+  // Google Calendar에서 이벤트 가져와서 병합
+  const syncWithGoogle = useCallback(async () => {
+    if (!window.electronAPI?.googleCalendarGetEvents) return;
+
+    try {
+      const result = await window.electronAPI.googleCalendarGetEvents();
+      if (result.success && result.events) {
+        // 현재 로컬 이벤트 가져오기
+        const localEvents = await window.electronAPI.getEvents();
+
+        // Google 이벤트와 로컬 이벤트 병합
+        const googleEvents = result.events.map((ge: any) => ({
+          id: ge.id,
+          title: ge.title,
+          date: ge.date,
+          time: ge.time,
+          description: ge.description,
+          googleEventId: ge.googleEventId,
+          isGoogleEvent: true,
+        }));
+
+        // 로컬 이벤트 중 Google 이벤트가 아닌 것만 유지
+        const localOnlyEvents = localEvents.filter(
+          (e: CalendarEvent) => !e.googleEventId && !e.isGoogleEvent
+        );
+
+        // 병합
+        const mergedEvents = [...localOnlyEvents, ...googleEvents];
+        setEvents(mergedEvents);
+        await window.electronAPI.saveEvents(mergedEvents);
+
+        console.log('Google Calendar synced:', googleEvents.length, 'events');
+      }
+    } catch (error) {
+      console.error('Failed to sync with Google Calendar:', error);
+    }
+  }, []);
+
   const refreshEvents = useCallback(async () => {
     await loadEvents();
-  }, [loadEvents]);
+
+    // Google 연결되어 있으면 동기화도 실행
+    if (window.electronAPI?.googleAuthStatus) {
+      const isConnected = await window.electronAPI.googleAuthStatus();
+      if (isConnected) {
+        await syncWithGoogle();
+      }
+    }
+  }, [loadEvents, syncWithGoogle]);
 
   const saveEvents = useCallback(async (newEvents: CalendarEvent[]) => {
     try {
@@ -57,6 +113,30 @@ export function useEvents() {
       ...event,
       id: uuidv4(),
     };
+
+    // Google 연결되어 있으면 Google에도 추가
+    if (window.electronAPI?.googleAuthStatus) {
+      const isConnected = await window.electronAPI.googleAuthStatus();
+      if (isConnected && window.electronAPI.googleCalendarCreateEvent) {
+        try {
+          const result = await window.electronAPI.googleCalendarCreateEvent({
+            title: newEvent.title,
+            date: newEvent.date,
+            time: newEvent.time,
+            description: newEvent.description,
+          });
+
+          if (result.success && result.event) {
+            // Google에서 생성된 이벤트 정보로 업데이트
+            newEvent.googleEventId = result.event.googleEventId;
+            newEvent.isGoogleEvent = true;
+          }
+        } catch (error) {
+          console.error('Failed to create Google event:', error);
+        }
+      }
+    }
+
     const newEvents = [...events, newEvent];
     setEvents(newEvents);
     await saveEvents(newEvents);
@@ -64,6 +144,20 @@ export function useEvents() {
   }, [events, saveEvents]);
 
   const updateEvent = useCallback(async (id: string, updates: Partial<CalendarEvent>) => {
+    const eventToUpdate = events.find(e => e.id === id);
+
+    // Google 이벤트면 Google에도 업데이트
+    if (eventToUpdate?.googleEventId && window.electronAPI?.googleCalendarUpdateEvent) {
+      try {
+        await window.electronAPI.googleCalendarUpdateEvent(
+          eventToUpdate.googleEventId,
+          updates
+        );
+      } catch (error) {
+        console.error('Failed to update Google event:', error);
+      }
+    }
+
     const newEvents = events.map((event) =>
       event.id === id ? { ...event, ...updates } : event
     );
@@ -72,6 +166,17 @@ export function useEvents() {
   }, [events, saveEvents]);
 
   const deleteEvent = useCallback(async (id: string) => {
+    const eventToDelete = events.find(e => e.id === id);
+
+    // Google 이벤트면 Google에서도 삭제
+    if (eventToDelete?.googleEventId && window.electronAPI?.googleCalendarDeleteEvent) {
+      try {
+        await window.electronAPI.googleCalendarDeleteEvent(eventToDelete.googleEventId);
+      } catch (error) {
+        console.error('Failed to delete Google event:', error);
+      }
+    }
+
     const newEvents = events.filter((event) => event.id !== id);
     setEvents(newEvents);
     await saveEvents(newEvents);
@@ -96,5 +201,7 @@ export function useEvents() {
     getEventsForDate,
     hasEventsOnDate,
     refreshEvents,
+    syncWithGoogle,
+    googleConnected,
   };
 }

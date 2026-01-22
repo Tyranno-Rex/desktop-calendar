@@ -1,7 +1,11 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, screen, nativeImage } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, screen, nativeImage, safeStorage } from 'electron';
 import type { NativeImage } from 'electron';
 import path from 'path';
 import fs from 'fs';
+
+// Google Calendar 연동 - 동적 import 사용
+let googleAuth: typeof import('./googleAuth') | null = null;
+let googleCalendar: typeof import('./googleCalendar') | null = null;
 
 // Windows API for desktop mode
 let koffi: typeof import('koffi') | null = null;
@@ -156,7 +160,8 @@ let popupReady = false;
 let pendingPopupData: { type: string; date: string; event?: CalendarEvent; x: number; y: number } | null = null;
 let tray: TrayType | null = null;
 
-const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+// getIsDev()는 함수로 변경 (app 초기화 후에 호출해야 함)
+const getIsDev = () => process.env.NODE_ENV === 'development' || !app.isPackaged;
 
 // Desktop Mode 관련 변수
 let desktopModeEnabled = false;
@@ -527,7 +532,7 @@ function createWindow() {
     });
   }
 
-  if (isDev) {
+  if (getIsDev()) {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
@@ -550,7 +555,7 @@ function saveWindowBounds() {
 }
 
 function createTray() {
-  const iconPath = isDev
+  const iconPath = getIsDev()
     ? path.join(__dirname, '../public/icon.png')
     : path.join(__dirname, '../dist/icon.png');
 
@@ -614,141 +619,145 @@ function createTray() {
   });
 }
 
-// IPC Handlers
-ipcMain.handle('get-settings', () => {
-  return store.get('settings') || {
-    opacity: 0.95,
-    alwaysOnTop: false,
-    desktopMode: false,
-    theme: 'dark',
-    fontSize: 14,
-    resizeMode: false,
-  };
-});
+// IPC Handlers - app.whenReady() 이후에 등록됨
+function registerIpcHandlers() {
+  ipcMain.handle('get-settings', () => {
+    return store.get('settings') || {
+      opacity: 0.95,
+      alwaysOnTop: false,
+      desktopMode: false,
+      theme: 'dark',
+      fontSize: 14,
+      resizeMode: false,
+    };
+  });
 
-ipcMain.handle('save-settings', (_, settings: Settings) => {
-  store.set('settings', settings);
-  if (mainWindow) {
-    mainWindow.setOpacity(settings.opacity);
-    mainWindow.setResizable(settings.resizeMode);
+  ipcMain.handle('save-settings', (_, settings: Settings) => {
+    store.set('settings', settings);
+    if (mainWindow) {
+      mainWindow.setOpacity(settings.opacity);
+      mainWindow.setResizable(settings.resizeMode);
 
-    if (settings.desktopMode) {
-      // Desktop Mode: Z-order 맨 뒤로
-      enableDesktopMode();
-    } else {
-      // Desktop Mode 해제
-      disableDesktopMode();
-      mainWindow.setAlwaysOnTop(settings.alwaysOnTop);
+      if (settings.desktopMode) {
+        // Desktop Mode: Z-order 맨 뒤로
+        enableDesktopMode();
+      } else {
+        // Desktop Mode 해제
+        disableDesktopMode();
+        mainWindow.setAlwaysOnTop(settings.alwaysOnTop);
+      }
     }
-  }
-  return true;
-});
+    return true;
+  });
 
-ipcMain.handle('get-events', () => {
-  return store.get('events') || [];
-});
+  ipcMain.handle('get-events', () => {
+    return store.get('events') || [];
+  });
 
-ipcMain.handle('save-events', (_, events: CalendarEvent[]) => {
-  store.set('events', events);
-  return true;
-});
+  ipcMain.handle('save-events', (_, events: CalendarEvent[]) => {
+    store.set('events', events);
+    return true;
+  });
 
-ipcMain.on('minimize-window', () => {
-  mainWindow?.minimize();
-});
+  ipcMain.on('minimize-window', () => {
+    mainWindow?.minimize();
+  });
 
-ipcMain.on('close-window', () => {
-  app.quit();
-});
+  ipcMain.on('close-window', () => {
+    app.quit();
+  });
 
-// 창 이동 핸들러
+  // 팝업 창 열기 (Desktop Mode에서도 앞에 표시됨)
+  ipcMain.on('open-popup', (_, data: { type: string; date: string; event?: CalendarEvent; x: number; y: number }) => {
+    createPopupWindow(data);
+  });
+
+  // 팝업 창 닫기 (숨기기로 변경)
+  ipcMain.on('close-popup', () => {
+    hidePopup();
+  });
+
+  // 팝업에서 이벤트 저장
+  ipcMain.handle('popup-save-event', (_, event: CalendarEvent) => {
+    const events = store.get('events') || [];
+    const existingIndex = events.findIndex(e => e.id === event.id);
+
+    if (existingIndex >= 0) {
+      events[existingIndex] = event;
+    } else {
+      events.push(event);
+    }
+
+    store.set('events', events);
+
+    // 메인 윈도우에 이벤트 업데이트 알림
+    if (mainWindow) {
+      mainWindow.webContents.send('events-updated', events);
+    }
+
+    return true;
+  });
+
+  // 팝업에서 이벤트 삭제
+  ipcMain.handle('popup-delete-event', (_, eventId: string) => {
+    const events = store.get('events') || [];
+    const filtered = events.filter(e => e.id !== eventId);
+    store.set('events', filtered);
+
+    // 메인 윈도우에 이벤트 업데이트 알림
+    if (mainWindow) {
+      mainWindow.webContents.send('events-updated', filtered);
+    }
+
+    return true;
+  });
+}
+
+// 창 이동 핸들러 - app.whenReady() 이후에 등록됨
 let moveInterval: NodeJS.Timeout | null = null;
 
-ipcMain.on('start-move', () => {
-  if (!mainWindow) return;
+function registerMoveHandlers() {
+  ipcMain.on('start-move', () => {
+    if (!mainWindow) return;
 
-  if (moveInterval) {
-    clearInterval(moveInterval);
-    moveInterval = null;
-  }
-
-  const startBounds = mainWindow.getBounds();
-  const mouseStartPos = screen.getCursorScreenPoint();
-
-  moveInterval = setInterval(() => {
-    if (!mainWindow) {
-      if (moveInterval) {
-        clearInterval(moveInterval);
-        moveInterval = null;
-      }
-      return;
+    if (moveInterval) {
+      clearInterval(moveInterval);
+      moveInterval = null;
     }
 
-    const mousePos = screen.getCursorScreenPoint();
-    const deltaX = mousePos.x - mouseStartPos.x;
-    const deltaY = mousePos.y - mouseStartPos.y;
+    const startBounds = mainWindow.getBounds();
+    const mouseStartPos = screen.getCursorScreenPoint();
 
-    mainWindow.setBounds({
-      x: Math.round(startBounds.x + deltaX),
-      y: Math.round(startBounds.y + deltaY),
-      width: startBounds.width,
-      height: startBounds.height,
-    });
-  }, 16);
-});
+    moveInterval = setInterval(() => {
+      if (!mainWindow) {
+        if (moveInterval) {
+          clearInterval(moveInterval);
+          moveInterval = null;
+        }
+        return;
+      }
 
-ipcMain.on('stop-move', () => {
-  if (moveInterval) {
-    clearInterval(moveInterval);
-    moveInterval = null;
-    saveWindowBounds();
-  }
-});
+      const mousePos = screen.getCursorScreenPoint();
+      const deltaX = mousePos.x - mouseStartPos.x;
+      const deltaY = mousePos.y - mouseStartPos.y;
 
-// 팝업 창 열기 (Desktop Mode에서도 앞에 표시됨)
-ipcMain.on('open-popup', (_, data: { type: string; date: string; event?: CalendarEvent; x: number; y: number }) => {
-  createPopupWindow(data);
-});
+      mainWindow.setBounds({
+        x: Math.round(startBounds.x + deltaX),
+        y: Math.round(startBounds.y + deltaY),
+        width: startBounds.width,
+        height: startBounds.height,
+      });
+    }, 16);
+  });
 
-// 팝업 창 닫기 (숨기기로 변경)
-ipcMain.on('close-popup', () => {
-  hidePopup();
-});
-
-// 팝업에서 이벤트 저장
-ipcMain.handle('popup-save-event', (_, event: CalendarEvent) => {
-  const events = store.get('events') || [];
-  const existingIndex = events.findIndex(e => e.id === event.id);
-
-  if (existingIndex >= 0) {
-    events[existingIndex] = event;
-  } else {
-    events.push(event);
-  }
-
-  store.set('events', events);
-
-  // 메인 윈도우에 이벤트 업데이트 알림
-  if (mainWindow) {
-    mainWindow.webContents.send('events-updated', events);
-  }
-
-  return true;
-});
-
-// 팝업에서 이벤트 삭제
-ipcMain.handle('popup-delete-event', (_, eventId: string) => {
-  const events = store.get('events') || [];
-  const filtered = events.filter(e => e.id !== eventId);
-  store.set('events', filtered);
-
-  // 메인 윈도우에 이벤트 업데이트 알림
-  if (mainWindow) {
-    mainWindow.webContents.send('events-updated', filtered);
-  }
-
-  return true;
-});
+  ipcMain.on('stop-move', () => {
+    if (moveInterval) {
+      clearInterval(moveInterval);
+      moveInterval = null;
+      saveWindowBounds();
+    }
+  });
+}
 
 // 팝업 창 미리 생성 (속도 개선)
 function preCreatePopupWindow() {
@@ -782,7 +791,7 @@ function preCreatePopupWindow() {
   popupWindow.setOpacity(savedSettings?.opacity ?? 0.95);
 
   // 팝업 기본 페이지 로드
-  if (isDev) {
+  if (getIsDev()) {
     popupWindow.loadURL('http://localhost:5173/#/popup');
   } else {
     popupWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
@@ -868,86 +877,219 @@ function createPopupWindow(data: { type: string; date: string; event?: CalendarE
   }
 }
 
-// 리사이즈 핸들러
+// 리사이즈 핸들러 - app.whenReady() 이후에 등록됨
 let resizeInterval: NodeJS.Timeout | null = null;
 const MIN_WIDTH = 300;
 const MIN_HEIGHT = 400;
 
-ipcMain.on('start-resize', (_, direction: string) => {
-  if (!mainWindow) return;
+function registerResizeHandlers() {
+  ipcMain.on('start-resize', (_, direction: string) => {
+    if (!mainWindow) return;
 
-  // 이전 리사이즈가 진행 중이면 중지
-  if (resizeInterval) {
-    clearInterval(resizeInterval);
-    resizeInterval = null;
-  }
+    // 이전 리사이즈가 진행 중이면 중지
+    if (resizeInterval) {
+      clearInterval(resizeInterval);
+      resizeInterval = null;
+    }
 
-  const startBounds = mainWindow.getBounds();
-  const mouseStartPos = screen.getCursorScreenPoint();
+    const startBounds = mainWindow.getBounds();
+    const mouseStartPos = screen.getCursorScreenPoint();
 
-  resizeInterval = setInterval(() => {
-    if (!mainWindow) {
-      if (resizeInterval) {
-        clearInterval(resizeInterval);
-        resizeInterval = null;
+    resizeInterval = setInterval(() => {
+      if (!mainWindow) {
+        if (resizeInterval) {
+          clearInterval(resizeInterval);
+          resizeInterval = null;
+        }
+        return;
       }
-      return;
-    }
 
-    const mousePos = screen.getCursorScreenPoint();
-    const deltaX = mousePos.x - mouseStartPos.x;
-    const deltaY = mousePos.y - mouseStartPos.y;
+      const mousePos = screen.getCursorScreenPoint();
+      const deltaX = mousePos.x - mouseStartPos.x;
+      const deltaY = mousePos.y - mouseStartPos.y;
 
-    let newX = startBounds.x;
-    let newY = startBounds.y;
-    let newWidth = startBounds.width;
-    let newHeight = startBounds.height;
+      let newX = startBounds.x;
+      let newY = startBounds.y;
+      let newWidth = startBounds.width;
+      let newHeight = startBounds.height;
 
-    // 오른쪽 (e)
-    if (direction.includes('e')) {
-      newWidth = Math.max(MIN_WIDTH, startBounds.width + deltaX);
-    }
-    // 왼쪽 (w)
-    if (direction.includes('w')) {
-      const potentialWidth = startBounds.width - deltaX;
-      if (potentialWidth >= MIN_WIDTH) {
-        newWidth = potentialWidth;
-        newX = startBounds.x + deltaX;
+      // 오른쪽 (e)
+      if (direction.includes('e')) {
+        newWidth = Math.max(MIN_WIDTH, startBounds.width + deltaX);
       }
-    }
-    // 아래쪽 (s)
-    if (direction.includes('s')) {
-      newHeight = Math.max(MIN_HEIGHT, startBounds.height + deltaY);
-    }
-    // 위쪽 (n)
-    if (direction.includes('n')) {
-      const potentialHeight = startBounds.height - deltaY;
-      if (potentialHeight >= MIN_HEIGHT) {
-        newHeight = potentialHeight;
-        newY = startBounds.y + deltaY;
+      // 왼쪽 (w)
+      if (direction.includes('w')) {
+        const potentialWidth = startBounds.width - deltaX;
+        if (potentialWidth >= MIN_WIDTH) {
+          newWidth = potentialWidth;
+          newX = startBounds.x + deltaX;
+        }
       }
+      // 아래쪽 (s)
+      if (direction.includes('s')) {
+        newHeight = Math.max(MIN_HEIGHT, startBounds.height + deltaY);
+      }
+      // 위쪽 (n)
+      if (direction.includes('n')) {
+        const potentialHeight = startBounds.height - deltaY;
+        if (potentialHeight >= MIN_HEIGHT) {
+          newHeight = potentialHeight;
+          newY = startBounds.y + deltaY;
+        }
+      }
+
+      mainWindow.setBounds({
+        x: Math.round(newX),
+        y: Math.round(newY),
+        width: Math.round(newWidth),
+        height: Math.round(newHeight),
+      });
+    }, 16);
+  });
+
+  ipcMain.on('stop-resize', () => {
+    if (resizeInterval) {
+      clearInterval(resizeInterval);
+      resizeInterval = null;
+      saveWindowBounds();
     }
+  });
+}
 
-    mainWindow.setBounds({
-      x: Math.round(newX),
-      y: Math.round(newY),
-      width: Math.round(newWidth),
-      height: Math.round(newHeight),
-    });
-  }, 16);
-});
+// ==================== Google Calendar IPC Handlers ====================
+// Note: 이 핸들러들은 app.whenReady() 이후에 등록됨 (동적 import 때문)
+function registerGoogleIpcHandlers() {
+  if (!googleAuth || !googleCalendar) return;
 
-ipcMain.on('stop-resize', () => {
-  if (resizeInterval) {
-    clearInterval(resizeInterval);
-    resizeInterval = null;
-    saveWindowBounds();
-  }
-});
+  // Google 인증 상태 확인
+  ipcMain.handle('google-auth-status', () => {
+    return googleAuth!.isAuthenticated();
+  });
 
-app.whenReady().then(() => {
+  // Google 로그인 (PKCE 방식)
+  ipcMain.handle('google-auth-login', async () => {
+    try {
+      await googleAuth!.startAuthFlow();
+      return { success: true };
+    } catch (error) {
+      console.error('Google auth failed:', error);
+      return { success: false, error: String(error) };
+    }
+  });
+
+  // Google 로그아웃
+  ipcMain.handle('google-auth-logout', () => {
+    googleAuth!.deleteToken();
+    return { success: true };
+  });
+
+  // Google Calendar 이벤트 가져오기
+  ipcMain.handle('google-calendar-get-events', async (_, timeMin?: string, timeMax?: string) => {
+    try {
+      const accessToken = await googleAuth!.getAccessToken();
+      if (!accessToken) {
+        return { success: false, error: 'Not authenticated' };
+      }
+
+      const events = await googleCalendar!.getEvents(
+        accessToken,
+        timeMin ? new Date(timeMin) : undefined,
+        timeMax ? new Date(timeMax) : undefined
+      );
+
+      return { success: true, events };
+    } catch (error) {
+      console.error('Failed to get Google Calendar events:', error);
+      return { success: false, error: String(error) };
+    }
+  });
+
+  // Google Calendar에 이벤트 생성
+  ipcMain.handle('google-calendar-create-event', async (_, event) => {
+    try {
+      const accessToken = await googleAuth!.getAccessToken();
+      if (!accessToken) {
+        return { success: false, error: 'Not authenticated' };
+      }
+
+      const created = await googleCalendar!.createEvent(accessToken, event);
+      return { success: true, event: created };
+    } catch (error) {
+      console.error('Failed to create Google Calendar event:', error);
+      return { success: false, error: String(error) };
+    }
+  });
+
+  // Google Calendar 이벤트 수정
+  ipcMain.handle('google-calendar-update-event', async (_, googleEventId: string, updates) => {
+    try {
+      const accessToken = await googleAuth!.getAccessToken();
+      if (!accessToken) {
+        return { success: false, error: 'Not authenticated' };
+      }
+
+      const updated = await googleCalendar!.updateEvent(accessToken, googleEventId, updates);
+      return { success: true, event: updated };
+    } catch (error) {
+      console.error('Failed to update Google Calendar event:', error);
+      return { success: false, error: String(error) };
+    }
+  });
+
+  // Google Calendar 이벤트 삭제
+  ipcMain.handle('google-calendar-delete-event', async (_, googleEventId: string) => {
+    try {
+      const accessToken = await googleAuth!.getAccessToken();
+      if (!accessToken) {
+        return { success: false, error: 'Not authenticated' };
+      }
+
+      await googleCalendar!.deleteEvent(accessToken, googleEventId);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to delete Google Calendar event:', error);
+      return { success: false, error: String(error) };
+    }
+  });
+}
+// ==================== End Google Calendar IPC Handlers ====================
+
+app.whenReady().then(async () => {
   initWindowsAPI();
   store = new SimpleStore();
+
+  // IPC 핸들러 등록 (app.whenReady() 이후에 등록해야 함)
+  registerIpcHandlers();
+  registerMoveHandlers();
+  registerResizeHandlers();
+
+  // Google 모듈 동적 로드
+  googleAuth = await import('./googleAuth');
+  googleCalendar = await import('./googleCalendar');
+
+  // Google Auth 초기화 (electron 함수 전달)
+  googleAuth.initGoogleAuth({
+    getUserDataPath: () => app.getPath('userData'),
+    encryptString: (str: string) => safeStorage.encryptString(str),
+    decryptString: (buf: Buffer) => safeStorage.decryptString(buf),
+    isEncryptionAvailable: () => safeStorage.isEncryptionAvailable(),
+    openAuthWindow: (url: string, onClose: () => void) => {
+      const authWindow = new BrowserWindow({
+        width: 500,
+        height: 700,
+        webPreferences: {
+          nodeIntegration: false,
+          contextIsolation: true,
+        },
+      });
+      authWindow.loadURL(url);
+      authWindow.on('closed', onClose);
+    },
+  });
+
+  // Google IPC 핸들러 등록
+  registerGoogleIpcHandlers();
+
   createWindow();
   createTray();
   // 팝업 미리 생성 (속도 개선)

@@ -34,3 +34,6 @@ release
 nul
 
 reference/
+
+# Environment files
+env/

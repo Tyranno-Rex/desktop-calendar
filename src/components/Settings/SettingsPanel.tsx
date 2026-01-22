@@ -6,17 +6,58 @@ interface SettingsPanelProps {
   settings: Settings;
   onUpdateSettings: (updates: Partial<Settings>) => void;
   onClose: () => void;
+  onGoogleSync?: () => void;
 }
 
 export function SettingsPanel({
   settings,
   onUpdateSettings,
   onClose,
+  onGoogleSync,
 }: SettingsPanelProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const dragHandleRef = useRef<HTMLDivElement>(null);
+
+  // Google 연결 상태 확인
+  useEffect(() => {
+    const checkGoogleAuth = async () => {
+      if (window.electronAPI?.googleAuthStatus) {
+        const isConnected = await window.electronAPI.googleAuthStatus();
+        setGoogleConnected(isConnected);
+      }
+    };
+    checkGoogleAuth();
+  }, []);
+
+  // Google 연결/해제
+  const handleGoogleConnect = async () => {
+    if (!window.electronAPI) return;
+
+    setGoogleLoading(true);
+    try {
+      if (googleConnected) {
+        // 연결 해제
+        await window.electronAPI.googleAuthLogout();
+        setGoogleConnected(false);
+      } else {
+        // 연결
+        const result = await window.electronAPI.googleAuthLogin();
+        if (result.success) {
+          setGoogleConnected(true);
+          // 연결 성공 후 동기화
+          onGoogleSync?.();
+        }
+      }
+    } catch (error) {
+      console.error('Google auth error:', error);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -192,6 +233,23 @@ export function SettingsPanel({
               />
               <span className="toggle-slider"></span>
             </label>
+          </div>
+
+          {/* Google Calendar 연동 */}
+          <div className="setting-item">
+            <label>
+              Google Calendar
+              <span className="setting-hint">
+                {googleConnected ? 'Connected' : 'Sync with Google'}
+              </span>
+            </label>
+            <button
+              className={`google-btn ${googleConnected ? 'connected' : ''}`}
+              onClick={handleGoogleConnect}
+              disabled={googleLoading}
+            >
+              {googleLoading ? '...' : googleConnected ? 'Disconnect' : 'Connect'}
+            </button>
           </div>
         </div>
       </div>
