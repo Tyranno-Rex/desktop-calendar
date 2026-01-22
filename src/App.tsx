@@ -216,7 +216,7 @@ function App() {
       <TitleBar
         onSettings={() => setShowSettings(true)}
         resizeMode={settings.resizeMode}
-        showPanelToggle={!settings.desktopMode}
+        showPanelToggle={true}
         isPanelOpen={showSchedulePanel}
         onTogglePanel={() => setShowSchedulePanel(!showSchedulePanel)}
       />
@@ -233,20 +233,18 @@ function App() {
           />
         </div>
 
-        {/* 사이드 패널 - Desktop Mode가 아닐 때만 표시 */}
-        {!settings.desktopMode && (
-          <AnimatePresence>
-            {showSchedulePanel && (
-              <SchedulePanel
-                selectedDate={selectedDate}
-                events={events}
-                onAddEvent={handlePanelAddEvent}
-                onEditEvent={handleEditEvent}
-                onDeleteEvent={handlePanelDeleteEvent}
-              />
-            )}
-          </AnimatePresence>
-        )}
+        {/* 사이드 패널 */}
+        <AnimatePresence>
+          {showSchedulePanel && (
+            <SchedulePanel
+              selectedDate={selectedDate}
+              events={events}
+              onAddEvent={handlePanelAddEvent}
+              onEditEvent={handleEditEvent}
+              onDeleteEvent={handlePanelDeleteEvent}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
       {/* 리사이즈 핸들 - 4방향 모서리 */}

@@ -167,7 +167,6 @@ export function EventPopup() {
               onChange={(e) => setTime(e.target.value)}
               className="popup-input popup-input-time"
             />
-            <Clock size={16} className="popup-time-icon-right" />
           </div>
         </div>
 

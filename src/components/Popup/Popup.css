@@ -173,16 +173,8 @@
   pointer-events: none;
 }
 
-.popup-time-icon-right {
-  position: absolute;
-  right: 16px;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
 .popup-input-time {
   padding-left: 44px;
-  padding-right: 44px;
 }
 
 /* Textarea */
