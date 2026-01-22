@@ -20,16 +20,16 @@
 .app.dark {
   --bg-primary: #111827;
   --bg-secondary: #1f2937;
-  --bg-cell: #374151;
-  --bg-cell-hover: #4b5563;
+  --bg-cell: #111827;
+  --bg-cell-hover: #1f2937;
   --text-color: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-muted: #9ca3af;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
   --accent-color: #3b82f6;
   --accent-hover: #60a5fa;
   --accent-light: rgba(59, 130, 246, 0.15);
   --accent-text: #93c5fd;
-  --border-color: rgba(75, 85, 99, 0.8);
+  --border-color: rgba(75, 85, 99, 0.5);
   --weekend-color: #f87171;
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);

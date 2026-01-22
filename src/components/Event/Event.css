@@ -436,28 +436,26 @@
 /* EventModal - Popup Style (release 기준 통합 UI) */
 .event-modal-popup {
   background: var(--bg-primary);
-  border-radius: 16px;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
-  width: 90%;
-  max-width: 400px;
-  max-height: 80vh;
+  width: 95%;
+  max-width: 520px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-color);
-  overflow: hidden;
 }
 
 .event-modal-popup .popup-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 24px 28px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .event-modal-popup .popup-title {
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 20px;
+  font-weight: 600;
   color: var(--text-color);
   margin: 0;
 }
@@ -467,8 +465,8 @@
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
+  padding: 8px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -481,34 +479,32 @@
 }
 
 .event-modal-popup .popup-content {
-  flex: 1;
-  padding: 24px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
+  gap: 24px;
 }
 
 .event-modal-popup .popup-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .event-modal-popup .popup-label {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
   font-weight: 500;
 }
 
 .event-modal-popup .popup-input {
   width: 100%;
-  padding: 12px 16px;
-  background: var(--bg-primary);
+  padding: 14px 18px;
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 12px;
   color: var(--text-color);
-  font-size: 14px;
+  font-size: 15px;
   outline: none;
   transition: all 0.15s;
 }
@@ -530,27 +526,27 @@
 
 .event-modal-popup .popup-time-icon {
   position: absolute;
-  left: 16px;
+  left: 18px;
   color: var(--text-muted);
   pointer-events: none;
 }
 
 .event-modal-popup .popup-input-time {
-  padding-left: 44px;
+  padding-left: 48px;
 }
 
 .event-modal-popup .popup-textarea {
   width: 100%;
-  padding: 12px 16px;
-  background: var(--bg-primary);
+  padding: 14px 18px;
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 12px;
   color: var(--text-color);
-  font-size: 14px;
+  font-size: 15px;
   outline: none;
   resize: none;
   font-family: inherit;
-  min-height: 100px;
+  height: 120px;
   transition: all 0.15s;
 }
 
@@ -567,24 +563,24 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 20px 24px;
+  padding: 24px 28px;
   border-top: 1px solid var(--border-color);
 }
 
 .event-modal-popup .popup-footer-right {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   margin-left: auto;
 }
 
 .event-modal-popup .popup-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
-  border-radius: 10px;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
   border: none;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
@@ -598,7 +594,7 @@
 .event-modal-popup .popup-btn-delete {
   background: transparent;
   color: #ef4444;
-  padding: 10px 16px;
+  padding: 12px 18px;
 }
 
 .event-modal-popup .popup-btn-delete:hover {
@@ -606,7 +602,7 @@
 }
 
 .event-modal-popup .popup-btn-cancel {
-  background: var(--bg-primary);
+  background: var(--bg-secondary);
   color: var(--text-color);
   border: 1px solid var(--border-color);
 }
@@ -618,7 +614,7 @@
 .event-modal-popup .popup-btn-save {
   background: var(--accent-color);
   color: white;
-  min-width: 80px;
+  min-width: 100px;
   justify-content: center;
 }
 

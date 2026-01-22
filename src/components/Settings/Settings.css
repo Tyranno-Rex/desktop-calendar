@@ -56,7 +56,7 @@
 }
 
 .btn-close:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-cell-hover);
 }
 
 .settings-content {
@@ -84,8 +84,8 @@
 .theme-btn {
   flex: 1;
   padding: 8px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
   color: var(--text-color);
   border-radius: 6px;
   cursor: pointer;
@@ -94,7 +94,7 @@
 }
 
 .theme-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-cell-hover);
 }
 
 .theme-btn.active {
@@ -107,7 +107,7 @@
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-color);
   border-radius: 2px;
   outline: none;
 }
@@ -156,7 +156,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-color);
   transition: 0.3s;
   border-radius: 12px;
 }
@@ -168,7 +168,8 @@
   width: 18px;
   left: 3px;
   bottom: 3px;
-  background: white;
+  background: var(--bg-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: 0.3s;
   border-radius: 50%;
 }
@@ -179,6 +180,7 @@
 
 .toggle input:checked + .toggle-slider::before {
   transform: translateX(20px);
+  background: white;
 }
 
 .toggle input:disabled + .toggle-slider {

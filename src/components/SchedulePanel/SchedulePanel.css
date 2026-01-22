@@ -141,9 +141,12 @@
   cursor: pointer;
   padding: 6px;
   border-radius: 8px;
-  opacity: 0;
+  opacity: 0.6;
   transition: all 0.15s;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .schedule-item:hover .schedule-item-delete {
@@ -160,96 +163,4 @@
   padding: 48px 24px;
   color: var(--text-muted);
   font-size: 14px;
-}
-
-.schedule-footer {
-  padding: 24px;
-  border-top: 1px solid var(--border-color);
-  background: var(--bg-primary);
-}
-
-.schedule-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.schedule-input {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-primary);
-  color: var(--text-color);
-  font-size: 14px;
-  outline: none;
-  transition: all 0.15s;
-}
-
-.schedule-input:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px var(--accent-light);
-}
-
-.schedule-input::placeholder {
-  color: var(--text-muted);
-}
-
-.schedule-form-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.schedule-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  border: none;
-}
-
-.schedule-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.schedule-btn-primary {
-  flex: 1;
-  background: var(--accent-color);
-  color: white;
-}
-
-.schedule-btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-.schedule-btn-secondary {
-  background: var(--bg-primary);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.schedule-btn-secondary:hover {
-  background: var(--bg-cell-hover);
-}
-
-.schedule-btn-add {
-  width: 100%;
-  background: var(--accent-color);
-  color: white;
-}
-
-.schedule-btn-add:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-.schedule-btn-add:disabled {
-  background: var(--text-muted);
-  color: white;
 }

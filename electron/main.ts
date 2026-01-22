@@ -658,7 +658,7 @@ ipcMain.on('minimize-window', () => {
 });
 
 ipcMain.on('close-window', () => {
-  mainWindow?.hide();
+  app.quit();
 });
 
 // 창 이동 핸들러
@@ -757,10 +757,10 @@ function preCreatePopupWindow() {
   const savedSettings = store.get('settings');
 
   popupWindow = new BrowserWindow({
-    width: 320,
-    height: 400,
-    minWidth: 280,
-    minHeight: 300,
+    width: 340,
+    height: 520,
+    minWidth: 300,
+    minHeight: 450,
     x: -1000, // 화면 밖에 숨김
     y: -1000,
     transparent: true,
@@ -830,8 +830,8 @@ function showPopupWithData(data: { type: string; date: string; event?: CalendarE
     return;
   }
 
-  const popupWidth = 320;
-  const popupHeight = 400;
+  const popupWidth = 340;
+  const popupHeight = 520;
 
   // 화면 경계 체크
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;

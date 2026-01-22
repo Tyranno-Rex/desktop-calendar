@@ -228,9 +228,6 @@ function App() {
       <TitleBar
         onSettings={() => setShowSettings(true)}
         resizeMode={settings.resizeMode}
-        showPanelToggle={true}
-        isPanelOpen={showSchedulePanel}
-        onTogglePanel={() => setShowSchedulePanel(!showSchedulePanel)}
       />
 
       <div className="app-content">
@@ -255,6 +252,7 @@ function App() {
               onEditEvent={handleEditEvent}
               onDeleteEvent={handlePanelDeleteEvent}
               onToggleComplete={handleToggleComplete}
+              onClose={() => setShowSchedulePanel(false)}
             />
           )}
         </AnimatePresence>
