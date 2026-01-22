@@ -1,8 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { format } from 'date-fns';
 import { AnimatePresence } from 'motion/react';
+
+// 로컬 날짜를 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
+const getLocalDateString = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 import { Calendar } from './components/Calendar';
-import { EventModal, DayDetailModal } from './components/Event';
+import { EventModal } from './components/Event';
 import { SettingsPanel } from './components/Settings';
 import { SchedulePanel } from './components/SchedulePanel';
 import { TitleBar } from './components/TitleBar';
@@ -16,7 +23,6 @@ function App() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [showSettings, setShowSettings] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
-  const [showDayDetail, setShowDayDetail] = useState(false);
   const [showSchedulePanel, setShowSchedulePanel] = useState(true);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | undefined>();
 
@@ -98,6 +104,26 @@ function App() {
       });
       window.dispatchEvent(mouseupEvent);
     });
+
+    // 더블클릭 이벤트 (날짜 셀의 data-date 속성으로 날짜 찾기)
+    api.onDesktopDblClick?.((data) => {
+      const element = document.elementFromPoint(data.x, data.y);
+      if (element) {
+        // 클릭된 요소 또는 부모에서 data-date 찾기
+        const dateCell = element.closest('[data-date]');
+        if (dateCell) {
+          const dateStr = dateCell.getAttribute('data-date');
+          if (dateStr) {
+            api.openPopup?.({
+              type: 'add-event',
+              date: dateStr,
+              x: data.screenX,
+              y: data.screenY
+            });
+          }
+        }
+      }
+    });
   }, []);
 
   // 단일 클릭: 날짜 선택 + 패널 열기
@@ -114,36 +140,18 @@ function App() {
 
     if (settings.desktopMode && window.electronAPI?.openPopup) {
       // Desktop Mode: 별도 팝업 창 열기
-      const x = clickEvent.screenX;
-      const y = clickEvent.screenY;
-
       window.electronAPI.openPopup({
         type: 'add-event',
-        date: format(date, 'yyyy-MM-dd'),
-        x,
-        y,
+        date: getLocalDateString(date),
+        x: clickEvent.screenX,
+        y: clickEvent.screenY,
       });
     } else {
-      // 일반 모드: 기존 모달 사용
-      setShowDayDetail(true);
-    }
-  }, [settings.desktopMode]);
-
-  const handleAddEvent = () => {
-    if (settings.desktopMode && window.electronAPI?.openPopup && selectedDate) {
-      window.electronAPI.openPopup({
-        type: 'add-event',
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        x: 100,
-        y: 100,
-      });
-      setShowDayDetail(false);
-    } else {
+      // 일반 모드: EventModal 열기
       setEditingEvent(undefined);
-      setShowDayDetail(false);
       setShowEventModal(true);
     }
-  };
+  }, [settings.desktopMode]);
 
   const handleEditEvent = (event: CalendarEvent) => {
     if (settings.desktopMode && window.electronAPI?.openPopup) {
@@ -154,10 +162,8 @@ function App() {
         x: 100,
         y: 100,
       });
-      setShowDayDetail(false);
     } else {
       setEditingEvent(event);
-      setShowDayDetail(false);
       setShowEventModal(true);
     }
   };
@@ -200,7 +206,13 @@ function App() {
     await deleteEvent(id);
   }, [deleteEvent]);
 
-  const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
+  // 패널에서 일정 완료 토글
+  const handleToggleComplete = useCallback(async (id: string) => {
+    const event = events.find(e => e.id === id);
+    if (event) {
+      await updateEvent(id, { completed: !event.completed });
+    }
+  }, [events, updateEvent]);
 
   if (eventsLoading || settingsLoading) {
     return (
@@ -242,6 +254,7 @@ function App() {
               onAddEvent={handlePanelAddEvent}
               onEditEvent={handleEditEvent}
               onDeleteEvent={handlePanelDeleteEvent}
+              onToggleComplete={handleToggleComplete}
             />
           )}
         </AnimatePresence>
@@ -257,17 +270,6 @@ function App() {
       <ResizeHandle direction="s" visible={settings.resizeMode} />
       <ResizeHandle direction="w" visible={settings.resizeMode} />
       <ResizeHandle direction="e" visible={settings.resizeMode} />
-
-      {/* 날짜 클릭 시 일정 상세 팝업 */}
-      {showDayDetail && selectedDate && (
-        <DayDetailModal
-          date={selectedDate}
-          events={selectedDateEvents}
-          onAddEvent={handleAddEvent}
-          onEditEvent={handleEditEvent}
-          onClose={() => setShowDayDetail(false)}
-        />
-      )}
 
       {showEventModal && selectedDate && (
         <EventModal

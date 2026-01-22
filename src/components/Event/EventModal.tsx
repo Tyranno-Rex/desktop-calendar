@@ -1,18 +1,15 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
+import { X, Clock, Trash2 } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
 import './Event.css';
 
-const EVENT_COLORS = [
-  '#4a9eff',
-  '#ff6b6b',
-  '#51cf66',
-  '#ffd43b',
-  '#cc5de8',
-  '#20c997',
-  '#ff922b',
-  '#868e96',
-];
+// 로컬 날짜를 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
+const getLocalDateString = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 interface EventModalProps {
   date: Date;
@@ -32,8 +29,8 @@ export function EventModal({
   onClose,
 }: EventModalProps) {
   const [title, setTitle] = useState(event?.title || '');
+  const [time, setTime] = useState(event?.time || '');
   const [description, setDescription] = useState(event?.description || '');
-  const [color, setColor] = useState(event?.color || EVENT_COLORS[0]);
 
   const isEditing = !!event;
 
@@ -42,20 +39,25 @@ export function EventModal({
     if (!title.trim()) return;
 
     if (isEditing && event) {
-      onUpdate(event.id, { title, description, color });
+      onUpdate(event.id, {
+        title: title.trim(),
+        time: time || undefined,
+        description: description.trim() || undefined,
+      });
     } else {
       onSave({
-        title,
-        description,
-        color,
-        date: format(date, 'yyyy-MM-dd'),
+        title: title.trim(),
+        date: getLocalDateString(date),
+        time: time || undefined,
+        description: description.trim() || undefined,
+        color: '#3b82f6',
       });
     }
     onClose();
   };
 
   const handleDelete = () => {
-    if (event && confirm('Delete this event?')) {
+    if (event) {
       onDelete(event.id);
       onClose();
     }
@@ -69,63 +71,75 @@ export function EventModal({
 
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>
-      <div className="modal">
-        <div className="modal-header">
-          <h3>{isEditing ? 'Edit Event' : 'New Event'}</h3>
-          <span className="modal-date">{format(date, 'MMM d, yyyy')}</span>
+      <div className="event-modal-popup">
+        {/* Header */}
+        <div className="popup-header">
+          <h2 className="popup-title">Schedule Details</h2>
+          <button className="popup-close" onClick={onClose}>
+            <X size={20} />
+          </button>
         </div>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="title">Title</label>
+
+        {/* Content */}
+        <form onSubmit={handleSubmit} className="popup-content">
+          <div className="popup-field">
+            <label className="popup-label">Title</label>
             <input
-              id="title"
               type="text"
+              placeholder="Enter title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Event title"
+              className="popup-input"
               autoFocus
             />
           </div>
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
+
+          <div className="popup-field">
+            <label className="popup-label">Time</label>
+            <div className="popup-time-input">
+              <Clock size={16} className="popup-time-icon" />
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="popup-input popup-input-time"
+              />
+            </div>
+          </div>
+
+          <div className="popup-field">
+            <label className="popup-label">Description</label>
             <textarea
-              id="description"
+              placeholder="Add description..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add description (optional)"
-              rows={3}
+              className="popup-textarea"
+              rows={4}
             />
           </div>
-          <div className="form-group">
-            <label>Color</label>
-            <div className="color-picker">
-              {EVENT_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`color-option ${color === c ? 'selected' : ''}`}
-                  style={{ backgroundColor: c }}
-                  onClick={() => setColor(c)}
-                />
-              ))}
-            </div>
-          </div>
-          <div className="modal-actions">
-            {isEditing && (
-              <button type="button" className="btn-delete" onClick={handleDelete}>
-                Delete
-              </button>
-            )}
-            <div className="modal-actions-right">
-              <button type="button" className="btn-cancel" onClick={onClose}>
-                Cancel
-              </button>
-              <button type="submit" className="btn-save" disabled={!title.trim()}>
-                {isEditing ? 'Update' : 'Save'}
-              </button>
-            </div>
-          </div>
         </form>
+
+        {/* Footer */}
+        <div className="popup-footer">
+          {isEditing && (
+            <button className="popup-btn popup-btn-delete" onClick={handleDelete}>
+              <Trash2 size={16} />
+              Delete
+            </button>
+          )}
+          <div className="popup-footer-right">
+            <button className="popup-btn popup-btn-cancel" onClick={onClose}>
+              Cancel
+            </button>
+            <button
+              className="popup-btn popup-btn-save"
+              onClick={handleSubmit}
+              disabled={!title.trim()}
+            >
+              Save
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

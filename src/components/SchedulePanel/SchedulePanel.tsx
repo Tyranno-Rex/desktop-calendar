@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Clock, Trash2, Check } from 'lucide-react';
@@ -25,20 +25,47 @@ export function SchedulePanel({
   const [isAdding, setIsAdding] = useState(false);
   const [title, setTitle] = useState('');
   const [time, setTime] = useState('');
+  const prevDateRef = useRef<string | null>(null);
+
+  // 로컬 날짜를 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // 날짜가 변경되면 폼 초기화
+  useEffect(() => {
+    const currentDateStr = selectedDate ? getLocalDateString(selectedDate) : null;
+    if (prevDateRef.current !== currentDateStr) {
+      setIsAdding(false);
+      setTitle('');
+      setTime('');
+      prevDateRef.current = currentDateStr;
+    }
+  }, [selectedDate]);
 
   const filteredEvents = useMemo(() => {
     if (!selectedDate) return [];
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    return events.filter((event) => event.date === dateStr);
+    const dateStr = getLocalDateString(selectedDate);
+    const filtered = events.filter((event) => event.date === dateStr);
+    // 완료된 항목을 아래로 정렬
+    return filtered.sort((a, b) => {
+      if (a.completed === b.completed) return 0;
+      return a.completed ? 1 : -1;
+    });
   }, [selectedDate, events]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !selectedDate) return;
 
+    const dateStr = getLocalDateString(selectedDate);
+
     onAddEvent({
       title: title.trim(),
-      date: format(selectedDate, 'yyyy-MM-dd'),
+      date: dateStr,
       time: time || undefined,
       color: '#3b82f6',
     });
@@ -75,9 +102,11 @@ export function SchedulePanel({
           {filteredEvents.map((event) => (
             <motion.div
               key={event.id}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              layout
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               className="schedule-item"
               onClick={() => onEditEvent(event)}
             >

@@ -59,12 +59,12 @@
 
 .schedule-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 14px 16px;
   background: var(--bg-primary);
   border-radius: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   cursor: pointer;
   transition: all 0.15s;
   border: 1px solid var(--border-color);
@@ -78,8 +78,10 @@
 
 /* 체크박스 스타일 - Reference style */
 .schedule-item-checkbox {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
   border-radius: 50%;
   border: 2px solid var(--text-muted);
   background: transparent;
@@ -88,8 +90,9 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 0;
   transition: all 0.15s;
+  padding: 0;
 }
 
 .schedule-item-checkbox:hover {

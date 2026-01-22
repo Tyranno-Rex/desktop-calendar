@@ -4,6 +4,7 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  height: 100%;
 }
 
 /* Header - Reference style: 좌측 월/년, 우측 네비게이션 */
@@ -75,14 +76,16 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 16px 24px 0 24px;
+  padding: 8px 0 0 0;
   overflow: hidden;
+  min-height: 0;
 }
 
 .weekday-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   margin-bottom: 8px;
+  padding: 0 24px;
 }
 
 .weekday-cell {
@@ -106,9 +109,10 @@
   grid-template-rows: repeat(6, 1fr);
   flex: 1;
   gap: 1px;
-  background: var(--border-color);
-  border-radius: 12px;
+  background: var(--bg-cell);
+  border-radius: 0;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* Day Cell - Reference style */

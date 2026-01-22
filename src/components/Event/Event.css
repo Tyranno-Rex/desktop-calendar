@@ -432,3 +432,196 @@
 .btn-add-event-large:hover {
   filter: brightness(1.1);
 }
+
+/* EventModal - Popup Style (release 기준 통합 UI) */
+.event-modal-popup {
+  background: var(--bg-primary);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.event-modal-popup .popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.event-modal-popup .popup-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.event-modal-popup .popup-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.event-modal-popup .popup-close:hover {
+  background: var(--bg-cell-hover);
+  color: var(--text-color);
+}
+
+.event-modal-popup .popup-content {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.event-modal-popup .popup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-modal-popup .popup-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.event-modal-popup .popup-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-color);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.15s;
+}
+
+.event-modal-popup .popup-input:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.event-modal-popup .popup-input::placeholder {
+  color: var(--text-muted);
+}
+
+.event-modal-popup .popup-time-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.event-modal-popup .popup-time-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.event-modal-popup .popup-input-time {
+  padding-left: 44px;
+}
+
+.event-modal-popup .popup-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-color);
+  font-size: 14px;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  min-height: 100px;
+  transition: all 0.15s;
+}
+
+.event-modal-popup .popup-textarea:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.event-modal-popup .popup-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.event-modal-popup .popup-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid var(--border-color);
+}
+
+.event-modal-popup .popup-footer-right {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.event-modal-popup .popup-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.event-modal-popup .popup-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.event-modal-popup .popup-btn-delete {
+  background: transparent;
+  color: #ef4444;
+  padding: 10px 16px;
+}
+
+.event-modal-popup .popup-btn-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.event-modal-popup .popup-btn-cancel {
+  background: var(--bg-primary);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.event-modal-popup .popup-btn-cancel:hover {
+  background: var(--bg-cell-hover);
+}
+
+.event-modal-popup .popup-btn-save {
+  background: var(--accent-color);
+  color: white;
+  min-width: 80px;
+  justify-content: center;
+}
+
+.event-modal-popup .popup-btn-save:hover:not(:disabled) {
+  background: var(--accent-hover);
+}

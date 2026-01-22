@@ -1,10 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
   startOfMonth,
-  endOfMonth,
   startOfWeek,
-  endOfWeek,
-  eachDayOfInterval,
+  addDays,
   addMonths,
   subMonths,
   format,
@@ -17,11 +15,17 @@ export function useCalendar() {
 
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
     const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
-    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+    // 항상 42일(6주) 표시
+    const days: Date[] = [];
+    for (let i = 0; i < 42; i++) {
+      const tempDay = addDays(calendarStart, i);
+      // 타임존 문제 방지: 명시적으로 로컬 날짜 생성
+      const day = new Date(tempDay.getFullYear(), tempDay.getMonth(), tempDay.getDate(), 12, 0, 0, 0);
+      days.push(day);
+    }
+    return days;
   }, [currentDate]);
 
   const goToPreviousMonth = useCallback(() => {

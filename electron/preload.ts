@@ -61,4 +61,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onDesktopMouseUp: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
     ipcRenderer.on('desktop-mouseup', (_, data) => callback(data));
   },
+  onDesktopDblClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
+    ipcRenderer.on('desktop-dblclick', (_, data) => callback(data));
+  },
 });

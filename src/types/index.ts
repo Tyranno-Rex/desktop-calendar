@@ -51,6 +51,7 @@ export interface ElectronAPI {
   onDesktopMouseDown: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
   onDesktopMouseMove: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
   onDesktopMouseUp: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
+  onDesktopDblClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
 }
 
 declare global {

@@ -1,6 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
-import { format } from 'date-fns';
 import { X, Clock, Trash2 } from 'lucide-react';
+
+// 로컬 날짜를 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
+const getLocalDateString = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// yyyy-MM-dd 문자열을 로컬 Date로 파싱 (타임존 문제 방지)
+const parseLocalDate = (dateStr: string) => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day, 12, 0, 0, 0);
+};
 import type { CalendarEvent } from '../../types';
 import './Popup.css';
 
@@ -27,7 +40,7 @@ export function EventPopup() {
     resetForm();
 
     if (data.date) {
-      setDate(new Date(data.date));
+      setDate(parseLocalDate(data.date));
     }
 
     if (data.event?.id) {
@@ -58,7 +71,7 @@ export function EventPopup() {
     const eventIdParam = params.get('eventId');
 
     if (dateStr) {
-      setDate(new Date(dateStr));
+      setDate(parseLocalDate(dateStr));
       setReady(true);
     }
 
@@ -85,7 +98,7 @@ export function EventPopup() {
     const event: CalendarEvent = {
       id: eventId || crypto.randomUUID(),
       title: title.trim(),
-      date: format(date, 'yyyy-MM-dd'),
+      date: getLocalDateString(date),
       time: time || undefined,
       description: description.trim() || undefined,
       color: '#3b82f6',

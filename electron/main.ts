@@ -442,17 +442,13 @@ function startMouseMonitoring() {
         const posDiff = Math.abs(mousePos.x - lastClickX) + Math.abs(mousePos.y - lastClickY);
 
         if (timeDiff < DOUBLE_CLICK_TIME && posDiff < 10) {
-          // 더블클릭! 날짜 확인 후 팝업 열기
-          const clickedDate = getClickedDateInWindow();
-          if (clickedDate) {
-            console.log('Double click detected on date:', clickedDate);
-            createPopupWindow({
-              type: 'add-event',
-              date: clickedDate,
-              x: mousePos.x,
-              y: mousePos.y
-            });
-          }
+          // 더블클릭! renderer에 이벤트 전달 (renderer가 data-date를 찾아서 팝업 열기)
+          mainWindow.webContents.send('desktop-dblclick', {
+            x: relX,
+            y: relY,
+            screenX: mousePos.x,
+            screenY: mousePos.y
+          });
           lastClickTime = 0; // 리셋
         } else {
           lastClickTime = now;
