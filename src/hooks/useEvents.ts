@@ -48,10 +48,16 @@ export function useEvents() {
 
   // Google Calendar에서 이벤트 가져와서 병합
   const syncWithGoogle = useCallback(async () => {
-    if (!window.electronAPI?.googleCalendarGetEvents) return;
+    console.log('[syncWithGoogle] Starting sync...');
+    if (!window.electronAPI?.googleCalendarGetEvents) {
+      console.log('[syncWithGoogle] googleCalendarGetEvents not available');
+      return;
+    }
 
     try {
+      console.log('[syncWithGoogle] Calling googleCalendarGetEvents...');
       const result = await window.electronAPI.googleCalendarGetEvents();
+      console.log('[syncWithGoogle] Result:', result);
       if (result.success && result.events) {
         // 현재 로컬 이벤트 가져오기
         const localEvents = await window.electronAPI.getEvents();
@@ -74,13 +80,17 @@ export function useEvents() {
 
         // 병합
         const mergedEvents = [...localOnlyEvents, ...googleEvents];
+        console.log('[syncWithGoogle] Merged events:', mergedEvents.length, 'total');
+        console.log('[syncWithGoogle] Google events:', googleEvents);
         setEvents(mergedEvents);
         await window.electronAPI.saveEvents(mergedEvents);
 
-        console.log('Google Calendar synced:', googleEvents.length, 'events');
+        console.log('[syncWithGoogle] Google Calendar synced:', googleEvents.length, 'events');
+      } else {
+        console.log('[syncWithGoogle] No events or failed:', result);
       }
     } catch (error) {
-      console.error('Failed to sync with Google Calendar:', error);
+      console.error('[syncWithGoogle] Failed to sync with Google Calendar:', error);
     }
   }, []);
 

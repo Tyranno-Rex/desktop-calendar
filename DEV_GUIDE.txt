@@ -1,0 +1,115 @@
+================================================================================
+Desktop Calendar - 개발 가이드
+================================================================================
+
+1. 개발 환경에서 Electron 앱 실행하기
+--------------------------------------------------------------------------------
+
+문제: Claude Code 환경에서 npm run electron:dev 또는 electron:preview 실행 시
+"Cannot read properties of undefined (reading 'whenReady')" 에러 발생
+
+원인: Claude Code가 내부적으로 ELECTRON_RUN_AS_NODE=1 환경 변수를 설정하여
+Electron이 Node.js 모드로 실행됨
+
+해결 방법:
+
+  방법 1) 빌드된 앱 직접 실행 (권장)
+    release\win-unpacked\Desktop Calendar.exe
+
+  방법 2) 새 터미널 창에서 실행
+    - VSCode 또는 Windows Terminal에서 새 창 열기
+    - cd "c:\Users\eunseong\Desktop\desktop calendar"
+    - npm run electron:preview
+
+  방법 3) PowerShell에서 환경 변수 제거 후 실행
+    Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
+    npm run electron:preview
+
+  방법 4) CMD에서 실행
+    set ELECTRON_RUN_AS_NODE=
+    npm run electron:preview
+
+
+2. 빌드 명령어
+--------------------------------------------------------------------------------
+
+개발 모드 (핫 리로드):
+  npm run electron:dev
+
+프리뷰 (빌드 후 바로 실행):
+  npm run electron:preview
+
+프로덕션 빌드 (설치 파일 생성):
+  npm run electron:build
+
+빌드 결과물 위치:
+  - release\win-unpacked\       : 압축 해제된 앱 (테스트용)
+  - release\Desktop Calendar Setup 1.0.0.exe : NSIS 설치 파일
+  - release\Desktop Calendar 1.0.0.exe       : Portable 버전
+
+
+3. Google Calendar 연동 설정
+--------------------------------------------------------------------------------
+
+필요한 파일:
+  env\.env
+
+내용:
+  GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+  GOOGLE_CLIENT_SECRET=your-client-secret
+
+Google Cloud Console 설정:
+  1. https://console.cloud.google.com 접속
+  2. APIs & Services > Credentials
+  3. OAuth 2.0 Client ID 생성 (Desktop app 타입)
+  4. OAuth consent screen에서 테스트 사용자 추가
+  5. APIs & Services > Library에서 "Google Calendar API" 활성화
+
+
+4. 디버깅
+--------------------------------------------------------------------------------
+
+Main Process 로그 확인:
+  - electron:preview 실행 시 터미널에서 확인
+  - 빌드된 앱은 로그 파일 없음 (개발 시에만 확인 가능)
+
+Renderer Process 로그 확인:
+  - 앱에서 Ctrl+Shift+I로 DevTools 열기
+  - Console 탭에서 확인
+
+Google Calendar API 디버깅:
+  - electron/googleCalendar.ts에 console.log 추가됨
+  - "Fetching Google Calendar events..." 로그 확인
+  - "Response status:" 로그로 API 응답 확인
+
+
+5. 프로젝트 구조
+--------------------------------------------------------------------------------
+
+src/                    : React 프론트엔드
+  components/           : UI 컴포넌트
+  hooks/                : React 훅 (useEvents, useCalendar 등)
+  types/                : TypeScript 타입 정의
+
+electron/               : Electron 메인 프로세스
+  main.ts               : 앱 진입점, IPC 핸들러
+  preload.ts            : preload 스크립트 (IPC 브릿지)
+  googleAuth.ts         : Google OAuth PKCE 인증
+  googleCalendar.ts     : Google Calendar API 호출
+
+env/                    : 환경 변수
+  .env                  : Google OAuth 크리덴셜 (git에 포함하지 않음)
+
+
+6. 주의사항
+--------------------------------------------------------------------------------
+
+- .env 파일은 민감한 정보이므로 git에 커밋하지 않음
+- electron-builder.json의 files 배열에 "env/.env" 포함되어 있어야
+  빌드된 앱에서 Google 인증 가능
+- Desktop Mode에서는 창이 WorkerW에 임베딩되어 마우스 이벤트 처리 방식이 다름
+
+
+================================================================================
+마지막 업데이트: 2026-01-23
+================================================================================
