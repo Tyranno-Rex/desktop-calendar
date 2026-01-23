@@ -1,5 +1,5 @@
-
-import { CalendarHeader } from './CalendarHeader';
+import { useState } from 'react';
+import { CalendarHeader, type ViewMode } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { useCalendar } from '../../hooks/useCalendar';
 import type { CalendarEvent } from '../../types';
@@ -18,6 +18,8 @@ interface CalendarProps {
 }
 
 export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventClick, selectedDate, showEventDetails = false, showHolidays = true, showAdjacentMonths = true, hiddenDays = [] }: CalendarProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
+
   const {
     calendarDays,
     goToPreviousMonth,
@@ -50,6 +52,8 @@ export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventCl
         onToday={goToToday}
         onMonthSelect={goToMonth}
         onYearSelect={goToYear}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
       <CalendarGrid
         days={calendarDays}

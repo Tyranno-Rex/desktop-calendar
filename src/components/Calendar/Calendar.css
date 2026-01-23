@@ -85,9 +85,16 @@
   color: var(--accent-color);
 }
 
-.today-btn {
+/* Header Right - Today + View Toggle */
+.header-right {
   position: absolute;
   right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.today-btn {
   background: transparent;
   border: none;
   color: var(--text-secondary);
@@ -101,6 +108,35 @@
 
 .today-btn:hover {
   color: var(--accent-color);
+}
+
+/* View Toggle */
+.view-toggle {
+  display: flex;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.view-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.view-toggle-btn:hover {
+  color: var(--text-color);
+}
+
+.view-toggle-btn.active {
+  background: var(--accent-color);
+  color: white;
 }
 
 /* Calendar Grid - Reference style */

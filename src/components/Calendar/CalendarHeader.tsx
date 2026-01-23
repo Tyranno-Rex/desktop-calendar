@@ -7,6 +7,8 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
+export type ViewMode = 'month' | 'week';
+
 interface CalendarHeaderProps {
   currentMonth: number;
   currentYear: number;
@@ -15,6 +17,8 @@ interface CalendarHeaderProps {
   onToday: () => void;
   onMonthSelect: (month: number) => void;
   onYearSelect: (year: number) => void;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
 }
 
 export const CalendarHeader = memo(function CalendarHeader({
@@ -25,6 +29,8 @@ export const CalendarHeader = memo(function CalendarHeader({
   onToday,
   onMonthSelect,
   onYearSelect,
+  viewMode = 'month',
+  onViewModeChange,
 }: CalendarHeaderProps) {
   const [isDraggingMonth, setIsDraggingMonth] = useState(false);
   const [isDraggingYear, setIsDraggingYear] = useState(false);
@@ -157,16 +163,35 @@ export const CalendarHeader = memo(function CalendarHeader({
         </motion.button>
       </div>
 
-      {/* 우측: Today */}
-      <motion.button
-        className="today-btn"
-        onClick={onToday}
-        title="Go to today"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        Today
-      </motion.button>
+      {/* 우측: Today + View Toggle */}
+      <div className="header-right">
+        <motion.button
+          className="today-btn"
+          onClick={onToday}
+          title="Go to today"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          Today
+        </motion.button>
+
+        {onViewModeChange && (
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn ${viewMode === 'month' ? 'active' : ''}`}
+              onClick={() => onViewModeChange('month')}
+            >
+              Month
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'week' ? 'active' : ''}`}
+              onClick={() => onViewModeChange('week')}
+            >
+              Week
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 });
