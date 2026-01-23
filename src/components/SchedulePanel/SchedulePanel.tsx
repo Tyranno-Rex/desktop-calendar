@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { Clock, Trash2, Check, X } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
+import { getLocalDateString, compareEventTime } from '../../utils/date';
 import './SchedulePanel.css';
 
 interface SchedulePanelProps {
@@ -23,14 +24,6 @@ export function SchedulePanel({
   onToggleComplete,
   onClose,
 }: SchedulePanelProps) {
-  // 로컬 날짜를 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
-  const getLocalDateString = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
   // D-Day 계산 (오늘 기준)
   const getDDay = (dateStr: string): string => {
     const today = new Date();
@@ -52,17 +45,9 @@ export function SchedulePanel({
     const dateStr = getLocalDateString(selectedDate);
     const filtered = events.filter((event) => event.date === dateStr);
 
-    // 시간 비교 함수 (시간 없으면 맨 뒤로)
-    const compareTime = (a: CalendarEvent, b: CalendarEvent) => {
-      if (!a.time && !b.time) return 0;
-      if (!a.time) return 1;
-      if (!b.time) return -1;
-      return a.time.localeCompare(b.time);
-    };
-
     // 완료 여부로 분리 후 각각 시간순 정렬
-    const incomplete = filtered.filter(e => !e.completed).sort(compareTime);
-    const completed = filtered.filter(e => e.completed).sort(compareTime);
+    const incomplete = filtered.filter(e => !e.completed).sort(compareEventTime);
+    const completed = filtered.filter(e => e.completed).sort(compareEventTime);
 
     return [...incomplete, ...completed];
   }, [selectedDate, events]);

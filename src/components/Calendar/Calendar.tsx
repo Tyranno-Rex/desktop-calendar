@@ -19,7 +19,6 @@ interface CalendarProps {
 export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventClick, selectedDate, showEventDetails = false, showHolidays = true, showAdjacentMonths = true }: CalendarProps) {
   const {
     calendarDays,
-    monthYear,
     goToPreviousMonth,
     goToNextMonth,
     goToToday,
@@ -43,7 +42,6 @@ export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventCl
   return (
     <div className="calendar">
       <CalendarHeader
-        monthYear={monthYear}
         currentMonth={currentMonth}
         currentYear={currentYear}
         onPrevMonth={goToPreviousMonth}

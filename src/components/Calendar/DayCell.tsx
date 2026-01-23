@@ -1,23 +1,8 @@
 import { memo, useMemo } from 'react';
 import { getDay } from 'date-fns';
 import type { CalendarEvent } from '../../types';
+import { getLocalDateString, compareEventTime } from '../../utils/date';
 import './Calendar.css';
-
-// 로컬 날짜를 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
-const getLocalDateString = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-// 시간 비교 함수 (시간 없으면 맨 뒤로)
-const compareTime = (a: CalendarEvent, b: CalendarEvent) => {
-  if (!a.time && !b.time) return 0;
-  if (!a.time) return 1;
-  if (!b.time) return -1;
-  return a.time.localeCompare(b.time);
-};
 
 interface DayCellProps {
   date: Date;
@@ -61,8 +46,8 @@ export const DayCell = memo(function DayCell({
 
   // 이벤트 정렬: 미완료(시간순) -> 완료(시간순)
   const sortedEvents = useMemo(() => {
-    const incomplete = events.filter(e => !e.completed).sort(compareTime);
-    const completed = events.filter(e => e.completed).sort(compareTime);
+    const incomplete = events.filter(e => !e.completed).sort(compareEventTime);
+    const completed = events.filter(e => e.completed).sort(compareEventTime);
     return [...incomplete, ...completed];
   }, [events]);
 

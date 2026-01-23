@@ -5,7 +5,6 @@ import {
   addDays,
   addMonths,
   subMonths,
-  format,
   isSameMonth,
   isToday,
 } from 'date-fns';
@@ -58,11 +57,8 @@ export function useCalendar() {
 
   const isTodayDate = useCallback((date: Date) => isToday(date), []);
 
-  const monthYear = format(currentDate, 'MMMM yyyy');
-
   return {
     calendarDays,
-    monthYear,
     goToPreviousMonth,
     goToNextMonth,
     goToToday,

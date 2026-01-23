@@ -1,14 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { CalendarEvent } from '../types';
-
-// 로컬 날짜를 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
-const getLocalDateString = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+import { getLocalDateString } from '../utils/date';
 
 export function useEvents() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -195,11 +188,6 @@ export function useEvents() {
     return events.filter((event) => event.date === dateStr);
   }, [events]);
 
-  const hasEventsOnDate = useCallback((date: Date) => {
-    const dateStr = getLocalDateString(date);
-    return events.some((event) => event.date === dateStr);
-  }, [events]);
-
   return {
     events,
     loading,
@@ -207,7 +195,6 @@ export function useEvents() {
     updateEvent,
     deleteEvent,
     getEventsForDate,
-    hasEventsOnDate,
     refreshEvents,
     syncWithGoogle,
     googleConnected,

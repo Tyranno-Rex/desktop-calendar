@@ -8,7 +8,6 @@ const MONTH_NAMES = [
 ];
 
 interface CalendarHeaderProps {
-  monthYear: string;
   currentMonth: number;
   currentYear: number;
   onPrevMonth: () => void;
