@@ -10,6 +10,7 @@ const defaultSettings: Settings = {
   resizeMode: false,
   showHolidays: true,
   showAdjacentMonths: true,
+  hiddenDays: [],
 };
 
 export function useSettings() {

@@ -19,6 +19,8 @@ export interface Settings {
   resizeMode: boolean;
   showHolidays: boolean;
   showAdjacentMonths: boolean;
+  // 숨길 요일 (0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토)
+  hiddenDays: number[];
 }
 
 export interface PopupData {

@@ -14,9 +14,10 @@ interface CalendarProps {
   showEventDetails?: boolean;
   showHolidays?: boolean;
   showAdjacentMonths?: boolean;
+  hiddenDays?: number[];
 }
 
-export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventClick, selectedDate, showEventDetails = false, showHolidays = true, showAdjacentMonths = true }: CalendarProps) {
+export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventClick, selectedDate, showEventDetails = false, showHolidays = true, showAdjacentMonths = true, hiddenDays = [] }: CalendarProps) {
   const {
     calendarDays,
     goToPreviousMonth,
@@ -62,6 +63,7 @@ export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventCl
         showEventDetails={showEventDetails}
         showHolidays={showHolidays}
         showAdjacentMonths={showAdjacentMonths}
+        hiddenDays={hiddenDays}
       />
     </div>
   );

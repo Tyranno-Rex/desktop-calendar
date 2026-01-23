@@ -130,8 +130,7 @@
   letter-spacing: 0.5px;
 }
 
-.weekday-cell:first-child,
-.weekday-cell:last-child {
+.weekday-cell.weekend {
   color: var(--weekend-color);
 }
 

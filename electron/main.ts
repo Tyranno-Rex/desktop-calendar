@@ -643,6 +643,9 @@ function registerIpcHandlers() {
       theme: 'dark',
       fontSize: 14,
       resizeMode: false,
+      showHolidays: true,
+      showAdjacentMonths: true,
+      hiddenDays: [],
     };
   });
 

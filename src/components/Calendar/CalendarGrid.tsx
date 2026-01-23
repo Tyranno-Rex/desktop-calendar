@@ -1,9 +1,17 @@
-
+import { useMemo } from 'react';
 import { DayCell } from './DayCell';
 import type { CalendarEvent } from '../../types';
 import './Calendar.css';
 
-const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAYS = [
+  { name: 'Sun', index: 0, isWeekend: true },
+  { name: 'Mon', index: 1, isWeekend: false },
+  { name: 'Tue', index: 2, isWeekend: false },
+  { name: 'Wed', index: 3, isWeekend: false },
+  { name: 'Thu', index: 4, isWeekend: false },
+  { name: 'Fri', index: 5, isWeekend: false },
+  { name: 'Sat', index: 6, isWeekend: true },
+];
 
 interface CalendarGridProps {
   days: Date[];
@@ -17,6 +25,7 @@ interface CalendarGridProps {
   showEventDetails?: boolean;
   showHolidays?: boolean;
   showAdjacentMonths?: boolean;
+  hiddenDays?: number[];
 }
 
 export function CalendarGrid({
@@ -31,18 +40,41 @@ export function CalendarGrid({
   showEventDetails = false,
   showHolidays = true,
   showAdjacentMonths = true,
+  hiddenDays = [],
 }: CalendarGridProps) {
+  // 표시할 요일 필터링
+  const visibleWeekdays = useMemo(() => {
+    return WEEKDAYS.filter(day => !hiddenDays.includes(day.index));
+  }, [hiddenDays]);
+
+  // 표시할 날짜 필터링 (숨긴 요일 제외)
+  const visibleDays = useMemo(() => {
+    return days.filter(date => !hiddenDays.includes(date.getDay()));
+  }, [days, hiddenDays]);
+
+  // 동적 열 개수
+  const columnCount = 7 - hiddenDays.length;
+
   return (
     <div className="calendar-grid">
-      <div className="weekday-row">
-        {WEEKDAY_NAMES.map((day) => (
-          <div key={day} className="weekday-cell">
-            {day}
+      <div
+        className="weekday-row"
+        style={{ gridTemplateColumns: `repeat(${columnCount}, 1fr)` }}
+      >
+        {visibleWeekdays.map((day) => (
+          <div
+            key={day.name}
+            className={`weekday-cell ${showHolidays && day.isWeekend ? 'weekend' : ''}`}
+          >
+            {day.name}
           </div>
         ))}
       </div>
-      <div className="days-grid">
-        {days.map((date) => {
+      <div
+        className="days-grid"
+        style={{ gridTemplateColumns: `repeat(${columnCount}, 1fr)` }}
+      >
+        {visibleDays.map((date) => {
           const isCurrent = isCurrentMonth(date);
           // 이월 표시 숨기기
           if (!showAdjacentMonths && !isCurrent) {

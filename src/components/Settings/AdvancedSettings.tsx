@@ -2,6 +2,16 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import type { Settings } from '../../types';
 import './Settings.css';
 
+const WEEKDAYS = [
+  { id: 0, short: 'Sun', full: 'Sunday' },
+  { id: 1, short: 'Mon', full: 'Monday' },
+  { id: 2, short: 'Tue', full: 'Tuesday' },
+  { id: 3, short: 'Wed', full: 'Wednesday' },
+  { id: 4, short: 'Thu', full: 'Thursday' },
+  { id: 5, short: 'Fri', full: 'Friday' },
+  { id: 6, short: 'Sat', full: 'Saturday' },
+];
+
 interface AdvancedSettingsProps {
   settings: Settings;
   onUpdateSettings: (updates: Partial<Settings>) => void;
@@ -9,17 +19,16 @@ interface AdvancedSettingsProps {
 }
 
 export function AdvancedSettings({
-  settings: _settings,
-  onUpdateSettings: _onUpdateSettings,
+  settings,
+  onUpdateSettings,
   onClose,
 }: AdvancedSettingsProps) {
-  // 나중에 고급 설정 항목 추가 시 사용할 props
-  void _settings;
-  void _onUpdateSettings;
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const dragHandleRef = useRef<HTMLDivElement>(null);
+
+  const hiddenDays = settings.hiddenDays || [];
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -59,6 +68,25 @@ export function AdvancedSettings({
     };
   }, [isDragging]);
 
+  const toggleDay = (dayId: number) => {
+    const newHiddenDays = hiddenDays.includes(dayId)
+      ? hiddenDays.filter(d => d !== dayId)
+      : [...hiddenDays, dayId];
+
+    // 최소 1일은 표시되어야 함
+    if (newHiddenDays.length >= 7) return;
+
+    onUpdateSettings({ hiddenDays: newHiddenDays });
+  };
+
+  const hideWeekends = () => {
+    onUpdateSettings({ hiddenDays: [0, 6] });
+  };
+
+  const showAllDays = () => {
+    onUpdateSettings({ hiddenDays: [] });
+  };
+
   return (
     <div
       className="settings-backdrop"
@@ -85,10 +113,40 @@ export function AdvancedSettings({
         </div>
 
         <div className="settings-content">
-          {/* 여기에 고급 설정 항목들이 추가될 예정 */}
-          <div className="advanced-placeholder">
-            <p>Advanced settings will be available here.</p>
-            <p className="placeholder-hint">More options coming soon...</p>
+          {/* 요일 표시 설정 */}
+          <div className="setting-item">
+            <label>
+              Visible Days
+              <span className="setting-hint">Select which days to show on calendar</span>
+            </label>
+
+            <div className="weekday-selector">
+              {WEEKDAYS.map(day => (
+                <button
+                  key={day.id}
+                  className={`weekday-btn ${!hiddenDays.includes(day.id) ? 'active' : ''}`}
+                  onClick={() => toggleDay(day.id)}
+                  title={day.full}
+                >
+                  {day.short}
+                </button>
+              ))}
+            </div>
+
+            <div className="weekday-presets">
+              <button
+                className="preset-btn"
+                onClick={hideWeekends}
+              >
+                Weekdays Only
+              </button>
+              <button
+                className="preset-btn"
+                onClick={showAllDays}
+              >
+                Show All
+              </button>
+            </div>
           </div>
         </div>
       </div>
