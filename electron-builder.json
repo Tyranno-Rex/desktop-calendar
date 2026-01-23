@@ -6,7 +6,8 @@
   },
   "files": [
     "dist/**/*",
-    "dist-electron/**/*"
+    "dist-electron/**/*",
+    "env/.env"
   ],
   "asar": true,
   "asarUnpack": [

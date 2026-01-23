@@ -23,6 +23,8 @@ export function initGoogleAuth(funcs: typeof electronFunctions) {
 
 // 환경 변수 캐시
 let cachedClientId: string | null = null;
+let cachedClientSecret: string | null = null;
+let cachedEnvVars: Record<string, string> | null = null;
 
 // .env 파일 파싱 (dotenv 없이)
 function parseEnvFile(filePath: string): Record<string, string> {
@@ -56,19 +58,69 @@ function getClientId(): string {
     return cachedClientId;
   }
 
-  // .env 파일에서 로드
+  // .env 파일에서 로드 (개발/프로덕션 모두 지원)
   const possiblePaths = [
+    // 개발 환경
     path.join(process.cwd(), 'env', '.env'),
     path.join(__dirname, '..', 'env', '.env'),
+    // 패키지된 앱 (asar 내부)
+    path.join(__dirname, '..', '..', 'env', '.env'),
   ];
 
+  // process.resourcesPath가 있으면 (패키지된 앱)
+  if (process.resourcesPath) {
+    possiblePaths.push(
+      path.join(process.resourcesPath, 'app.asar', 'env', '.env'),
+      path.join(process.resourcesPath, 'app', 'env', '.env')
+    );
+  }
+
   for (const envPath of possiblePaths) {
+    console.log('Checking env path:', envPath);
     if (fs.existsSync(envPath)) {
       const envVars = parseEnvFile(envPath);
       if (envVars.GOOGLE_CLIENT_ID) {
         cachedClientId = envVars.GOOGLE_CLIENT_ID;
         console.log('Loaded GOOGLE_CLIENT_ID from:', envPath);
         return cachedClientId;
+      }
+    }
+  }
+
+  console.error('GOOGLE_CLIENT_ID not found in any location');
+  return '';
+}
+
+// Client Secret 가져오기
+function getClientSecret(): string {
+  if (cachedClientSecret) return cachedClientSecret;
+
+  // 환경 변수에서 먼저 확인
+  if (process.env.GOOGLE_CLIENT_SECRET) {
+    cachedClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    return cachedClientSecret;
+  }
+
+  // .env 파일에서 로드
+  const possiblePaths = [
+    path.join(process.cwd(), 'env', '.env'),
+    path.join(__dirname, '..', 'env', '.env'),
+    path.join(__dirname, '..', '..', 'env', '.env'),
+  ];
+
+  if (process.resourcesPath) {
+    possiblePaths.push(
+      path.join(process.resourcesPath, 'app.asar', 'env', '.env'),
+      path.join(process.resourcesPath, 'app', 'env', '.env')
+    );
+  }
+
+  for (const envPath of possiblePaths) {
+    if (fs.existsSync(envPath)) {
+      const envVars = parseEnvFile(envPath);
+      if (envVars.GOOGLE_CLIENT_SECRET) {
+        cachedClientSecret = envVars.GOOGLE_CLIENT_SECRET;
+        return cachedClientSecret;
       }
     }
   }
@@ -213,6 +265,7 @@ async function refreshAccessToken(refreshToken: string): Promise<TokenData | nul
       },
       body: new URLSearchParams({
         client_id: getClientId(),
+        client_secret: getClientSecret(),
         refresh_token: refreshToken,
         grant_type: 'refresh_token',
       }),
@@ -279,6 +332,7 @@ export function startAuthFlow(): Promise<TokenData> {
               },
               body: new URLSearchParams({
                 client_id: getClientId(),
+                client_secret: getClientSecret(),
                 code: code,
                 code_verifier: codeVerifier,
                 redirect_uri: REDIRECT_URI,
@@ -287,9 +341,11 @@ export function startAuthFlow(): Promise<TokenData> {
             });
 
             const tokenData = await tokenResponse.json() as any;
+            console.log('Token response:', JSON.stringify(tokenData, null, 2));
 
             if (tokenData.error) {
-              throw new Error(`Token exchange failed: ${tokenData.error}`);
+              console.error('Token error details:', tokenData.error_description);
+              throw new Error(`Token exchange failed: ${tokenData.error} - ${tokenData.error_description || 'no description'}`);
             }
 
             const token: TokenData = {
