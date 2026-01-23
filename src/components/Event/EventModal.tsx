@@ -40,10 +40,11 @@ const formatTime = (period: string, hour: number, minute: number) => {
 interface EventModalProps {
   date: Date;
   event?: CalendarEvent;
-  onSave: (event: Omit<CalendarEvent, 'id'>) => void;
+  onSave: (event: Omit<CalendarEvent, 'id'>, syncToGoogle?: boolean) => void;
   onUpdate: (id: string, updates: Partial<CalendarEvent>) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
+  googleConnected?: boolean;
 }
 
 export function EventModal({
@@ -53,10 +54,12 @@ export function EventModal({
   onUpdate,
   onDelete,
   onClose,
+  googleConnected = false,
 }: EventModalProps) {
   const [title, setTitle] = useState(event?.title || '');
   const [time, setTime] = useState(event?.time || '');
   const [description, setDescription] = useState(event?.description || '');
+  const [syncToGoogle, setSyncToGoogle] = useState(false);
   const timePickerRef = useRef<HTMLDivElement>(null);
 
   // 시간 선택 상태
@@ -131,7 +134,7 @@ export function EventModal({
         time: time || undefined,
         description: description.trim() || undefined,
         color: '#3b82f6',
-      });
+      }, syncToGoogle);
     }
     onClose();
   };
@@ -269,6 +272,21 @@ export function EventModal({
               rows={4}
             />
           </div>
+
+          {/* Google Calendar 동기화 토글 - 새 일정 추가 시에만 표시 */}
+          {!isEditing && googleConnected && (
+            <div className="popup-field popup-field-toggle">
+              <label className="toggle-label">
+                <span className="toggle-text">Add to Google Calendar</span>
+                <div
+                  className={`toggle-switch ${syncToGoogle ? 'active' : ''}`}
+                  onClick={() => setSyncToGoogle(!syncToGoogle)}
+                >
+                  <div className="toggle-knob" />
+                </div>
+              </label>
+            </div>
+          )}
         </form>
 
         {/* Footer */}

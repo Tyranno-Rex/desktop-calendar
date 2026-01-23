@@ -184,8 +184,8 @@ function App() {
     }
   }, [settings.desktopMode]);
 
-  const handleSaveEvent = async (event: Omit<CalendarEvent, 'id'>) => {
-    await addEvent(event);
+  const handleSaveEvent = async (event: Omit<CalendarEvent, 'id'>, syncToGoogle?: boolean) => {
+    await addEvent(event, syncToGoogle);
   };
 
   const handleUpdateEvent = async (id: string, updates: Partial<CalendarEvent>) => {
@@ -282,6 +282,7 @@ function App() {
             setShowEventModal(false);
             setEditingEvent(undefined);
           }}
+          googleConnected={googleConnected}
         />
       )}
 

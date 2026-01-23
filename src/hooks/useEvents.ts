@@ -118,32 +118,30 @@ export function useEvents() {
     }
   }, []);
 
-  const addEvent = useCallback(async (event: Omit<CalendarEvent, 'id'>) => {
+  const addEvent = useCallback(async (event: Omit<CalendarEvent, 'id'>, syncToGoogle: boolean = false) => {
     const newEvent: CalendarEvent = {
       ...event,
       id: uuidv4(),
     };
 
-    // Google 연결되어 있으면 Google에도 추가
-    if (window.electronAPI?.googleAuthStatus) {
-      const isConnected = await window.electronAPI.googleAuthStatus();
-      if (isConnected && window.electronAPI.googleCalendarCreateEvent) {
-        try {
-          const result = await window.electronAPI.googleCalendarCreateEvent({
-            title: newEvent.title,
-            date: newEvent.date,
-            time: newEvent.time,
-            description: newEvent.description,
-          });
+    // syncToGoogle이 true이고 Google 연결되어 있으면 Google에도 추가
+    if (syncToGoogle && window.electronAPI?.googleCalendarCreateEvent) {
+      try {
+        const result = await window.electronAPI.googleCalendarCreateEvent({
+          title: newEvent.title,
+          date: newEvent.date,
+          time: newEvent.time,
+          description: newEvent.description,
+        });
 
-          if (result.success && result.event) {
-            // Google에서 생성된 이벤트 정보로 업데이트
-            newEvent.googleEventId = result.event.googleEventId;
-            newEvent.isGoogleEvent = true;
-          }
-        } catch (error) {
-          console.error('Failed to create Google event:', error);
+        if (result.success && result.event) {
+          // Google에서 생성된 이벤트 정보로 업데이트
+          newEvent.googleEventId = result.event.googleEventId;
+          newEvent.isGoogleEvent = true;
+          console.log('[addEvent] Created Google event:', result.event);
         }
+      } catch (error) {
+        console.error('Failed to create Google event:', error);
       }
     }
 
