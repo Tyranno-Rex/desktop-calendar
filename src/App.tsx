@@ -26,7 +26,7 @@ function App() {
   const [showSchedulePanel, setShowSchedulePanel] = useState(true);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | undefined>();
 
-  const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, refreshEvents, syncWithGoogle, loading: eventsLoading } = useEvents();
+  const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, refreshEvents, syncWithGoogle, googleConnected, loading: eventsLoading } = useEvents();
   const { settings, updateSettings, loading: settingsLoading } = useSettings();
 
   // 팝업에서 이벤트가 변경되면 메인 창에서 새로고침
@@ -228,6 +228,8 @@ function App() {
       <TitleBar
         onSettings={() => setShowSettings(true)}
         resizeMode={settings.resizeMode}
+        onSync={syncWithGoogle}
+        googleConnected={googleConnected}
       />
 
       <div className="app-content">

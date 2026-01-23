@@ -93,3 +93,44 @@
 .title-bar-movable .window-btn.close:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* 동기화 버튼 */
+.window-btn.sync {
+  position: relative;
+}
+
+.window-btn.sync:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.window-btn.sync.cooldown {
+  color: var(--text-tertiary);
+}
+
+.window-btn.sync .spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cooldown-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  padding: 0 3px;
+  min-width: 14px;
+  text-align: center;
+}
