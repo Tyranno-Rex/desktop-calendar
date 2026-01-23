@@ -1,5 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { ChevronRight } from 'lucide-react';
 import type { Settings } from '../../types';
+import { AdvancedSettings } from './AdvancedSettings';
 import './Settings.css';
 
 interface SettingsPanelProps {
@@ -19,6 +21,7 @@ export function SettingsPanel({
   const [isDragging, setIsDragging] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const dragHandleRef = useRef<HTMLDivElement>(null);
 
@@ -285,8 +288,26 @@ export function SettingsPanel({
               {googleLoading ? '...' : googleConnected ? 'Disconnect' : 'Connect'}
             </button>
           </div>
+
+          {/* 고급 설정 */}
+          <button
+            className="advanced-settings-btn"
+            onClick={() => setShowAdvanced(true)}
+          >
+            <span>Advanced Settings</span>
+            <ChevronRight size={16} />
+          </button>
         </div>
       </div>
+
+      {/* 고급 설정 팝업 */}
+      {showAdvanced && (
+        <AdvancedSettings
+          settings={settings}
+          onUpdateSettings={onUpdateSettings}
+          onClose={() => setShowAdvanced(false)}
+        />
+      )}
     </div>
   );
 }
