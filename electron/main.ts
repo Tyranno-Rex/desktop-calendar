@@ -181,7 +181,6 @@ function embedInDesktop() {
     const hwnd = mainWindow.getNativeWindowHandle().readInt32LE(0);
     SetParent(hwnd, workerW);
     isEmbeddedInDesktop = true;
-    console.log('Window embedded in desktop (behind icons)');
     return true;
   }
   return false;
@@ -194,7 +193,6 @@ function removeFromDesktop() {
   const hwnd = mainWindow.getNativeWindowHandle().readInt32LE(0);
   SetParent(hwnd, 0);
   isEmbeddedInDesktop = false;
-  console.log('Window removed from desktop');
 }
 
 // 좌표 패킹 함수 (x, y -> int64)
@@ -253,9 +251,6 @@ function isOtherWindowAtPoint(x: number, y: number): boolean {
   const rootHwnd = GetAncestor ? GetAncestor(hwndAtPoint, GA_ROOT) : hwndAtPoint;
   const rootClassName = getWindowClassName(rootHwnd || hwndAtPoint);
 
-  const scale = getScaleFactorForPoint(x, y);
-  console.log(`[Click Check] Logical: (${x}, ${y}), Scale: ${scale}, HWND: ${hwndAtPoint}, DirectClass: "${directClassName}", RootClass: "${rootClassName}"`);
-
   // 바탕화면 계층 구조 클래스들 (Allow List)
   const desktopClasses = [
     'WorkerW',           // 바탕화면 배경 (Windows 10/11)
@@ -269,12 +264,10 @@ function isOtherWindowAtPoint(x: number, y: number): boolean {
   const isDesktopRoot = desktopClasses.some(dc => rootClassName.includes(dc));
 
   if (isDesktopDirect || isDesktopRoot) {
-    console.log('[Click Check] Desktop-related window, allowing click ✅');
     return false; // 다른 앱 아님 -> 클릭 허용
   }
 
   // 다른 앱의 창이 있음
-  console.log('[Click Check] Other app window detected, blocking click ❌');
   return true; // 다른 앱 있음 -> 클릭 차단
 }
 
@@ -391,12 +384,10 @@ function startMouseMonitoring() {
 
     // 마우스가 창 안으로 들어왔을 때 (휠 이벤트 받기 위해)
     if (isMouseInWindow && !wasMouseInWindow && !isDraggingInWindow) {
-      console.log('[DEBUG] Mouse entered window - setIgnoreMouseEvents(false)');
       mainWindow.setIgnoreMouseEvents(false);
     }
     // 마우스가 창 밖으로 나갔을 때
     if (!isMouseInWindow && wasMouseInWindow && !isDraggingInWindow) {
-      console.log('[DEBUG] Mouse left window - setIgnoreMouseEvents(true)');
       mainWindow.setIgnoreMouseEvents(true, { forward: true });
     }
     wasMouseInWindow = isMouseInWindow;
@@ -529,8 +520,6 @@ function disableDesktopMode() {
   if (mainWindow) {
     mainWindow.setIgnoreMouseEvents(false);
   }
-
-  console.log('Desktop mode disabled');
 }
 
 function createWindow() {

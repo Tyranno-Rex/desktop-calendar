@@ -11,6 +11,21 @@ export interface GoogleCalendarEvent {
   googleEventId?: string;
 }
 
+// Google Calendar API 응답 타입
+interface GoogleCalendarApiEvent {
+  id: string;
+  summary?: string;
+  description?: string;
+  start?: {
+    date?: string;
+    dateTime?: string;
+  };
+  end?: {
+    date?: string;
+    dateTime?: string;
+  };
+}
+
 // 로컬 날짜 문자열을 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
 function getLocalDateString(date: Date): string {
   const year = date.getFullYear();
@@ -39,7 +54,7 @@ function dateStrLessOrEqual(a: string, b: string): boolean {
 }
 
 // Google Calendar API 이벤트를 앱 이벤트로 변환 (멀티데이 이벤트는 여러 개로 분리)
-function convertGoogleEvent(event: any): GoogleCalendarEvent[] {
+function convertGoogleEvent(event: GoogleCalendarApiEvent): GoogleCalendarEvent[] {
   if (!event.start) return [];
 
   const results: GoogleCalendarEvent[] = [];
@@ -48,14 +63,14 @@ function convertGoogleEvent(event: any): GoogleCalendarEvent[] {
   let time: string | undefined;
   let isAllDay = false;
 
-  if (event.start.dateTime) {
+  if (event.start.dateTime && event.end?.dateTime) {
     // 시간이 지정된 이벤트
     const start = new Date(event.start.dateTime);
     const end = new Date(event.end.dateTime);
     startDate = getLocalDateString(start);
     endDate = getLocalDateString(end);
     time = start.toTimeString().slice(0, 5);
-  } else if (event.start.date) {
+  } else if (event.start.date && event.end?.date) {
     // 종일 이벤트 (날짜 문자열 그대로 사용)
     startDate = event.start.date; // "2026-01-29"
     // Google Calendar의 종일 이벤트는 end.date가 다음날로 설정됨 (exclusive)
@@ -65,8 +80,6 @@ function convertGoogleEvent(event: any): GoogleCalendarEvent[] {
   } else {
     return [];
   }
-
-  console.log(`[convertGoogleEvent] ${event.summary}: ${startDate} ~ ${endDate}`);
 
   // 시작일부터 종료일까지 각 날짜에 이벤트 생성
   let currentDate = startDate;
@@ -86,13 +99,28 @@ function convertGoogleEvent(event: any): GoogleCalendarEvent[] {
     currentDate = addOneDay(currentDate);
   }
 
-  console.log(`[convertGoogleEvent] Created ${results.length} events for ${event.summary}`);
   return results;
 }
 
+// Google Calendar API 요청 형식
+interface GoogleCalendarApiRequest {
+  summary?: string;
+  description?: string;
+  start?: {
+    date?: string;
+    dateTime?: string;
+    timeZone?: string;
+  };
+  end?: {
+    date?: string;
+    dateTime?: string;
+    timeZone?: string;
+  };
+}
+
 // 앱 이벤트를 Google Calendar API 형식으로 변환
-function convertToGoogleEvent(event: GoogleCalendarEvent): any {
-  const googleEvent: any = {
+function convertToGoogleEvent(event: GoogleCalendarEvent): GoogleCalendarApiRequest {
+  const googleEvent: GoogleCalendarApiRequest = {
     summary: event.title,
     description: event.description,
   };
@@ -138,10 +166,6 @@ export async function getEvents(
   });
 
   try {
-    console.log('Fetching Google Calendar events...');
-    console.log('Access token (first 20 chars):', accessToken?.substring(0, 20));
-    console.log('Request URL:', `${CALENDAR_API_BASE}/calendars/primary/events?${params}`);
-
     const response = await fetch(
       `${CALENDAR_API_BASE}/calendars/primary/events?${params}`,
       {
@@ -151,16 +175,12 @@ export async function getEvents(
       }
     );
 
-    console.log('Response status:', response.status, response.statusText);
-
     if (!response.ok) {
       const errorBody = await response.text();
-      console.error('API error response body:', errorBody);
       throw new Error(`API error: ${response.status} ${response.statusText} - ${errorBody}`);
     }
 
-    const data = await response.json() as any;
-    console.log('Fetched events count:', data.items?.length || 0);
+    const data = await response.json() as { items?: GoogleCalendarApiEvent[] };
     const events = data.items || [];
 
     // 멀티데이 이벤트가 분리되어 반환되므로 flat() 사용
@@ -193,7 +213,7 @@ export async function createEvent(
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as GoogleCalendarApiEvent;
     const created = convertGoogleEvent(data);
 
     if (!created || created.length === 0) throw new Error('Failed to convert created event');
@@ -211,7 +231,7 @@ export async function updateEvent(
   event: Partial<GoogleCalendarEvent>
 ): Promise<GoogleCalendarEvent> {
   try {
-    const updateData: any = {};
+    const updateData: GoogleCalendarApiRequest = {};
 
     if (event.title) updateData.summary = event.title;
     if (event.description !== undefined) updateData.description = event.description;
@@ -246,7 +266,7 @@ export async function updateEvent(
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as GoogleCalendarApiEvent;
     const updated = convertGoogleEvent(data);
 
     if (!updated || updated.length === 0) throw new Error('Failed to convert updated event');

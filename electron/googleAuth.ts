@@ -76,18 +76,15 @@ function getClientId(): string {
   }
 
   for (const envPath of possiblePaths) {
-    console.log('Checking env path:', envPath);
     if (fs.existsSync(envPath)) {
       const envVars = parseEnvFile(envPath);
       if (envVars.GOOGLE_CLIENT_ID) {
         cachedClientId = envVars.GOOGLE_CLIENT_ID;
-        console.log('Loaded GOOGLE_CLIENT_ID from:', envPath);
         return cachedClientId;
       }
     }
   }
 
-  console.error('GOOGLE_CLIENT_ID not found in any location');
   return '';
 }
 
@@ -340,11 +337,9 @@ export function startAuthFlow(): Promise<TokenData> {
               }),
             });
 
-            const tokenData = await tokenResponse.json() as any;
-            console.log('Token response:', JSON.stringify(tokenData, null, 2));
+            const tokenData = await tokenResponse.json() as TokenData & { error?: string; error_description?: string };
 
             if (tokenData.error) {
-              console.error('Token error details:', tokenData.error_description);
               throw new Error(`Token exchange failed: ${tokenData.error} - ${tokenData.error_description || 'no description'}`);
             }
 
