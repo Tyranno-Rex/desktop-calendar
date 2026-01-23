@@ -40,6 +40,17 @@ export function useCalendar() {
     setCurrentDate(new Date());
   }, []);
 
+  const goToMonth = useCallback((month: number) => {
+    setCurrentDate(prev => new Date(prev.getFullYear(), month, 1));
+  }, []);
+
+  const goToYear = useCallback((year: number) => {
+    setCurrentDate(prev => new Date(year, prev.getMonth(), 1));
+  }, []);
+
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+
   const isCurrentMonth = useCallback(
     (date: Date) => isSameMonth(date, currentDate),
     [currentDate]
@@ -55,6 +66,10 @@ export function useCalendar() {
     goToPreviousMonth,
     goToNextMonth,
     goToToday,
+    goToMonth,
+    goToYear,
+    currentMonth,
+    currentYear,
     isCurrentMonth,
     isTodayDate,
   };

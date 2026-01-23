@@ -23,6 +23,10 @@ export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventCl
     goToPreviousMonth,
     goToNextMonth,
     goToToday,
+    goToMonth,
+    goToYear,
+    currentMonth,
+    currentYear,
     isCurrentMonth,
     isTodayDate,
   } = useCalendar();
@@ -40,9 +44,13 @@ export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventCl
     <div className="calendar">
       <CalendarHeader
         monthYear={monthYear}
+        currentMonth={currentMonth}
+        currentYear={currentYear}
         onPrevMonth={goToPreviousMonth}
         onNextMonth={goToNextMonth}
         onToday={goToToday}
+        onMonthSelect={goToMonth}
+        onYearSelect={goToYear}
       />
       <CalendarGrid
         days={calendarDays}

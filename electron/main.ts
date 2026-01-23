@@ -392,6 +392,9 @@ function startMouseMonitoring() {
         lastMouseX = mousePos.x;
         lastMouseY = mousePos.y;
 
+        // 드래그 시작 시 마우스 이벤트 캡처 (바탕화면 선택 방지)
+        mainWindow.setIgnoreMouseEvents(false);
+
         // mousedown 이벤트 전달
         mainWindow.webContents.send('desktop-mousedown', {
           x: clickInfo.relX,
@@ -464,6 +467,9 @@ function startMouseMonitoring() {
 
       isDraggingInWindow = false;
       hasDragged = false;
+
+      // 드래그 끝나면 다시 마우스 이벤트 통과 모드로
+      mainWindow.setIgnoreMouseEvents(true, { forward: true });
     }
 
     wasMouseDown = isMouseDown;

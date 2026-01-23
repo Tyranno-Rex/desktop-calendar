@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Clock, Trash2, ChevronDown } from 'lucide-react';
+import { X, Trash2, ChevronDown } from 'lucide-react';
 
 // 로컬 날짜를 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
 const getLocalDateString = (date: Date) => {
@@ -186,15 +186,6 @@ export function EventPopup() {
       setSelectedMinute(parsed.minute);
     }
   }, [time]);
-
-  // 시간 포맷 표시 (HH:mm -> 오전/오후 H:mm)
-  const formatTimeDisplay = (t: string) => {
-    if (!t) return '';
-    const [h, m] = t.split(':').map(Number);
-    const period = h < 12 ? '오전' : '오후';
-    const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-    return `${period} ${hour}:${String(m).padStart(2, '0')}`;
-  };
 
   // 시간 선택 핸들러
   const handlePeriodSelect = (period: 'AM' | 'PM') => {

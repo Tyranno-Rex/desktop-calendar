@@ -38,6 +38,23 @@
   letter-spacing: -0.5px;
 }
 
+.month-text,
+.year-text {
+  cursor: ns-resize;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.month-text:hover,
+.year-text:hover {
+  color: var(--accent-color);
+}
+
+.month-text.dragging,
+.year-text.dragging {
+  color: var(--accent-color);
+}
+
 .nav-btn {
   background: transparent;
   border: none;
