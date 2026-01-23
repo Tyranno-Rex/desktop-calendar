@@ -8,6 +8,8 @@ const defaultSettings: Settings = {
   theme: 'dark',
   fontSize: 14,
   resizeMode: false,
+  showHolidays: true,
+  showAdjacentMonths: true,
 };
 
 export function useSettings() {

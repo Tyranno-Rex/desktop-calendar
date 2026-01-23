@@ -15,6 +15,8 @@ interface CalendarGridProps {
   onOpenDate: (date: Date, e: React.MouseEvent) => void;
   onEventClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
   showEventDetails?: boolean;
+  showHolidays?: boolean;
+  showAdjacentMonths?: boolean;
 }
 
 export function CalendarGrid({
@@ -27,6 +29,8 @@ export function CalendarGrid({
   onOpenDate,
   onEventClick,
   showEventDetails = false,
+  showHolidays = true,
+  showAdjacentMonths = true,
 }: CalendarGridProps) {
   return (
     <div className="calendar-grid">
@@ -38,20 +42,28 @@ export function CalendarGrid({
         ))}
       </div>
       <div className="days-grid">
-        {days.map((date) => (
-          <DayCell
-            key={date.toISOString()}
-            date={date}
-            isCurrentMonth={isCurrentMonth(date)}
-            isSelected={isSelected(date)}
-            isToday={isToday(date)}
-            events={getEventsForDate(date)}
-            onClick={() => onSelectDate(date)}
-            onDoubleClick={(e) => onOpenDate(date, e)}
-            onEventClick={onEventClick}
-            showEventDetails={showEventDetails}
-          />
-        ))}
+        {days.map((date) => {
+          const isCurrent = isCurrentMonth(date);
+          // 이월 표시 숨기기
+          if (!showAdjacentMonths && !isCurrent) {
+            return <div key={date.toISOString()} className="day-cell empty" />;
+          }
+          return (
+            <DayCell
+              key={date.toISOString()}
+              date={date}
+              isCurrentMonth={isCurrent}
+              isSelected={isSelected(date)}
+              isToday={isToday(date)}
+              events={getEventsForDate(date)}
+              onClick={() => onSelectDate(date)}
+              onDoubleClick={(e) => onOpenDate(date, e)}
+              onEventClick={onEventClick}
+              showEventDetails={showEventDetails}
+              showHolidays={showHolidays}
+            />
+          );
+        })}
       </div>
     </div>
   );

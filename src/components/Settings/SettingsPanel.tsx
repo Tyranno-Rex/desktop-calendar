@@ -235,6 +235,40 @@ export function SettingsPanel({
             </label>
           </div>
 
+          <div className="setting-item">
+            <label>
+              Show Holidays
+              <span className="setting-hint">Display holidays on calendar</span>
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={settings.showHolidays}
+                onChange={(e) =>
+                  onUpdateSettings({ showHolidays: e.target.checked })
+                }
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div className="setting-item">
+            <label>
+              Adjacent Months
+              <span className="setting-hint">Show prev/next month dates</span>
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={settings.showAdjacentMonths}
+                onChange={(e) =>
+                  onUpdateSettings({ showAdjacentMonths: e.target.checked })
+                }
+              />
+              <span className="toggle-slider"></span>
+            </label>
+          </div>
+
           {/* Google Calendar 연동 */}
           <div className="setting-item">
             <label>

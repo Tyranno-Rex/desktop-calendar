@@ -12,9 +12,11 @@ interface CalendarProps {
   onEventClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
   selectedDate: Date | null;
   showEventDetails?: boolean;
+  showHolidays?: boolean;
+  showAdjacentMonths?: boolean;
 }
 
-export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventClick, selectedDate, showEventDetails = false }: CalendarProps) {
+export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventClick, selectedDate, showEventDetails = false, showHolidays = true, showAdjacentMonths = true }: CalendarProps) {
   const {
     calendarDays,
     monthYear,
@@ -52,6 +54,8 @@ export function Calendar({ getEventsForDate, onSelectDate, onOpenDate, onEventCl
         onOpenDate={onOpenDate}
         onEventClick={onEventClick}
         showEventDetails={showEventDetails}
+        showHolidays={showHolidays}
+        showAdjacentMonths={showAdjacentMonths}
       />
     </div>
   );

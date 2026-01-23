@@ -31,6 +31,22 @@ export function SchedulePanel({
     return `${year}-${month}-${day}`;
   };
 
+  // D-Day 계산 (오늘 기준)
+  const getDDay = (dateStr: string): string => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const eventDate = new Date(year, month - 1, day);
+    eventDate.setHours(0, 0, 0, 0);
+
+    const diffTime = eventDate.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'D-Day';
+    if (diffDays > 0) return `D-${diffDays}`;
+    return `D+${Math.abs(diffDays)}`;
+  };
+
   const filteredEvents = useMemo(() => {
     if (!selectedDate) return [];
     const dateStr = getLocalDateString(selectedDate);
@@ -103,9 +119,14 @@ export function SchedulePanel({
               </button>
 
               <div className="schedule-item-content">
-                <p className={`schedule-item-title ${event.completed ? 'completed' : ''}`}>
-                  {event.title}
-                </p>
+                <div className="schedule-item-title-row">
+                  <p className={`schedule-item-title ${event.completed ? 'completed' : ''}`}>
+                    {event.title}
+                  </p>
+                  <span className={`schedule-item-dday ${getDDay(event.date) === 'D-Day' ? 'today' : getDDay(event.date).startsWith('D+') ? 'past' : ''}`}>
+                    {getDDay(event.date)}
+                  </span>
+                </div>
                 {event.time && (
                   <div className="schedule-item-time">
                     <Clock size={12} />

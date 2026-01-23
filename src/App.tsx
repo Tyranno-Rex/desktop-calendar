@@ -241,6 +241,8 @@ function App() {
             onEventClick={handleEventClick}
             selectedDate={selectedDate}
             showEventDetails={!showSchedulePanel}
+            showHolidays={settings.showHolidays}
+            showAdjacentMonths={settings.showAdjacentMonths}
           />
         </div>
 

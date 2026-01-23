@@ -144,7 +144,7 @@
 }
 
 .day-cell:hover {
-  background: var(--bg-cell-hover);
+  background: var(--bg-cell);
 }
 
 .day-cell.other-month {

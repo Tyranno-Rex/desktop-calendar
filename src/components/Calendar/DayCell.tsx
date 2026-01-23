@@ -29,6 +29,7 @@ interface DayCellProps {
   onDoubleClick: (e: React.MouseEvent) => void;
   onEventClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
   showEventDetails?: boolean; // 패널이 닫혀있을 때 이벤트 상세 표시
+  showHolidays?: boolean; // 휴일 색상 표시
 }
 
 export const DayCell = memo(function DayCell({
@@ -41,6 +42,7 @@ export const DayCell = memo(function DayCell({
   onDoubleClick,
   onEventClick,
   showEventDetails = false,
+  showHolidays = true,
 }: DayCellProps) {
   const dayNumber = date.getDate();
   const dayOfWeek = getDay(date);
@@ -52,7 +54,7 @@ export const DayCell = memo(function DayCell({
     !isCurrentMonth && 'other-month',
     isSelected && 'selected',
     isToday && 'today',
-    isWeekend && 'weekend',
+    showHolidays && isWeekend && 'weekend',
   ]
     .filter(Boolean)
     .join(' ');

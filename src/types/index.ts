@@ -17,6 +17,8 @@ export interface Settings {
   theme: 'dark' | 'light';
   fontSize: number;
   resizeMode: boolean;
+  showHolidays: boolean;
+  showAdjacentMonths: boolean;
 }
 
 export interface PopupData {
