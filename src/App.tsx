@@ -225,7 +225,25 @@ function App() {
         googleConnected={googleConnected}
       />
 
-      <div className="app-content">
+      <div className={`app-content ${settings.schedulePanelPosition === 'left' ? 'panel-left' : ''}`}>
+        {/* 사이드 패널 - 왼쪽일 때 먼저 렌더링 */}
+        {settings.schedulePanelPosition === 'left' && (
+          <AnimatePresence>
+            {showSchedulePanel && (
+              <SchedulePanel
+                selectedDate={selectedDate}
+                events={events}
+                onAddEvent={handlePanelAddEvent}
+                onEditEvent={handleEditEvent}
+                onDeleteEvent={handlePanelDeleteEvent}
+                onToggleComplete={handleToggleComplete}
+                onClose={() => setShowSchedulePanel(false)}
+                position="left"
+              />
+            )}
+          </AnimatePresence>
+        )}
+
         <div className={`app-main ${showSchedulePanel ? 'with-panel' : ''}`}>
           <Calendar
             events={events}
@@ -241,20 +259,23 @@ function App() {
           />
         </div>
 
-        {/* 사이드 패널 */}
-        <AnimatePresence>
-          {showSchedulePanel && (
-            <SchedulePanel
-              selectedDate={selectedDate}
-              events={events}
-              onAddEvent={handlePanelAddEvent}
-              onEditEvent={handleEditEvent}
-              onDeleteEvent={handlePanelDeleteEvent}
-              onToggleComplete={handleToggleComplete}
-              onClose={() => setShowSchedulePanel(false)}
-            />
-          )}
-        </AnimatePresence>
+        {/* 사이드 패널 - 오른쪽일 때 */}
+        {settings.schedulePanelPosition === 'right' && (
+          <AnimatePresence>
+            {showSchedulePanel && (
+              <SchedulePanel
+                selectedDate={selectedDate}
+                events={events}
+                onAddEvent={handlePanelAddEvent}
+                onEditEvent={handleEditEvent}
+                onDeleteEvent={handlePanelDeleteEvent}
+                onToggleComplete={handleToggleComplete}
+                onClose={() => setShowSchedulePanel(false)}
+                position="right"
+              />
+            )}
+          </AnimatePresence>
+        )}
       </div>
 
       {/* 리사이즈 핸들 - 4방향 모서리 */}

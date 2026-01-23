@@ -8,6 +8,11 @@
   flex-shrink: 0;
 }
 
+.schedule-panel.panel-left {
+  border-left: none;
+  border-right: 1px solid var(--border-color);
+}
+
 .schedule-header {
   display: flex;
   align-items: flex-start;

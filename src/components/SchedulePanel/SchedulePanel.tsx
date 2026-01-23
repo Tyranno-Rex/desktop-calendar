@@ -14,6 +14,7 @@ interface SchedulePanelProps {
   onDeleteEvent: (id: string) => void;
   onToggleComplete?: (id: string) => void;
   onClose?: () => void;
+  position?: 'left' | 'right';
 }
 
 export function SchedulePanel({
@@ -23,6 +24,7 @@ export function SchedulePanel({
   onDeleteEvent,
   onToggleComplete,
   onClose,
+  position = 'right',
 }: SchedulePanelProps) {
   // D-Day 계산 (오늘 기준)
   const getDDay = (dateStr: string): string => {
@@ -59,10 +61,10 @@ export function SchedulePanel({
 
   return (
     <motion.div
-      className="schedule-panel"
-      initial={{ opacity: 0, x: 40 }}
+      className={`schedule-panel ${position === 'left' ? 'panel-left' : ''}`}
+      initial={{ opacity: 0, x: position === 'left' ? -40 : 40 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 40 }}
+      exit={{ opacity: 0, x: position === 'left' ? -40 : 40 }}
       transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
     >
       {/* Header */}

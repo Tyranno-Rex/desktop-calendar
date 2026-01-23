@@ -21,6 +21,8 @@ export interface Settings {
   showAdjacentMonths: boolean;
   // 숨길 요일 (0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토)
   hiddenDays: number[];
+  // 스케줄 패널 위치 ('left' | 'right')
+  schedulePanelPosition: 'left' | 'right';
 }
 
 export interface PopupData {

@@ -11,6 +11,7 @@ const defaultSettings: Settings = {
   showHolidays: true,
   showAdjacentMonths: true,
   hiddenDays: [],
+  schedulePanelPosition: 'right',
 };
 
 export function useSettings() {

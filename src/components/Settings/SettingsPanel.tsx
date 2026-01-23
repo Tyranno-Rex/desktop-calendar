@@ -144,45 +144,42 @@ export function SettingsPanel({
             </div>
           </div>
 
-          <div className="setting-item">
-            <label>
-              Opacity: {Math.round(settings.opacity * 100)}%
-            </label>
-            <div className="stepper-control">
-              <button
-                className="stepper-btn"
-                onClick={() => onUpdateSettings({ opacity: Math.max(0.3, settings.opacity - 0.1) })}
-              >
-                -
-              </button>
-              <span className="stepper-value">{Math.round(settings.opacity * 100)}%</span>
-              <button
-                className="stepper-btn"
-                onClick={() => onUpdateSettings({ opacity: Math.min(1, settings.opacity + 0.1) })}
-              >
-                +
-              </button>
+          <div className="setting-row">
+            <div className="setting-item-inline">
+              <label>Opacity</label>
+              <div className="stepper-control-compact">
+                <button
+                  className="stepper-btn-sm"
+                  onClick={() => onUpdateSettings({ opacity: Math.max(0.3, settings.opacity - 0.1) })}
+                >
+                  -
+                </button>
+                <span className="stepper-value-sm">{Math.round(settings.opacity * 100)}%</span>
+                <button
+                  className="stepper-btn-sm"
+                  onClick={() => onUpdateSettings({ opacity: Math.min(1, settings.opacity + 0.1) })}
+                >
+                  +
+                </button>
+              </div>
             </div>
-          </div>
-
-          <div className="setting-item">
-            <label>
-              Font Size: {settings.fontSize}px
-            </label>
-            <div className="stepper-control">
-              <button
-                className="stepper-btn"
-                onClick={() => onUpdateSettings({ fontSize: Math.max(10, settings.fontSize - 1) })}
-              >
-                -
-              </button>
-              <span className="stepper-value">{settings.fontSize}px</span>
-              <button
-                className="stepper-btn"
-                onClick={() => onUpdateSettings({ fontSize: Math.min(20, settings.fontSize + 1) })}
-              >
-                +
-              </button>
+            <div className="setting-item-inline">
+              <label>Font</label>
+              <div className="stepper-control-compact">
+                <button
+                  className="stepper-btn-sm"
+                  onClick={() => onUpdateSettings({ fontSize: Math.max(10, settings.fontSize - 1) })}
+                >
+                  -
+                </button>
+                <span className="stepper-value-sm">{settings.fontSize}px</span>
+                <button
+                  className="stepper-btn-sm"
+                  onClick={() => onUpdateSettings({ fontSize: Math.min(20, settings.fontSize + 1) })}
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
 
@@ -270,6 +267,24 @@ export function SettingsPanel({
               />
               <span className="toggle-slider"></span>
             </label>
+          </div>
+
+          <div className="setting-item">
+            <label>Schedule Panel</label>
+            <div className="theme-options">
+              <button
+                className={`theme-btn ${settings.schedulePanelPosition === 'left' ? 'active' : ''}`}
+                onClick={() => onUpdateSettings({ schedulePanelPosition: 'left' })}
+              >
+                Left
+              </button>
+              <button
+                className={`theme-btn ${settings.schedulePanelPosition === 'right' ? 'active' : ''}`}
+                onClick={() => onUpdateSettings({ schedulePanelPosition: 'right' })}
+              >
+                Right
+              </button>
+            </div>
           </div>
 
           {/* Google Calendar 연동 */}
