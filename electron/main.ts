@@ -487,6 +487,8 @@ function enableDesktopMode() {
   if (!mainWindow) return;
   desktopModeEnabled = true;
   mainWindow.setAlwaysOnTop(false);
+  // Desktop Mode: 마우스 이벤트 통과 모드 활성화 (클릭이 바탕화면으로 전달됨)
+  mainWindow.setIgnoreMouseEvents(true, { forward: true });
   embedInDesktop();
   startMouseMonitoring();
 }
@@ -495,6 +497,12 @@ function disableDesktopMode() {
   desktopModeEnabled = false;
   stopMouseMonitoring();
   removeFromDesktop();
+
+  // 마우스 이벤트 통과 모드 해제 (일반 모드에서는 직접 클릭 가능하도록)
+  if (mainWindow) {
+    mainWindow.setIgnoreMouseEvents(false);
+  }
+
   console.log('Desktop mode disabled');
 }
 
