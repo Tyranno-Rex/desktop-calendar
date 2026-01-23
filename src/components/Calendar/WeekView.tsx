@@ -11,6 +11,7 @@ interface WeekViewProps {
   events: CalendarEvent[];
   selectedDate: Date | null;
   onSelectDate: (date: Date) => void;
+  onOpenDate?: (date: Date, e: React.MouseEvent) => void;
   onEventClick?: (event: CalendarEvent, e: React.MouseEvent) => void;
   showHolidays?: boolean;
   hiddenDays?: number[];
@@ -21,6 +22,7 @@ export function WeekView({
   events,
   selectedDate,
   onSelectDate,
+  onOpenDate,
   onEventClick,
   showHolidays = true,
   hiddenDays = [],
@@ -228,7 +230,9 @@ export function WeekView({
             <div
               key={date.toISOString()}
               className={`week-day-column ${isToday(date) ? 'today' : ''} ${showHolidays && isWeekend(date) ? 'weekend' : ''}`}
+              data-date={format(date, 'yyyy-MM-dd')}
               onClick={() => onSelectDate(date)}
+              onDoubleClick={(e) => onOpenDate?.(date, e)}
             >
               {/* 시간 슬롯 */}
               {HOURS.map((hour) => (

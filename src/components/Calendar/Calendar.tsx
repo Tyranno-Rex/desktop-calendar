@@ -85,6 +85,7 @@ export function Calendar({ events, getEventsForDate, onSelectDate, onOpenDate, o
           events={events}
           selectedDate={selectedDate}
           onSelectDate={onSelectDate}
+          onOpenDate={onOpenDate}
           onEventClick={onEventClick}
           showHolidays={showHolidays}
           hiddenDays={hiddenDays}
