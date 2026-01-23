@@ -1,0 +1,264 @@
+/* Week View */
+.week-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Week Header */
+.week-header {
+  display: grid;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-cell);
+}
+
+.week-time-gutter {
+  width: 50px;
+  border-right: 1px solid var(--border-color);
+}
+
+.week-day-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  cursor: pointer;
+  border-right: 1px solid var(--border-color);
+  transition: background 0.15s;
+}
+
+.week-day-header:last-child {
+  border-right: none;
+}
+
+.week-day-header:hover {
+  background: var(--bg-cell-hover);
+}
+
+.week-day-header.selected {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.week-day-header.today {
+  background: rgba(59, 130, 246, 0.03);
+}
+
+.week-day-header.weekend .week-day-name {
+  color: var(--weekend-color);
+}
+
+.week-day-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.week-day-number {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-top: 2px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.week-day-number.today-badge {
+  background: var(--accent-color);
+  color: white;
+}
+
+.week-day-header.weekend .week-day-number:not(.today-badge) {
+  color: var(--weekend-color);
+}
+
+/* Week Body */
+.week-body {
+  flex: 1;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  min-height: 0;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+}
+
+.week-body:active {
+  cursor: grabbing;
+}
+
+/* Scrollbar - 숨김 */
+.week-body::-webkit-scrollbar {
+  display: none;
+}
+
+.week-body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.week-grid {
+  display: grid;
+  position: relative;
+  min-height: 1440px; /* 24시간 * 60px */
+}
+
+/* Time Column */
+.week-time-column {
+  width: 50px;
+  border-right: 1px solid var(--border-color);
+  position: relative;
+}
+
+.week-time-slot {
+  height: 60px;
+  position: relative;
+}
+
+.week-time-label {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Day Column */
+.week-day-column {
+  position: relative;
+  border-right: 1px solid var(--border-color);
+  cursor: pointer;
+}
+
+.week-day-column:last-child {
+  border-right: none;
+}
+
+.week-day-column.today {
+  background: rgba(59, 130, 246, 0.03);
+}
+
+.week-day-column.weekend {
+  background: rgba(239, 68, 68, 0.02);
+}
+
+.week-hour-cell {
+  height: 60px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.week-hour-cell:last-child {
+  border-bottom: none;
+}
+
+/* Events */
+.week-event {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 11px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  z-index: 1;
+  color: white;
+}
+
+.week-event:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.week-event.completed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.week-event-time {
+  font-size: 10px;
+  opacity: 0.9;
+  display: block;
+}
+
+.week-event-title {
+  font-weight: 500;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Current Time Line */
+.week-current-time-line {
+  position: absolute;
+  height: 2px;
+  background: #ef4444;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.week-current-time-dot {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+}
+
+/* Scroll Buttons - WeekView 내부 오른쪽 가운데 고정 */
+.week-scroll-buttons {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 20;
+}
+
+.week-scroll-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-cell);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  opacity: 0.8;
+}
+
+.week-scroll-btn:hover {
+  background: var(--bg-cell-hover);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  opacity: 1;
+}
+
+.week-scroll-btn:active {
+  transform: scale(0.95);
+}
+
+.week-scroll-btn-now {
+  color: var(--accent-color);
+  font-size: 8px;
+}

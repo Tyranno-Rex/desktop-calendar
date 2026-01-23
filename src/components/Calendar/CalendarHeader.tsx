@@ -12,8 +12,11 @@ export type ViewMode = 'month' | 'week';
 interface CalendarHeaderProps {
   currentMonth: number;
   currentYear: number;
+  weekRangeText?: string;
   onPrevMonth: () => void;
   onNextMonth: () => void;
+  onPrevWeek?: () => void;
+  onNextWeek?: () => void;
   onToday: () => void;
   onMonthSelect: (month: number) => void;
   onYearSelect: (year: number) => void;
@@ -24,8 +27,11 @@ interface CalendarHeaderProps {
 export const CalendarHeader = memo(function CalendarHeader({
   currentMonth,
   currentYear,
+  weekRangeText,
   onPrevMonth,
   onNextMonth,
+  onPrevWeek,
+  onNextWeek,
   onToday,
   onMonthSelect,
   onYearSelect,
@@ -112,50 +118,65 @@ export const CalendarHeader = memo(function CalendarHeader({
     };
   }, [isDraggingMonth, isDraggingYear, currentMonth, currentYear, onMonthSelect, onYearSelect]);
 
+  const handlePrev = viewMode === 'week' ? onPrevWeek : onPrevMonth;
+  const handleNext = viewMode === 'week' ? onNextWeek : onNextMonth;
+
   return (
     <div className="calendar-header">
-      {/* 중앙: 화살표 + 월/년 + 화살표 */}
+      {/* 중앙: 화살표 + 월/년 or 주간 범위 + 화살표 */}
       <div className="nav-center">
         <motion.button
           className="nav-btn nav-arrow"
-          onClick={onPrevMonth}
-          title="Previous month"
+          onClick={handlePrev}
+          title={viewMode === 'week' ? 'Previous week' : 'Previous month'}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
           &lt;
         </motion.button>
         <div className="month-year">
-          <motion.span
-            key={`${currentMonth}-${currentYear}`}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-            className="month-year-clickable"
-          >
-            <span
-              className={`month-text ${isDraggingMonth ? 'dragging' : ''}`}
-              onMouseDown={handleMonthMouseDown}
-              onWheel={handleMonthWheel}
-              title="Drag or scroll to change month"
+          {viewMode === 'month' ? (
+            <motion.span
+              key={`${currentMonth}-${currentYear}`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="month-year-clickable"
             >
-              {MONTH_NAMES[currentMonth]}
-            </span>
-            <span style={{ width: '8px', display: 'inline-block' }} />
-            <span
-              className={`year-text ${isDraggingYear ? 'dragging' : ''}`}
-              onMouseDown={handleYearMouseDown}
-              onWheel={handleYearWheel}
-              title="Drag or scroll to change year"
+              <span
+                className={`month-text ${isDraggingMonth ? 'dragging' : ''}`}
+                onMouseDown={handleMonthMouseDown}
+                onWheel={handleMonthWheel}
+                title="Drag or scroll to change month"
+              >
+                {MONTH_NAMES[currentMonth]}
+              </span>
+              <span style={{ width: '8px', display: 'inline-block' }} />
+              <span
+                className={`year-text ${isDraggingYear ? 'dragging' : ''}`}
+                onMouseDown={handleYearMouseDown}
+                onWheel={handleYearWheel}
+                title="Drag or scroll to change year"
+              >
+                {currentYear}
+              </span>
+            </motion.span>
+          ) : (
+            <motion.span
+              key={weekRangeText}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="week-range-text"
             >
-              {currentYear}
-            </span>
-          </motion.span>
+              {weekRangeText}
+            </motion.span>
+          )}
         </div>
         <motion.button
           className="nav-btn nav-arrow"
-          onClick={onNextMonth}
-          title="Next month"
+          onClick={handleNext}
+          title={viewMode === 'week' ? 'Next week' : 'Next month'}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >

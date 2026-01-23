@@ -228,6 +228,7 @@ function App() {
       <div className="app-content">
         <div className={`app-main ${showSchedulePanel ? 'with-panel' : ''}`}>
           <Calendar
+            events={events}
             getEventsForDate={getEventsForDate}
             onSelectDate={handleSelectDate}
             onOpenDate={handleOpenDate}

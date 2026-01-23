@@ -2,11 +2,16 @@ import { useState, useMemo, useCallback } from 'react';
 import {
   startOfMonth,
   startOfWeek,
+  endOfWeek,
   addDays,
   addMonths,
   subMonths,
+  addWeeks,
+  subWeeks,
   isSameMonth,
+  isSameDay,
   isToday,
+  format,
 } from 'date-fns';
 
 export function useCalendar() {
@@ -57,16 +62,71 @@ export function useCalendar() {
 
   const isTodayDate = useCallback((date: Date) => isToday(date), []);
 
+  // 주간 뷰를 위한 날짜 계산
+  const weekDays = useMemo(() => {
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+    const days: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      const tempDay = addDays(weekStart, i);
+      const day = new Date(tempDay.getFullYear(), tempDay.getMonth(), tempDay.getDate(), 12, 0, 0, 0);
+      days.push(day);
+    }
+    return days;
+  }, [currentDate]);
+
+  // 주간 뷰 헤더 텍스트 (예: "Jan 19 - 25, 2025")
+  const weekRangeText = useMemo(() => {
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+    const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+
+    if (weekStart.getMonth() === weekEnd.getMonth()) {
+      return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'd, yyyy')}`;
+    } else if (weekStart.getFullYear() === weekEnd.getFullYear()) {
+      return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`;
+    } else {
+      return `${format(weekStart, 'MMM d, yyyy')} - ${format(weekEnd, 'MMM d, yyyy')}`;
+    }
+  }, [currentDate]);
+
+  const goToPreviousWeek = useCallback(() => {
+    setCurrentDate(prev => subWeeks(prev, 1));
+  }, []);
+
+  const goToNextWeek = useCallback(() => {
+    setCurrentDate(prev => addWeeks(prev, 1));
+  }, []);
+
+  const isCurrentWeek = useCallback(
+    (date: Date) => {
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+      return date >= weekStart && date <= weekEnd;
+    },
+    [currentDate]
+  );
+
+  const isSameDayAs = useCallback(
+    (date1: Date, date2: Date) => isSameDay(date1, date2),
+    []
+  );
+
   return {
+    currentDate,
     calendarDays,
+    weekDays,
+    weekRangeText,
     goToPreviousMonth,
     goToNextMonth,
+    goToPreviousWeek,
+    goToNextWeek,
     goToToday,
     goToMonth,
     goToYear,
     currentMonth,
     currentYear,
     isCurrentMonth,
+    isCurrentWeek,
     isTodayDate,
+    isSameDayAs,
   };
 }

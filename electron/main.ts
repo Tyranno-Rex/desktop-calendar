@@ -342,14 +342,20 @@ function isClickInWindow(): { inWindow: boolean; relX: number; relY: number } {
   const bounds = mainWindow.getBounds();
 
   // 창 영역 안에 있는지 확인
-  if (mousePos.x < bounds.x || mousePos.x > bounds.x + bounds.width ||
-      mousePos.y < bounds.y || mousePos.y > bounds.y + bounds.height) {
+  const isInBounds = mousePos.x >= bounds.x && mousePos.x <= bounds.x + bounds.width &&
+                     mousePos.y >= bounds.y && mousePos.y <= bounds.y + bounds.height;
+
+  if (!isInBounds) {
     return { inWindow: false, relX: 0, relY: 0 };
   }
 
-  // 클릭 위치에 다른 앱 창이 있으면 무시
-  if (isOtherWindowAtPoint(mousePos.x, mousePos.y)) {
-    return { inWindow: false, relX: 0, relY: 0 };
+  // Desktop Mode에서는 다른 앱 체크 스킵 (WindowFromPoint가 항상 바탕화면 반환)
+  // 대신 bounds 체크만으로 충분
+  if (!isEmbeddedInDesktop) {
+    // 일반 모드에서만 다른 앱 창 체크
+    if (isOtherWindowAtPoint(mousePos.x, mousePos.y)) {
+      return { inWindow: false, relX: 0, relY: 0 };
+    }
   }
 
   const relX = mousePos.x - bounds.x;
@@ -365,6 +371,7 @@ let mouseDownX = 0;
 let mouseDownY = 0;
 let lastMouseX = 0;
 let lastMouseY = 0;
+let wasMouseInWindow = false; // 마우스가 창 안에 있었는지 추적
 
 // 더블클릭 감지를 위한 마우스 모니터링
 function startMouseMonitoring() {
@@ -377,6 +384,22 @@ function startMouseMonitoring() {
     const isMouseDown = (mouseState & 0x8000) !== 0;
     const mousePos = screen.getCursorScreenPoint();
     const bounds = mainWindow.getBounds();
+
+    // 마우스가 창 위에 있는지 확인 (휠 스크롤 지원)
+    const clickInfo = isClickInWindow();
+    const isMouseInWindow = clickInfo.inWindow;
+
+    // 마우스가 창 안으로 들어왔을 때 (휠 이벤트 받기 위해)
+    if (isMouseInWindow && !wasMouseInWindow && !isDraggingInWindow) {
+      console.log('[DEBUG] Mouse entered window - setIgnoreMouseEvents(false)');
+      mainWindow.setIgnoreMouseEvents(false);
+    }
+    // 마우스가 창 밖으로 나갔을 때
+    if (!isMouseInWindow && wasMouseInWindow && !isDraggingInWindow) {
+      console.log('[DEBUG] Mouse left window - setIgnoreMouseEvents(true)');
+      mainWindow.setIgnoreMouseEvents(true, { forward: true });
+    }
+    wasMouseInWindow = isMouseInWindow;
     const relX = mousePos.x - bounds.x;
     const relY = mousePos.y - bounds.y;
 
@@ -468,8 +491,12 @@ function startMouseMonitoring() {
       isDraggingInWindow = false;
       hasDragged = false;
 
-      // 드래그 끝나면 다시 마우스 이벤트 통과 모드로
-      mainWindow.setIgnoreMouseEvents(true, { forward: true });
+      // 드래그 끝난 후: 마우스가 창 밖에 있으면 통과 모드로
+      const stillInWindow = isClickInWindow().inWindow;
+      if (!stillInWindow) {
+        mainWindow.setIgnoreMouseEvents(true, { forward: true });
+      }
+      // 창 안에 있으면 setIgnoreMouseEvents(false) 유지 (휠 스크롤 가능)
     }
 
     wasMouseDown = isMouseDown;
