@@ -365,36 +365,9 @@
   transform: translateX(22px);
 }
 
-/* 반복 설정 스타일 */
-.event-modal-popup .repeat-picker-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-}
-
+/* 반복 설정 스타일 - title-repeat-row에서 사용 */
 .event-modal-popup .repeat-select-wrapper {
   position: relative;
-  min-width: 140px;
-}
-
-.event-modal-popup .repeat-select-btn {
-  width: 100%;
-  padding: 12px 14px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-color);
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.15s;
-}
-
-.event-modal-popup .repeat-select-btn:hover {
-  border-color: var(--text-muted);
 }
 
 .event-modal-popup .repeat-dropdown {
@@ -426,48 +399,4 @@
   background: var(--accent-color);
   color: white;
   font-weight: 500;
-}
-
-.event-modal-popup .repeat-interval {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.event-modal-popup .repeat-interval-input {
-  width: 50px;
-  padding: 8px 10px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-color);
-  font-size: 14px;
-  text-align: center;
-  outline: none;
-}
-
-.event-modal-popup .repeat-interval-input:focus {
-  border-color: var(--accent-color);
-}
-
-.event-modal-popup .repeat-end {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.event-modal-popup .repeat-end-input {
-  padding: 8px 12px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-color);
-  font-size: 13px;
-  outline: none;
-}
-
-.event-modal-popup .repeat-end-input:focus {
-  border-color: var(--accent-color);
 }

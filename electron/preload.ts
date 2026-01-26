@@ -7,8 +7,19 @@ interface CalendarEvent {
   id: string;
   title: string;
   date: string;
+  time?: string;
   description?: string;
   color?: string;
+  completed?: boolean;
+  googleEventId?: string;
+  isGoogleEvent?: boolean;
+  repeat?: {
+    type: string;
+    interval: number;
+    endDate?: string;
+  };
+  repeatGroupId?: string;
+  isRepeatInstance?: boolean;
 }
 
 interface Settings {
@@ -17,6 +28,12 @@ interface Settings {
   desktopMode: boolean;
   theme: string;
   fontSize: number;
+  resizeMode: boolean;
+  showHolidays: boolean;
+  showAdjacentMonths: boolean;
+  showGridLines: boolean;
+  hiddenDays: number[];
+  schedulePanelPosition: 'left' | 'right';
 }
 
 contextBridge.exposeInMainWorld('electronAPI', {

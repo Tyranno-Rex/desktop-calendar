@@ -118,21 +118,22 @@ export function EventPopup() {
     }
 
     if (data.event?.id) {
-      setEventId(data.event.id);
+      // 반복 인스턴스인 경우 원본 ID 사용, 아니면 그대로
+      const originalId = data.event.isRepeatInstance && data.event.repeatGroupId
+        ? data.event.repeatGroupId
+        : data.event.id;
+      setEventId(originalId);
       setIsEdit(true);
-      // 이벤트 데이터 로드
-      const events = await window.electronAPI?.getEvents();
-      const event = events?.find(e => e.id === data.event!.id);
-      if (event) {
-        setTitle(event.title);
-        setTime(event.time || '');
-        setDescription(event.description || '');
-        // 반복 설정 로드
-        if (event.repeat) {
-          setRepeatType(event.repeat.type);
-          setRepeatInterval(event.repeat.interval || 1);
-          setRepeatEndDate(event.repeat.endDate || '');
-        }
+
+      // 전달받은 이벤트 데이터 사용 (반복 인스턴스도 원본 데이터 복사됨)
+      setTitle(data.event.title || '');
+      setTime(data.event.time || '');
+      setDescription(data.event.description || '');
+      // 반복 설정 로드
+      if (data.event.repeat) {
+        setRepeatType(data.event.repeat.type);
+        setRepeatInterval(data.event.repeat.interval || 1);
+        setRepeatEndDate(data.event.repeat.endDate || '');
       }
     }
 

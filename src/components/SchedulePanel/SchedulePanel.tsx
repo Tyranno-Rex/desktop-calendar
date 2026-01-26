@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 import { Clock, Trash2, Check, X, Repeat } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
-import { getLocalDateString, compareEventTime } from '../../utils/date';
+import { getLocalDateString, compareEventTime, isDateInRepeatSchedule, createRepeatInstance } from '../../utils/date';
 import './SchedulePanel.css';
 
 interface SchedulePanelProps {
@@ -28,6 +28,14 @@ export function SchedulePanel({
   position = 'right',
 }: SchedulePanelProps) {
   void _onAddEvent; // Reserved for future use
+
+  // 반복 인스턴스인 경우 원본 ID 반환
+  const getOriginalId = (event: CalendarEvent): string => {
+    return event.isRepeatInstance && event.repeatGroupId
+      ? event.repeatGroupId
+      : event.id;
+  };
+
   // D-Day 계산 (오늘 기준)
   const getDDay = (dateStr: string): string => {
     const today = new Date();
@@ -47,7 +55,28 @@ export function SchedulePanel({
   const filteredEvents = useMemo(() => {
     if (!selectedDate) return [];
     const dateStr = getLocalDateString(selectedDate);
-    const filtered = events.filter((event) => event.date === dateStr);
+
+    // 반복 일정 인스턴스 포함하여 필터링
+    const filtered: CalendarEvent[] = [];
+    for (const event of events) {
+      if (!event.repeat || event.repeat.type === 'none') {
+        // 반복 없는 일정: 단순 날짜 비교
+        if (event.date === dateStr) {
+          filtered.push(event);
+        }
+      } else {
+        // 반복 일정: 해당 날짜에 표시되어야 하는지 확인
+        if (isDateInRepeatSchedule(dateStr, event)) {
+          if (event.date === dateStr) {
+            // 원본 일정 날짜와 같으면 원본 사용
+            filtered.push(event);
+          } else {
+            // 반복 인스턴스 생성
+            filtered.push(createRepeatInstance(event, dateStr));
+          }
+        }
+      }
+    }
 
     // 완료 여부로 분리 후 각각 시간순 정렬
     const incomplete = filtered.filter(e => !e.completed).sort(compareEventTime);
@@ -101,7 +130,7 @@ export function SchedulePanel({
                 className={`schedule-item-checkbox ${event.completed ? 'checked' : ''}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onToggleComplete?.(event.id);
+                  onToggleComplete?.(getOriginalId(event));
                 }}
               >
                 {event.completed && <Check size={12} strokeWidth={3} />}
@@ -136,7 +165,7 @@ export function SchedulePanel({
                 className="schedule-item-delete"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDeleteEvent(event.id);
+                  onDeleteEvent(getOriginalId(event));
                 }}
               >
                 <Trash2 size={16} />

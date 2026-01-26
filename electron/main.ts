@@ -92,6 +92,11 @@ interface Settings {
   theme: string;
   fontSize: number;
   resizeMode: boolean;
+  showHolidays: boolean;
+  showAdjacentMonths: boolean;
+  showGridLines: boolean;
+  hiddenDays: number[];
+  schedulePanelPosition: 'left' | 'right';
 }
 
 interface CalendarEvent {
@@ -101,6 +106,7 @@ interface CalendarEvent {
   time?: string;
   description?: string;
   color?: string;
+  completed?: boolean;
   googleEventId?: string;
   isGoogleEvent?: boolean;
   repeat?: {
@@ -108,6 +114,8 @@ interface CalendarEvent {
     interval: number;
     endDate?: string;
   };
+  repeatGroupId?: string;
+  isRepeatInstance?: boolean;
 }
 
 interface StoreData {

@@ -497,36 +497,9 @@
   border-radius: 8px;
 }
 
-/* 반복 설정 스타일 */
-.repeat-picker-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
+/* 반복 설정 스타일 - title-repeat-row에서 사용 */
 .repeat-select-wrapper {
   position: relative;
-  min-width: 130px;
-}
-
-.repeat-select-btn {
-  width: 100%;
-  padding: 10px 12px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-color);
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.15s;
-}
-
-.repeat-select-btn:hover {
-  border-color: var(--text-muted);
 }
 
 .repeat-dropdown {
@@ -558,50 +531,6 @@
   background: var(--accent-color);
   color: white;
   font-weight: 500;
-}
-
-.repeat-interval {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.repeat-interval-input {
-  width: 45px;
-  padding: 6px 8px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  color: var(--text-color);
-  font-size: 13px;
-  text-align: center;
-  outline: none;
-}
-
-.repeat-interval-input:focus {
-  border-color: var(--accent-color);
-}
-
-.repeat-end {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.repeat-end-input {
-  padding: 6px 10px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  color: var(--text-color);
-  font-size: 12px;
-  outline: none;
-}
-
-.repeat-end-input:focus {
-  border-color: var(--accent-color);
 }
 
 /* Google Calendar 동기화 토글 */

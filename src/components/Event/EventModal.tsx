@@ -67,8 +67,8 @@ export function EventModal({
 
   // 반복 설정 상태
   const [repeatType, setRepeatType] = useState<RepeatType>(event?.repeat?.type || 'none');
-  const [repeatInterval, setRepeatInterval] = useState(event?.repeat?.interval || 1);
-  const [repeatEndDate, setRepeatEndDate] = useState(event?.repeat?.endDate || '');
+  const repeatInterval = event?.repeat?.interval || 1;
+  const repeatEndDate = event?.repeat?.endDate || '';
   const [showRepeatDropdown, setShowRepeatDropdown] = useState(false);
 
   // 시간 선택 상태
@@ -80,6 +80,11 @@ export function EventModal({
   const [openDropdown, setOpenDropdown] = useState<'period' | 'hour' | 'minute' | null>(null);
 
   const isEditing = !!event;
+
+  // 반복 인스턴스인 경우 원본 ID 사용
+  const originalEventId = event?.isRepeatInstance && event?.repeatGroupId
+    ? event.repeatGroupId
+    : event?.id;
 
   // 시간/반복 선택기 외부 클릭 감지
   useEffect(() => {
@@ -140,8 +145,8 @@ export function EventModal({
       endDate: repeatEndDate || undefined,
     } : undefined;
 
-    if (isEditing && event) {
-      onUpdate(event.id, {
+    if (isEditing && event && originalEventId) {
+      onUpdate(originalEventId, {
         title: title.trim(),
         time: time || undefined,
         description: description.trim() || undefined,
@@ -161,8 +166,8 @@ export function EventModal({
   };
 
   const handleDelete = () => {
-    if (event) {
-      onDelete(event.id);
+    if (event && originalEventId) {
+      onDelete(originalEventId);
       onClose();
     }
   };
