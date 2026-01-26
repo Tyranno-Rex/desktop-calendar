@@ -175,11 +175,16 @@
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(6, 1fr);
   flex: 1;
-  gap: 1px;
+  gap: 0;
   background: var(--bg-cell);
   border-radius: 0;
   overflow: hidden;
   min-height: 0;
+}
+
+.days-grid.with-grid-lines {
+  gap: 1px;
+  background: var(--border-color);
 }
 
 /* Day Cell - Reference style */

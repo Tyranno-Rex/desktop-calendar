@@ -226,52 +226,6 @@ export function SettingsPanel({
 
           <div className="setting-divider" />
 
-          <div className="setting-item">
-            <label>
-              Show Holidays
-              <span className="setting-hint">Display holidays on calendar</span>
-            </label>
-            <div
-              className={`toggle-btn ${settings.showHolidays ? 'active' : ''}`}
-              onClick={() => onUpdateSettings({ showHolidays: !settings.showHolidays })}
-            >
-              <span className="toggle-slider"></span>
-            </div>
-          </div>
-
-          <div className="setting-item">
-            <label>
-              Adjacent Months
-              <span className="setting-hint">Show prev/next month dates</span>
-            </label>
-            <div
-              className={`toggle-btn ${settings.showAdjacentMonths ? 'active' : ''}`}
-              onClick={() => onUpdateSettings({ showAdjacentMonths: !settings.showAdjacentMonths })}
-            >
-              <span className="toggle-slider"></span>
-            </div>
-          </div>
-
-          <div className="setting-item">
-            <label>Schedule Panel</label>
-            <div className="theme-options">
-              <button
-                className={`theme-btn ${settings.schedulePanelPosition === 'left' ? 'active' : ''}`}
-                onClick={() => onUpdateSettings({ schedulePanelPosition: 'left' })}
-              >
-                Left
-              </button>
-              <button
-                className={`theme-btn ${settings.schedulePanelPosition === 'right' ? 'active' : ''}`}
-                onClick={() => onUpdateSettings({ schedulePanelPosition: 'right' })}
-              >
-                Right
-              </button>
-            </div>
-          </div>
-
-          <div className="setting-divider" />
-
           {/* Google Calendar 연동 */}
           <div className="setting-item">
             <label>

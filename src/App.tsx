@@ -255,6 +255,7 @@ function App() {
             showEventDetails={!showSchedulePanel}
             showHolidays={settings.showHolidays}
             showAdjacentMonths={settings.showAdjacentMonths}
+            showGridLines={settings.showGridLines}
             hiddenDays={settings.hiddenDays}
           />
         </div>

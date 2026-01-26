@@ -16,10 +16,11 @@ interface CalendarProps {
   showEventDetails?: boolean;
   showHolidays?: boolean;
   showAdjacentMonths?: boolean;
+  showGridLines?: boolean;
   hiddenDays?: number[];
 }
 
-export function Calendar({ events, getEventsForDate, onSelectDate, onOpenDate, onEventClick, selectedDate, showEventDetails = false, showHolidays = true, showAdjacentMonths = true, hiddenDays = [] }: CalendarProps) {
+export function Calendar({ events, getEventsForDate, onSelectDate, onOpenDate, onEventClick, selectedDate, showEventDetails = false, showHolidays = true, showAdjacentMonths = true, showGridLines = true, hiddenDays = [] }: CalendarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
 
   const {
@@ -77,6 +78,7 @@ export function Calendar({ events, getEventsForDate, onSelectDate, onOpenDate, o
           showEventDetails={showEventDetails}
           showHolidays={showHolidays}
           showAdjacentMonths={showAdjacentMonths}
+          showGridLines={showGridLines}
           hiddenDays={hiddenDays}
         />
       ) : (

@@ -113,11 +113,65 @@ export function AdvancedSettings({
         </div>
 
         <div className="settings-content">
+          {/* 공휴일 표시 */}
+          <div className="setting-item setting-item-row">
+            <label>Show Holidays</label>
+            <div
+              className={`toggle-btn ${settings.showHolidays ? 'active' : ''}`}
+              onClick={() => onUpdateSettings({ showHolidays: !settings.showHolidays })}
+            >
+              <span className="toggle-slider"></span>
+            </div>
+          </div>
+
+          {/* 이월 날짜 표시 */}
+          <div className="setting-item setting-item-row">
+            <label>Adjacent Months</label>
+            <div
+              className={`toggle-btn ${settings.showAdjacentMonths ? 'active' : ''}`}
+              onClick={() => onUpdateSettings({ showAdjacentMonths: !settings.showAdjacentMonths })}
+            >
+              <span className="toggle-slider"></span>
+            </div>
+          </div>
+
+          {/* 그리드 라인 */}
+          <div className="setting-item setting-item-row">
+            <label>Grid Lines</label>
+            <div
+              className={`toggle-btn ${settings.showGridLines ? 'active' : ''}`}
+              onClick={() => onUpdateSettings({ showGridLines: !settings.showGridLines })}
+            >
+              <span className="toggle-slider"></span>
+            </div>
+          </div>
+
+          {/* 스케줄 패널 위치 */}
+          <div className="setting-item setting-item-row">
+            <label>Schedule Panel</label>
+            <div className="theme-options">
+              <button
+                className={`theme-btn ${settings.schedulePanelPosition === 'left' ? 'active' : ''}`}
+                onClick={() => onUpdateSettings({ schedulePanelPosition: 'left' })}
+              >
+                Left
+              </button>
+              <button
+                className={`theme-btn ${settings.schedulePanelPosition === 'right' ? 'active' : ''}`}
+                onClick={() => onUpdateSettings({ schedulePanelPosition: 'right' })}
+              >
+                Right
+              </button>
+            </div>
+          </div>
+
+          <div className="setting-divider" />
+
           {/* 요일 표시 설정 */}
           <div className="setting-item">
             <label>
               Visible Days
-              <span className="setting-hint">Select which days to show on calendar</span>
+              <span className="setting-hint">Select which days to show</span>
             </label>
 
             <div className="weekday-selector">

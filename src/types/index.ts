@@ -34,6 +34,7 @@ export interface Settings {
   resizeMode: boolean;
   showHolidays: boolean;
   showAdjacentMonths: boolean;
+  showGridLines: boolean;
   // 숨길 요일 (0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토)
   hiddenDays: number[];
   // 스케줄 패널 위치 ('left' | 'right')
@@ -64,7 +65,7 @@ export interface ElectronAPI {
   // 팝업 관련 API
   openPopup: (data: PopupData) => void;
   closePopup: () => void;
-  popupSaveEvent: (event: CalendarEvent) => Promise<boolean>;
+  popupSaveEvent: (event: CalendarEvent, syncToGoogle?: boolean) => Promise<boolean>;
   popupDeleteEvent: (eventId: string) => Promise<boolean>;
   onEventsUpdated: (callback: (events: CalendarEvent[]) => void) => void;
   // 팝업 데이터 수신 (미리 로드된 팝업용)

@@ -25,6 +25,7 @@ interface CalendarGridProps {
   showEventDetails?: boolean;
   showHolidays?: boolean;
   showAdjacentMonths?: boolean;
+  showGridLines?: boolean;
   hiddenDays?: number[];
 }
 
@@ -40,6 +41,7 @@ export function CalendarGrid({
   showEventDetails = false,
   showHolidays = true,
   showAdjacentMonths = true,
+  showGridLines = true,
   hiddenDays = [],
 }: CalendarGridProps) {
   // 표시할 요일 필터링
@@ -71,7 +73,7 @@ export function CalendarGrid({
         ))}
       </div>
       <div
-        className="days-grid"
+        className={`days-grid ${showGridLines ? 'with-grid-lines' : ''}`}
         style={{ gridTemplateColumns: `repeat(${columnCount}, 1fr)` }}
       >
         {visibleDays.map((date) => {

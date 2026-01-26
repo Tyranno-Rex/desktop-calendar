@@ -436,6 +436,18 @@
   flex-direction: column;
 }
 
+/* Row layout for toggle settings in Advanced Settings */
+.advanced-settings-panel .setting-item.setting-item-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.advanced-settings-panel .setting-item.setting-item-row > label {
+  flex-direction: row;
+}
+
 /* Weekday Selector */
 .weekday-selector {
   display: flex;

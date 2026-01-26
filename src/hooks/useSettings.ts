@@ -10,6 +10,7 @@ const defaultSettings: Settings = {
   resizeMode: false,
   showHolidays: true,
   showAdjacentMonths: true,
+  showGridLines: true,
   hiddenDays: [],
   schedulePanelPosition: 'right',
 };
