@@ -178,6 +178,7 @@
   font-size: 13px;
   outline: none;
   transition: all 0.15s;
+  box-sizing: border-box;
 }
 
 .popup-input:focus {
@@ -187,6 +188,50 @@
 
 .popup-input::placeholder {
   color: var(--text-muted);
+}
+
+/* Title + Repeat Row */
+.title-repeat-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.title-repeat-row .popup-input {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+}
+
+.title-repeat-row .repeat-select-wrapper {
+  flex: 0 0 auto;
+  min-width: unset;
+}
+
+.repeat-select-btn-compact {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.repeat-select-btn-compact:hover {
+  border-color: var(--accent-color);
+  background: var(--bg-cell-hover);
+}
+
+.repeat-select-btn-compact svg:first-child {
+  color: var(--text-secondary);
 }
 
 /* Time Input */

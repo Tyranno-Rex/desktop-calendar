@@ -20,12 +20,14 @@ interface SchedulePanelProps {
 export function SchedulePanel({
   selectedDate,
   events,
+  onAddEvent: _onAddEvent,
   onEditEvent,
   onDeleteEvent,
   onToggleComplete,
   onClose,
   position = 'right',
 }: SchedulePanelProps) {
+  void _onAddEvent; // Reserved for future use
   // D-Day 계산 (오늘 기준)
   const getDDay = (dateStr: string): string => {
     const today = new Date();

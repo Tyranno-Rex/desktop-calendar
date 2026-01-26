@@ -1,4 +1,4 @@
-import type { CalendarEvent, RepeatType } from '../types';
+import type { CalendarEvent } from '../types';
 
 /**
  * 로컬 날짜를 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
@@ -26,34 +26,6 @@ export const compareEventTime = (a: CalendarEvent, b: CalendarEvent): number => 
 export const parseLocalDateString = (dateStr: string): Date => {
   const [year, month, day] = dateStr.split('-').map(Number);
   return new Date(year, month - 1, day);
-};
-
-/**
- * 반복 타입에 따라 다음 날짜 계산
- */
-export const getNextRepeatDate = (
-  date: Date,
-  repeatType: RepeatType,
-  interval: number
-): Date => {
-  const next = new Date(date);
-
-  switch (repeatType) {
-    case 'daily':
-      next.setDate(next.getDate() + interval);
-      break;
-    case 'weekly':
-      next.setDate(next.getDate() + (interval * 7));
-      break;
-    case 'monthly':
-      next.setMonth(next.getMonth() + interval);
-      break;
-    case 'yearly':
-      next.setFullYear(next.getFullYear() + interval);
-      break;
-  }
-
-  return next;
 };
 
 /**

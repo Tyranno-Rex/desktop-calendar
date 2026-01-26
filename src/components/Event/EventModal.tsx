@@ -58,9 +58,6 @@ export function EventModal({
   onClose,
   googleConnected = false,
 }: EventModalProps) {
-  // DEBUG
-  console.log('[EventModal] googleConnected:', googleConnected, 'isEditing:', !!event);
-
   const [title, setTitle] = useState(event?.title || '');
   const [time, setTime] = useState(event?.time || '');
   const [description, setDescription] = useState(event?.description || '');
@@ -191,14 +188,43 @@ export function EventModal({
         <form onSubmit={handleSubmit} className="popup-content">
           <div className="popup-field">
             <label className="popup-label">Title</label>
-            <input
-              type="text"
-              placeholder="Enter title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="popup-input"
-              autoFocus
-            />
+            <div className="title-repeat-row">
+              <input
+                type="text"
+                placeholder="Enter title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="popup-input"
+                autoFocus
+              />
+              <div className="repeat-select-wrapper" ref={repeatPickerRef}>
+                <button
+                  type="button"
+                  className="repeat-select-btn-compact"
+                  onClick={() => setShowRepeatDropdown(!showRepeatDropdown)}
+                >
+                  <Repeat size={14} />
+                  <span>{REPEAT_OPTIONS.find(o => o.value === repeatType)?.label}</span>
+                  <ChevronDown size={14} />
+                </button>
+                {showRepeatDropdown && (
+                  <div className="repeat-dropdown">
+                    {REPEAT_OPTIONS.map((option) => (
+                      <div
+                        key={option.value}
+                        className={`repeat-dropdown-item ${repeatType === option.value ? 'selected' : ''}`}
+                        onClick={() => {
+                          setRepeatType(option.value);
+                          setShowRepeatDropdown(false);
+                        }}
+                      >
+                        {option.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="popup-field">
@@ -295,75 +321,6 @@ export function EventModal({
               className="popup-textarea"
               rows={4}
             />
-          </div>
-
-          {/* 반복 설정 */}
-          <div className="popup-field">
-            <label className="popup-label">Repeat</label>
-            <div className="repeat-picker-row" ref={repeatPickerRef}>
-              {/* 반복 타입 선택 */}
-              <div className="repeat-select-wrapper">
-                <button
-                  type="button"
-                  className="repeat-select-btn"
-                  onClick={() => setShowRepeatDropdown(!showRepeatDropdown)}
-                >
-                  <Repeat size={14} />
-                  <span>{REPEAT_OPTIONS.find(o => o.value === repeatType)?.label}</span>
-                  <ChevronDown size={14} />
-                </button>
-                {showRepeatDropdown && (
-                  <div className="repeat-dropdown">
-                    {REPEAT_OPTIONS.map((option) => (
-                      <div
-                        key={option.value}
-                        className={`repeat-dropdown-item ${repeatType === option.value ? 'selected' : ''}`}
-                        onClick={() => {
-                          setRepeatType(option.value);
-                          setShowRepeatDropdown(false);
-                        }}
-                      >
-                        {option.label}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* 반복 간격 (반복 타입이 none이 아닐 때만) */}
-              {repeatType !== 'none' && (
-                <>
-                  <div className="repeat-interval">
-                    <span>Every</span>
-                    <input
-                      type="number"
-                      min="1"
-                      max="99"
-                      value={repeatInterval}
-                      onChange={(e) => setRepeatInterval(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="repeat-interval-input"
-                    />
-                    <span>
-                      {repeatType === 'daily' && (repeatInterval === 1 ? 'day' : 'days')}
-                      {repeatType === 'weekly' && (repeatInterval === 1 ? 'week' : 'weeks')}
-                      {repeatType === 'monthly' && (repeatInterval === 1 ? 'month' : 'months')}
-                      {repeatType === 'yearly' && (repeatInterval === 1 ? 'year' : 'years')}
-                    </span>
-                  </div>
-
-                  {/* 종료일 */}
-                  <div className="repeat-end">
-                    <input
-                      type="date"
-                      value={repeatEndDate}
-                      onChange={(e) => setRepeatEndDate(e.target.value)}
-                      className="repeat-end-input"
-                      placeholder="End date"
-                    />
-                  </div>
-                </>
-              )}
-            </div>
           </div>
 
           {/* Google Calendar 동기화 토글 - 새 일정 추가 시에만 표시 */}

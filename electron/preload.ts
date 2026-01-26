@@ -26,7 +26,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveEvents: (events: CalendarEvent[]): Promise<boolean> => ipcRenderer.invoke('save-events', events),
   minimizeWindow: (): void => ipcRenderer.send('minimize-window'),
   closeWindow: (): void => ipcRenderer.send('close-window'),
-  sendToDesktop: (): void => ipcRenderer.send('send-to-desktop'),
   startResize: (direction: string): void => ipcRenderer.send('start-resize', direction),
   stopResize: (): void => ipcRenderer.send('stop-resize'),
   startMove: (): void => ipcRenderer.send('start-move'),

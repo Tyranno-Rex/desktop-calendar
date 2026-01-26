@@ -279,62 +279,6 @@ function isOtherWindowAtPoint(x: number, y: number): boolean {
   return true; // 다른 앱 있음 -> 클릭 차단
 }
 
-// 마우스가 창 영역 안에 있는지 확인하고 날짜 셀 위치 계산
-function getClickedDateInWindow(): string | null {
-  if (!mainWindow) return null;
-
-  const mousePos = screen.getCursorScreenPoint();
-  const bounds = mainWindow.getBounds();
-
-  // 창 영역 안에 있는지 확인
-  if (mousePos.x < bounds.x || mousePos.x > bounds.x + bounds.width ||
-      mousePos.y < bounds.y || mousePos.y > bounds.y + bounds.height) {
-    return null;
-  }
-
-  // 클릭 위치에 다른 앱 창이 있으면 무시
-  if (isOtherWindowAtPoint(mousePos.x, mousePos.y)) {
-    return null;
-  }
-
-  // 창 내부 상대 좌표
-  const relX = mousePos.x - bounds.x;
-  const relY = mousePos.y - bounds.y;
-
-  // 타이틀바 높이 (약 36px), 헤더 높이 (약 50px), 요일 행 (약 30px)
-  const titleBarHeight = 36;
-  const headerHeight = 50;
-  const weekdayRowHeight = 30;
-  const gridStartY = titleBarHeight + headerHeight + weekdayRowHeight;
-
-  // 그리드 영역 확인
-  if (relY < gridStartY) return null;
-
-  // 셀 크기 계산 (7열, 6행)
-  const gridHeight = bounds.height - gridStartY;
-  const cellWidth = bounds.width / 7;
-  const cellHeight = gridHeight / 6;
-
-  const col = Math.floor(relX / cellWidth);
-  const row = Math.floor((relY - gridStartY) / cellHeight);
-
-  if (col < 0 || col > 6 || row < 0 || row > 5) return null;
-
-  // 현재 달력의 날짜 계산
-  const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const startDay = firstDayOfMonth.getDay(); // 0 = Sunday
-
-  const dayIndex = row * 7 + col - startDay;
-  const clickedDate = new Date(today.getFullYear(), today.getMonth(), dayIndex + 1);
-
-  const year = clickedDate.getFullYear();
-  const month = String(clickedDate.getMonth() + 1).padStart(2, '0');
-  const day = String(clickedDate.getDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
-}
-
 // 클릭이 창 영역 안에 있는지만 확인 (다른 앱 체크 포함)
 function isClickInWindow(): { inWindow: boolean; relX: number; relY: number } {
   if (!mainWindow) return { inWindow: false, relX: 0, relY: 0 };

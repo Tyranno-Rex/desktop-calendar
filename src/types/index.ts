@@ -56,7 +56,6 @@ export interface ElectronAPI {
   saveEvents: (events: CalendarEvent[]) => Promise<boolean>;
   minimizeWindow: () => void;
   closeWindow: () => void;
-  sendToDesktop: () => void;
   startResize: (direction: string) => void;
   stopResize: () => void;
   startMove: () => void;

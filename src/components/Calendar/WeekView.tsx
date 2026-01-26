@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect, useCallback } from 'react';
+import { useMemo, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
 import type { CalendarEvent } from '../../types';
 import './WeekView.css';
@@ -31,46 +31,7 @@ export function WeekView({
   const isDraggingRef = useRef(false);
   const lastYRef = useRef(0);
 
-  // Desktop Mode 드래그 스크롤 지원
-  useEffect(() => {
-    const handleDesktopMouseDown = (_e: Event, data: { x: number; y: number }) => {
-      if (!weekBodyRef.current) return;
-      const rect = weekBodyRef.current.getBoundingClientRect();
-      // week-body 영역 내에서만 드래그 스크롤 활성화
-      if (data.x >= rect.left && data.x <= rect.right &&
-          data.y >= rect.top && data.y <= rect.bottom) {
-        isDraggingRef.current = true;
-        lastYRef.current = data.y;
-      }
-    };
-
-    const handleDesktopMouseMove = (_e: Event, data: { x: number; y: number }) => {
-      if (!isDraggingRef.current || !weekBodyRef.current) return;
-      const deltaY = lastYRef.current - data.y;
-      weekBodyRef.current.scrollTop += deltaY;
-      lastYRef.current = data.y;
-    };
-
-    const handleDesktopMouseUp = () => {
-      isDraggingRef.current = false;
-    };
-
-    // @ts-expect-error electron IPC
-    const { ipcRenderer } = window.electron || {};
-    if (ipcRenderer) {
-      ipcRenderer.on('desktop-mousedown', handleDesktopMouseDown);
-      ipcRenderer.on('desktop-mousemove', handleDesktopMouseMove);
-      ipcRenderer.on('desktop-mouseup', handleDesktopMouseUp);
-
-      return () => {
-        ipcRenderer.removeListener('desktop-mousedown', handleDesktopMouseDown);
-        ipcRenderer.removeListener('desktop-mousemove', handleDesktopMouseMove);
-        ipcRenderer.removeListener('desktop-mouseup', handleDesktopMouseUp);
-      };
-    }
-  }, []);
-
-  // 일반 모드 드래그 스크롤 지원
+  // 드래그 스크롤 지원
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return; // 좌클릭만
     isDraggingRef.current = true;
