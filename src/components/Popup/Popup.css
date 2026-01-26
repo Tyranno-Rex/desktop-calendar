@@ -1,4 +1,18 @@
+/* Light theme (default) */
 .popup-container {
+  --bg-primary: #ffffff;
+  --bg-secondary: #ffffff;
+  --bg-cell: #ffffff;
+  --bg-cell-hover: #f9fafb;
+  --text-color: #111827;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --accent-color: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-light: #eff6ff;
+  --accent-text: #1d4ed8;
+  --border-color: #e5e7eb;
+
   background: var(--bg-primary);
   border-radius: 16px;
   display: flex;
@@ -8,6 +22,22 @@
   border: 1px solid var(--border-color);
   overflow: hidden;
   position: relative;
+}
+
+/* Dark theme */
+.popup-container.dark {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-cell: #111827;
+  --bg-cell-hover: #1f2937;
+  --text-color: #f9fafb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --accent-color: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-light: rgba(59, 130, 246, 0.15);
+  --accent-text: #93c5fd;
+  --border-color: rgba(75, 85, 99, 0.5);
 }
 
 /* 리사이즈 핸들 */
@@ -85,13 +115,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--border-color);
   -webkit-app-region: drag;
 }
 
 .popup-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--text-color);
   margin: 0;
@@ -119,33 +149,33 @@
 /* Content */
 .popup-content {
   flex: 1;
-  padding: 24px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   overflow-y: auto;
 }
 
 .popup-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .popup-label {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
   font-weight: 500;
 }
 
 .popup-input {
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 14px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text-color);
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
   transition: all 0.15s;
 }
@@ -291,16 +321,16 @@
 /* Textarea */
 .popup-textarea {
   width: 100%;
-  padding: 12px 16px;
+  padding: 10px 14px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text-color);
-  font-size: 14px;
+  font-size: 13px;
   outline: none;
   resize: none;
   font-family: inherit;
-  min-height: 100px;
+  min-height: 80px;
   transition: all 0.15s;
 }
 
@@ -317,8 +347,8 @@
 .popup-footer {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 24px;
+  gap: 10px;
+  padding: 16px 18px;
   border-top: 1px solid var(--border-color);
 }
 
@@ -331,11 +361,11 @@
 .popup-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
-  border-radius: 10px;
+  gap: 5px;
+  padding: 8px 16px;
+  border-radius: 8px;
   border: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
@@ -349,7 +379,7 @@
 .popup-btn-delete {
   background: transparent;
   color: #ef4444;
-  padding: 10px 16px;
+  padding: 8px 12px;
 }
 
 .popup-btn-delete:hover {
@@ -375,4 +405,207 @@
 
 .popup-btn-save:hover:not(:disabled) {
   background: var(--accent-hover);
+}
+
+/* More Options 버튼 */
+.more-options-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.more-options-btn:hover {
+  background: var(--bg-cell-hover);
+  color: var(--text-color);
+  border-color: var(--text-muted);
+}
+
+.more-options-btn span {
+  flex: 1;
+  text-align: left;
+}
+
+.more-options-chevron {
+  transition: transform 0.2s;
+}
+
+.more-options-chevron.open {
+  transform: rotate(90deg);
+}
+
+.more-options-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+/* 반복 설정 스타일 */
+.repeat-picker-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.repeat-select-wrapper {
+  position: relative;
+  min-width: 130px;
+}
+
+.repeat-select-btn {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.repeat-select-btn:hover {
+  border-color: var(--text-muted);
+}
+
+.repeat-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.repeat-dropdown-item {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.repeat-dropdown-item:hover {
+  background: var(--bg-cell-hover);
+}
+
+.repeat-dropdown-item.selected {
+  background: var(--accent-color);
+  color: white;
+  font-weight: 500;
+}
+
+.repeat-interval {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.repeat-interval-input {
+  width: 45px;
+  padding: 6px 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-color);
+  font-size: 13px;
+  text-align: center;
+  outline: none;
+}
+
+.repeat-interval-input:focus {
+  border-color: var(--accent-color);
+}
+
+.repeat-end {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.repeat-end-input {
+  padding: 6px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-color);
+  font-size: 12px;
+  outline: none;
+}
+
+.repeat-end-input:focus {
+  border-color: var(--accent-color);
+}
+
+/* Google Calendar 동기화 토글 */
+.popup-field-toggle {
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+}
+
+.toggle-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggle-text {
+  font-size: 13px;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-switch.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.active .toggle-knob {
+  transform: translateX(20px);
 }

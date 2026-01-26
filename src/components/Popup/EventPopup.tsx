@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Trash2, ChevronDown } from 'lucide-react';
+import { X, Trash2, ChevronDown, ChevronRight, Repeat, Settings } from 'lucide-react';
 import { getLocalDateString } from '../../utils/date';
+import type { RepeatType, RepeatConfig } from '../../types';
 
 // yyyy-MM-dd 문자열을 로컬 Date로 파싱 (타임존 문제 방지)
 const parseLocalDate = (dateStr: string) => {
@@ -12,6 +13,15 @@ const parseLocalDate = (dateStr: string) => {
 const PERIODS = ['AM', 'PM'] as const;
 const HOURS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 const MINUTES = [0, 10, 20, 30, 40, 50];
+
+// 반복 옵션
+const REPEAT_OPTIONS: { value: RepeatType; label: string }[] = [
+  { value: 'none', label: 'No repeat' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'yearly', label: 'Yearly' },
+];
 
 // HH:mm -> {period, hour, minute} 파싱
 const parseTime = (t: string) => {
@@ -44,7 +54,18 @@ export function EventPopup() {
   const [description, setDescription] = useState('');
   const [isEdit, setIsEdit] = useState(false);
   const [ready, setReady] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [syncToGoogle, setSyncToGoogle] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const timePickerRef = useRef<HTMLDivElement>(null);
+  const repeatPickerRef = useRef<HTMLDivElement>(null);
+
+  // 반복 설정 상태
+  const [repeatType, setRepeatType] = useState<RepeatType>('none');
+  const [repeatInterval, setRepeatInterval] = useState(1);
+  const [repeatEndDate, setRepeatEndDate] = useState('');
+  const [showRepeatDropdown, setShowRepeatDropdown] = useState(false);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   // 시간 선택 상태
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
@@ -61,6 +82,31 @@ export function EventPopup() {
     setDescription('');
     setEventId(null);
     setIsEdit(false);
+    setRepeatType('none');
+    setRepeatInterval(1);
+    setRepeatEndDate('');
+    setSyncToGoogle(false);
+    setShowMoreOptions(false);
+  }, []);
+
+  // Google 연결 상태 및 테마 설정 확인
+  useEffect(() => {
+    const checkGoogleAuth = async () => {
+      if (window.electronAPI?.googleAuthStatus) {
+        const isConnected = await window.electronAPI.googleAuthStatus();
+        setGoogleConnected(isConnected);
+      }
+    };
+    const loadTheme = async () => {
+      if (window.electronAPI?.getSettings) {
+        const settings = await window.electronAPI.getSettings();
+        if (settings?.theme) {
+          setTheme(settings.theme);
+        }
+      }
+    };
+    checkGoogleAuth();
+    loadTheme();
   }, []);
 
   // 팝업 데이터 처리
@@ -81,6 +127,12 @@ export function EventPopup() {
         setTitle(event.title);
         setTime(event.time || '');
         setDescription(event.description || '');
+        // 반복 설정 로드
+        if (event.repeat) {
+          setRepeatType(event.repeat.type);
+          setRepeatInterval(event.repeat.interval || 1);
+          setRepeatEndDate(event.repeat.endDate || '');
+        }
       }
     }
 
@@ -117,11 +169,24 @@ export function EventPopup() {
       setTitle(event.title);
       setTime(event.time || '');
       setDescription(event.description || '');
+      // 반복 설정 로드
+      if (event.repeat) {
+        setRepeatType(event.repeat.type);
+        setRepeatInterval(event.repeat.interval || 1);
+        setRepeatEndDate(event.repeat.endDate || '');
+      }
     }
   };
 
   const handleSave = async () => {
     if (!title.trim()) return;
+
+    // 반복 설정 생성
+    const repeat: RepeatConfig | undefined = repeatType !== 'none' ? {
+      type: repeatType,
+      interval: repeatInterval,
+      endDate: repeatEndDate || undefined,
+    } : undefined;
 
     const event: CalendarEvent = {
       id: eventId || crypto.randomUUID(),
@@ -130,9 +195,10 @@ export function EventPopup() {
       time: time || undefined,
       description: description.trim() || undefined,
       color: '#3b82f6',
+      repeat,
     };
 
-    await window.electronAPI?.popupSaveEvent(event);
+    await window.electronAPI?.popupSaveEvent(event, syncToGoogle);
     window.electronAPI?.closePopup();
   };
 
@@ -159,11 +225,14 @@ export function EventPopup() {
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  // 시간 선택기 외부 클릭 감지
+  // 시간/반복 선택기 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (timePickerRef.current && !timePickerRef.current.contains(e.target as Node)) {
         setOpenDropdown(null);
+      }
+      if (repeatPickerRef.current && !repeatPickerRef.current.contains(e.target as Node)) {
+        setShowRepeatDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -206,11 +275,11 @@ export function EventPopup() {
 
   // 팝업이 준비되지 않았으면 빈 컨테이너만 표시
   if (!ready) {
-    return <div className="popup-container popup-loading" />;
+    return <div className={`popup-container popup-loading ${theme}`} />;
   }
 
   return (
-    <div className="popup-container">
+    <div className={`popup-container ${theme}`}>
       {/* 리사이즈 핸들 */}
       <div className="resize-handle resize-n" onMouseDown={handleResizeStart('n')} />
       <div className="resize-handle resize-s" onMouseDown={handleResizeStart('s')} />
@@ -338,6 +407,106 @@ export function EventPopup() {
             rows={4}
           />
         </div>
+
+        {/* More Options 토글 버튼 */}
+        <button
+          type="button"
+          className="more-options-btn"
+          onClick={() => setShowMoreOptions(!showMoreOptions)}
+        >
+          <Settings size={14} />
+          <span>More options</span>
+          <ChevronRight size={14} className={`more-options-chevron ${showMoreOptions ? 'open' : ''}`} />
+        </button>
+
+        {/* 추가 옵션 (반복, Google Calendar) */}
+        {showMoreOptions && (
+          <div className="more-options-content">
+            {/* 반복 설정 */}
+            <div className="popup-field">
+              <label className="popup-label">Repeat</label>
+              <div className="repeat-picker-row" ref={repeatPickerRef}>
+                {/* 반복 타입 선택 */}
+                <div className="repeat-select-wrapper">
+                  <button
+                    type="button"
+                    className="repeat-select-btn"
+                    onClick={() => setShowRepeatDropdown(!showRepeatDropdown)}
+                  >
+                    <Repeat size={14} />
+                    <span>{REPEAT_OPTIONS.find(o => o.value === repeatType)?.label}</span>
+                    <ChevronDown size={14} />
+                  </button>
+                  {showRepeatDropdown && (
+                    <div className="repeat-dropdown">
+                      {REPEAT_OPTIONS.map((option) => (
+                        <div
+                          key={option.value}
+                          className={`repeat-dropdown-item ${repeatType === option.value ? 'selected' : ''}`}
+                          onClick={() => {
+                            setRepeatType(option.value);
+                            setShowRepeatDropdown(false);
+                          }}
+                        >
+                          {option.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* 반복 간격 (반복 타입이 none이 아닐 때만) */}
+                {repeatType !== 'none' && (
+                  <>
+                    <div className="repeat-interval">
+                      <span>Every</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="99"
+                        value={repeatInterval}
+                        onChange={(e) => setRepeatInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="repeat-interval-input"
+                      />
+                      <span>
+                        {repeatType === 'daily' && (repeatInterval === 1 ? 'day' : 'days')}
+                        {repeatType === 'weekly' && (repeatInterval === 1 ? 'week' : 'weeks')}
+                        {repeatType === 'monthly' && (repeatInterval === 1 ? 'month' : 'months')}
+                        {repeatType === 'yearly' && (repeatInterval === 1 ? 'year' : 'years')}
+                      </span>
+                    </div>
+
+                    {/* 종료일 */}
+                    <div className="repeat-end">
+                      <input
+                        type="date"
+                        value={repeatEndDate}
+                        onChange={(e) => setRepeatEndDate(e.target.value)}
+                        className="repeat-end-input"
+                        placeholder="End date"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Google Calendar 동기화 토글 - 새 일정 추가 시에만 표시 */}
+            {!isEdit && googleConnected && (
+              <div className="popup-field popup-field-toggle">
+                <label className="toggle-label">
+                  <span className="toggle-text">Add to Google Calendar</span>
+                  <div
+                    className={`toggle-switch ${syncToGoogle ? 'active' : ''}`}
+                    onClick={() => setSyncToGoogle(!syncToGoogle)}
+                  >
+                    <div className="toggle-knob" />
+                  </div>
+                </label>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Footer */}

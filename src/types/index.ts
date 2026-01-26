@@ -1,3 +1,14 @@
+// 반복 타입
+export type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+// 반복 설정
+export interface RepeatConfig {
+  type: RepeatType;
+  interval: number; // 반복 간격 (1 = 매일/주/월/년, 2 = 2일/주/월/년마다)
+  endDate?: string; // 반복 종료일 (없으면 무한 반복)
+  count?: number; // 반복 횟수 (endDate 대신 사용 가능)
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -8,6 +19,10 @@ export interface CalendarEvent {
   completed?: boolean;
   googleEventId?: string;
   isGoogleEvent?: boolean;
+  // 반복 관련
+  repeat?: RepeatConfig;
+  repeatGroupId?: string; // 같은 반복 일정 그룹 ID
+  isRepeatInstance?: boolean; // 반복에서 생성된 인스턴스인지
 }
 
 export interface Settings {

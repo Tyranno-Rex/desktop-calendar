@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
 import { getDay } from 'date-fns';
+import { Repeat } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
 import { getLocalDateString, compareEventTime } from '../../utils/date';
 import './Calendar.css';
@@ -92,6 +93,9 @@ export const DayCell = memo(function DayCell({
                   onEventClick?.(event, e);
                 }}
               >
+                {(event.repeat || event.isRepeatInstance) && (
+                  <Repeat size={10} className="day-event-repeat-icon" />
+                )}
                 {event.time && (
                   <span className="day-event-time">{event.time}</span>
                 )}

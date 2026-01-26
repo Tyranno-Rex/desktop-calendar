@@ -98,8 +98,16 @@ interface CalendarEvent {
   id: string;
   title: string;
   date: string;
+  time?: string;
   description?: string;
   color?: string;
+  googleEventId?: string;
+  isGoogleEvent?: boolean;
+  repeat?: {
+    type: string;
+    interval: number;
+    endDate?: string;
+  };
 }
 
 interface StoreData {
@@ -342,10 +350,8 @@ function isClickInWindow(): { inWindow: boolean; relX: number; relY: number } {
     return { inWindow: false, relX: 0, relY: 0 };
   }
 
-  // Desktop Mode에서는 다른 앱 체크 스킵 (WindowFromPoint가 항상 바탕화면 반환)
-  // 대신 bounds 체크만으로 충분
-  if (!isEmbeddedInDesktop) {
-    // 일반 모드에서만 다른 앱 창 체크
+  // Desktop Mode에서 다른 앱이 앞에 있으면 클릭 무시
+  if (isEmbeddedInDesktop) {
     if (isOtherWindowAtPoint(mousePos.x, mousePos.y)) {
       return { inWindow: false, relX: 0, relY: 0 };
     }
@@ -711,9 +717,31 @@ function registerIpcHandlers() {
   });
 
   // 팝업에서 이벤트 저장
-  ipcMain.handle('popup-save-event', (_, event: CalendarEvent) => {
+  ipcMain.handle('popup-save-event', async (_, event: CalendarEvent, syncToGoogle?: boolean) => {
     const events = store.get('events') || [];
     const existingIndex = events.findIndex(e => e.id === event.id);
+
+    // Google Calendar 동기화 요청 시 (새 이벤트만)
+    if (syncToGoogle && googleAuth && googleCalendar && existingIndex < 0) {
+      try {
+        const accessToken = await googleAuth.getAccessToken();
+        if (accessToken) {
+          const created = await googleCalendar.createEvent(accessToken, {
+            id: event.id,
+            title: event.title,
+            date: event.date,
+            time: event.time,
+            description: event.description,
+          });
+          if (created && created.googleEventId) {
+            event.googleEventId = created.googleEventId;
+            event.isGoogleEvent = true;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to create Google event:', error);
+      }
+    }
 
     if (existingIndex >= 0) {
       events[existingIndex] = event;
@@ -799,10 +827,10 @@ function preCreatePopupWindow() {
   const savedSettings = store.get('settings');
 
   popupWindow = new BrowserWindow({
-    width: 340,
-    height: 520,
-    minWidth: 300,
-    minHeight: 450,
+    width: 320,
+    height: 560,
+    minWidth: 280,
+    minHeight: 480,
     x: -1000, // 화면 밖에 숨김
     y: -1000,
     transparent: true,

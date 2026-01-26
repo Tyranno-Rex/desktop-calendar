@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
-import { Clock, Trash2, Check, X } from 'lucide-react';
+import { Clock, Trash2, Check, X, Repeat } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
 import { getLocalDateString, compareEventTime } from '../../utils/date';
 import './SchedulePanel.css';
@@ -114,12 +114,20 @@ export function SchedulePanel({
                     {getDDay(event.date)}
                   </span>
                 </div>
-                {event.time && (
-                  <div className="schedule-item-time">
-                    <Clock size={12} />
-                    <span>{event.time}</span>
-                  </div>
-                )}
+                <div className="schedule-item-meta">
+                  {event.time && (
+                    <div className="schedule-item-time">
+                      <Clock size={12} />
+                      <span>{event.time}</span>
+                    </div>
+                  )}
+                  {(event.repeat || event.isRepeatInstance) && (
+                    <div className="schedule-item-repeat">
+                      <Repeat size={12} />
+                      <span>Repeat</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <button

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Trash2, ChevronDown } from 'lucide-react';
-import type { CalendarEvent } from '../../types';
+import { X, Trash2, ChevronDown, Repeat } from 'lucide-react';
+import type { CalendarEvent, RepeatType, RepeatConfig } from '../../types';
 import { getLocalDateString } from '../../utils/date';
 import './Event.css';
 
@@ -8,6 +8,15 @@ import './Event.css';
 const PERIODS = ['AM', 'PM'] as const;
 const HOURS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 const MINUTES = [0, 10, 20, 30, 40, 50];
+
+// 반복 옵션
+const REPEAT_OPTIONS: { value: RepeatType; label: string }[] = [
+  { value: 'none', label: 'No repeat' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'yearly', label: 'Yearly' },
+];
 
 // HH:mm -> {period, hour, minute} 파싱
 const parseTime = (t: string) => {
@@ -49,11 +58,21 @@ export function EventModal({
   onClose,
   googleConnected = false,
 }: EventModalProps) {
+  // DEBUG
+  console.log('[EventModal] googleConnected:', googleConnected, 'isEditing:', !!event);
+
   const [title, setTitle] = useState(event?.title || '');
   const [time, setTime] = useState(event?.time || '');
   const [description, setDescription] = useState(event?.description || '');
   const [syncToGoogle, setSyncToGoogle] = useState(false);
   const timePickerRef = useRef<HTMLDivElement>(null);
+  const repeatPickerRef = useRef<HTMLDivElement>(null);
+
+  // 반복 설정 상태
+  const [repeatType, setRepeatType] = useState<RepeatType>(event?.repeat?.type || 'none');
+  const [repeatInterval, setRepeatInterval] = useState(event?.repeat?.interval || 1);
+  const [repeatEndDate, setRepeatEndDate] = useState(event?.repeat?.endDate || '');
+  const [showRepeatDropdown, setShowRepeatDropdown] = useState(false);
 
   // 시간 선택 상태
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
@@ -65,11 +84,14 @@ export function EventModal({
 
   const isEditing = !!event;
 
-  // 시간 선택기 외부 클릭 감지
+  // 시간/반복 선택기 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (timePickerRef.current && !timePickerRef.current.contains(e.target as Node)) {
         setOpenDropdown(null);
+      }
+      if (repeatPickerRef.current && !repeatPickerRef.current.contains(e.target as Node)) {
+        setShowRepeatDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -114,11 +136,19 @@ export function EventModal({
     e.preventDefault();
     if (!title.trim()) return;
 
+    // 반복 설정 생성
+    const repeat: RepeatConfig | undefined = repeatType !== 'none' ? {
+      type: repeatType,
+      interval: repeatInterval,
+      endDate: repeatEndDate || undefined,
+    } : undefined;
+
     if (isEditing && event) {
       onUpdate(event.id, {
         title: title.trim(),
         time: time || undefined,
         description: description.trim() || undefined,
+        repeat,
       });
     } else {
       onSave({
@@ -127,6 +157,7 @@ export function EventModal({
         time: time || undefined,
         description: description.trim() || undefined,
         color: '#3b82f6',
+        repeat,
       }, syncToGoogle);
     }
     onClose();
@@ -264,6 +295,75 @@ export function EventModal({
               className="popup-textarea"
               rows={4}
             />
+          </div>
+
+          {/* 반복 설정 */}
+          <div className="popup-field">
+            <label className="popup-label">Repeat</label>
+            <div className="repeat-picker-row" ref={repeatPickerRef}>
+              {/* 반복 타입 선택 */}
+              <div className="repeat-select-wrapper">
+                <button
+                  type="button"
+                  className="repeat-select-btn"
+                  onClick={() => setShowRepeatDropdown(!showRepeatDropdown)}
+                >
+                  <Repeat size={14} />
+                  <span>{REPEAT_OPTIONS.find(o => o.value === repeatType)?.label}</span>
+                  <ChevronDown size={14} />
+                </button>
+                {showRepeatDropdown && (
+                  <div className="repeat-dropdown">
+                    {REPEAT_OPTIONS.map((option) => (
+                      <div
+                        key={option.value}
+                        className={`repeat-dropdown-item ${repeatType === option.value ? 'selected' : ''}`}
+                        onClick={() => {
+                          setRepeatType(option.value);
+                          setShowRepeatDropdown(false);
+                        }}
+                      >
+                        {option.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 반복 간격 (반복 타입이 none이 아닐 때만) */}
+              {repeatType !== 'none' && (
+                <>
+                  <div className="repeat-interval">
+                    <span>Every</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      value={repeatInterval}
+                      onChange={(e) => setRepeatInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="repeat-interval-input"
+                    />
+                    <span>
+                      {repeatType === 'daily' && (repeatInterval === 1 ? 'day' : 'days')}
+                      {repeatType === 'weekly' && (repeatInterval === 1 ? 'week' : 'weeks')}
+                      {repeatType === 'monthly' && (repeatInterval === 1 ? 'month' : 'months')}
+                      {repeatType === 'yearly' && (repeatInterval === 1 ? 'year' : 'years')}
+                    </span>
+                  </div>
+
+                  {/* 종료일 */}
+                  <div className="repeat-end">
+                    <input
+                      type="date"
+                      value={repeatEndDate}
+                      onChange={(e) => setRepeatEndDate(e.target.value)}
+                      className="repeat-end-input"
+                      placeholder="End date"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Google Calendar 동기화 토글 - 새 일정 추가 시에만 표시 */}

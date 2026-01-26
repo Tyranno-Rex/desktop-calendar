@@ -160,12 +160,26 @@
   color: var(--text-muted);
 }
 
+.schedule-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .schedule-item-time {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+.schedule-item-repeat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--accent-color);
 }
 
 .schedule-item-delete {

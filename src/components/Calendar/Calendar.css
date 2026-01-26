@@ -280,6 +280,8 @@
 }
 
 .day-event-item {
+  display: flex;
+  align-items: center;
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 4px;
@@ -302,6 +304,12 @@
 .day-event-time {
   opacity: 0.7;
   margin-right: 2px;
+}
+
+.day-event-repeat-icon {
+  opacity: 0.7;
+  margin-right: 2px;
+  flex-shrink: 0;
 }
 
 .day-event-more {

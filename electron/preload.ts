@@ -39,7 +39,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send('open-popup', data);
   },
   closePopup: (): void => ipcRenderer.send('close-popup'),
-  popupSaveEvent: (event: CalendarEvent): Promise<boolean> => ipcRenderer.invoke('popup-save-event', event),
+  popupSaveEvent: (event: CalendarEvent, syncToGoogle?: boolean): Promise<boolean> => ipcRenderer.invoke('popup-save-event', event, syncToGoogle),
   popupDeleteEvent: (eventId: string): Promise<boolean> => ipcRenderer.invoke('popup-delete-event', eventId),
   onEventsUpdated: (callback: (events: CalendarEvent[]) => void): void => {
     ipcRenderer.on('events-updated', (_, events) => callback(events));

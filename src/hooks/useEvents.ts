@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { CalendarEvent } from '../types';
-import { getLocalDateString } from '../utils/date';
+import { getLocalDateString, isDateInRepeatSchedule, createRepeatInstance } from '../utils/date';
 
 export function useEvents() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -134,6 +134,30 @@ export function useEvents() {
   }, [events, saveEvents]);
 
   const updateEvent = useCallback(async (id: string, updates: Partial<CalendarEvent>) => {
+    // 반복 인스턴스인 경우 (id에 날짜가 포함됨)
+    if (id.includes('_')) {
+      const [originalId, instanceDate] = id.split('_');
+      const originalEvent = events.find(e => e.id === originalId);
+
+      if (originalEvent) {
+        // 인스턴스를 독립 일정으로 변환
+        const newEvent: CalendarEvent = {
+          ...originalEvent,
+          ...updates,
+          id: uuidv4(),
+          date: instanceDate,
+          repeat: undefined, // 반복 설정 제거
+          repeatGroupId: originalId,
+          isRepeatInstance: false,
+        };
+
+        const newEvents = [...events, newEvent];
+        setEvents(newEvents);
+        await saveEvents(newEvents);
+        return;
+      }
+    }
+
     const eventToUpdate = events.find(e => e.id === id);
 
     // Google 이벤트면 Google에도 업데이트
@@ -156,7 +180,11 @@ export function useEvents() {
   }, [events, saveEvents]);
 
   const deleteEvent = useCallback(async (id: string) => {
-    const eventToDelete = events.find(e => e.id === id);
+    // 반복 인스턴스인 경우 - 원본 반복 일정 전체를 삭제할지 확인 필요
+    // 현재는 원본 이벤트를 삭제하면 모든 반복이 삭제됨
+    const actualId = id.includes('_') ? id.split('_')[0] : id;
+
+    const eventToDelete = events.find(e => e.id === actualId);
 
     // Google 이벤트면 Google에서도 삭제
     if (eventToDelete?.googleEventId && window.electronAPI?.googleCalendarDeleteEvent) {
@@ -167,14 +195,35 @@ export function useEvents() {
       }
     }
 
-    const newEvents = events.filter((event) => event.id !== id);
+    const newEvents = events.filter((event) => event.id !== actualId);
     setEvents(newEvents);
     await saveEvents(newEvents);
   }, [events, saveEvents]);
 
   const getEventsForDate = useCallback((date: Date) => {
     const dateStr = getLocalDateString(date);
-    return events.filter((event) => event.date === dateStr);
+    const result: CalendarEvent[] = [];
+
+    for (const event of events) {
+      // 반복 일정이 아니면 단순 비교
+      if (!event.repeat || event.repeat.type === 'none') {
+        if (event.date === dateStr) {
+          result.push(event);
+        }
+      } else {
+        // 반복 일정이면 해당 날짜가 반복 패턴에 맞는지 확인
+        if (isDateInRepeatSchedule(dateStr, event)) {
+          // 원본 날짜면 원본 이벤트, 아니면 인스턴스 생성
+          if (event.date === dateStr) {
+            result.push(event);
+          } else {
+            result.push(createRepeatInstance(event, dateStr));
+          }
+        }
+      }
+    }
+
+    return result;
   }, [events]);
 
   return {

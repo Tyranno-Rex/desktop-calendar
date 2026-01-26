@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
 import type { Settings } from '../../types';
 import { AdvancedSettings } from './AdvancedSettings';
@@ -183,19 +183,16 @@ export function SettingsPanel({
             </div>
           </div>
 
+          <div className="setting-divider" />
+
           <div className="setting-item">
             <label>Always on Top</label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={settings.alwaysOnTop}
-                disabled={settings.desktopMode}
-                onChange={(e) =>
-                  onUpdateSettings({ alwaysOnTop: e.target.checked })
-                }
-              />
+            <div
+              className={`toggle-btn ${settings.alwaysOnTop ? 'active' : ''} ${settings.desktopMode ? 'disabled' : ''}`}
+              onClick={() => !settings.desktopMode && onUpdateSettings({ alwaysOnTop: !settings.alwaysOnTop })}
+            >
               <span className="toggle-slider"></span>
-            </label>
+            </div>
           </div>
 
           <div className="setting-item">
@@ -203,19 +200,15 @@ export function SettingsPanel({
               Desktop Mode
               <span className="setting-hint">Stay behind other windows</span>
             </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={settings.desktopMode}
-                onChange={(e) =>
-                  onUpdateSettings({
-                    desktopMode: e.target.checked,
-                    alwaysOnTop: e.target.checked ? false : settings.alwaysOnTop
-                  })
-                }
-              />
+            <div
+              className={`toggle-btn ${settings.desktopMode ? 'active' : ''}`}
+              onClick={() => onUpdateSettings({
+                desktopMode: !settings.desktopMode,
+                alwaysOnTop: !settings.desktopMode ? false : settings.alwaysOnTop
+              })}
+            >
               <span className="toggle-slider"></span>
-            </label>
+            </div>
           </div>
 
           <div className="setting-item">
@@ -223,33 +216,27 @@ export function SettingsPanel({
               Resize Mode
               <span className="setting-hint">Show handles to resize window</span>
             </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={settings.resizeMode}
-                onChange={(e) =>
-                  onUpdateSettings({ resizeMode: e.target.checked })
-                }
-              />
+            <div
+              className={`toggle-btn ${settings.resizeMode ? 'active' : ''}`}
+              onClick={() => onUpdateSettings({ resizeMode: !settings.resizeMode })}
+            >
               <span className="toggle-slider"></span>
-            </label>
+            </div>
           </div>
+
+          <div className="setting-divider" />
 
           <div className="setting-item">
             <label>
               Show Holidays
               <span className="setting-hint">Display holidays on calendar</span>
             </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={settings.showHolidays}
-                onChange={(e) =>
-                  onUpdateSettings({ showHolidays: e.target.checked })
-                }
-              />
+            <div
+              className={`toggle-btn ${settings.showHolidays ? 'active' : ''}`}
+              onClick={() => onUpdateSettings({ showHolidays: !settings.showHolidays })}
+            >
               <span className="toggle-slider"></span>
-            </label>
+            </div>
           </div>
 
           <div className="setting-item">
@@ -257,16 +244,12 @@ export function SettingsPanel({
               Adjacent Months
               <span className="setting-hint">Show prev/next month dates</span>
             </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={settings.showAdjacentMonths}
-                onChange={(e) =>
-                  onUpdateSettings({ showAdjacentMonths: e.target.checked })
-                }
-              />
+            <div
+              className={`toggle-btn ${settings.showAdjacentMonths ? 'active' : ''}`}
+              onClick={() => onUpdateSettings({ showAdjacentMonths: !settings.showAdjacentMonths })}
+            >
               <span className="toggle-slider"></span>
-            </label>
+            </div>
           </div>
 
           <div className="setting-item">
@@ -286,6 +269,8 @@ export function SettingsPanel({
               </button>
             </div>
           </div>
+
+          <div className="setting-divider" />
 
           {/* Google Calendar 연동 */}
           <div className="setting-item">
