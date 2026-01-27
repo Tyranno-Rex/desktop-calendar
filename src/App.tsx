@@ -19,6 +19,11 @@ function App() {
   const [showSchedulePanel, setShowSchedulePanel] = useState(true);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | undefined>();
 
+  // 메모 팝업 열기 (id가 있으면 해당 메모, 없으면 새 메모)
+  const handleOpenMemo = useCallback((id?: string) => {
+    window.electronAPI?.openMemo?.(id);
+  }, []);
+
   const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, refreshEvents, syncWithGoogle, googleConnected, loading: eventsLoading } = useEvents();
   const { settings, updateSettings, loading: settingsLoading } = useSettings();
 
@@ -224,6 +229,8 @@ function App() {
         resizeMode={settings.resizeMode}
         onSync={syncWithGoogle}
         googleConnected={googleConnected}
+        onMemo={handleOpenMemo}
+        showMemoButton={true}
       />
 
       <div className={`app-content ${settings.schedulePanelPosition === 'left' ? 'panel-left' : ''}`}>

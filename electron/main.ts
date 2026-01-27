@@ -118,10 +118,19 @@ interface CalendarEvent {
   isRepeatInstance?: boolean;
 }
 
+interface Memo {
+  id: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface StoreData {
   windowBounds?: WindowBounds;
   settings?: Settings;
   events?: CalendarEvent[];
+  memo?: Memo; // 레거시 (단일 메모) - 마이그레이션용
+  memos?: Memo[]; // 다중 메모
 }
 
 // Simple JSON store
@@ -174,6 +183,7 @@ let mainWindow: BrowserWindowType | null = null;
 let popupWindow: BrowserWindowType | null = null;
 let popupReady = false;
 let pendingPopupData: { type: string; date: string; event?: CalendarEvent; x: number; y: number } | null = null;
+let memoWindow: BrowserWindowType | null = null;
 let tray: TrayType | null = null;
 
 // getIsDev()는 함수로 변경 (app 초기화 후에 호출해야 함)
@@ -258,6 +268,25 @@ function isOtherWindowAtPoint(x: number, y: number): boolean {
   if (!mainWindow || !WindowFromPointRaw) return false;
   if (!isEmbeddedInDesktop) return false; // Desktop Mode 아니면 체크 안함
 
+  // 우리 앱의 메모/팝업 창인지 확인 - bounds 기반 체크 (hwnd보다 안정적)
+  // 드래그 중에 마우스가 창 테두리를 벗어나도 일관되게 처리
+  if (memoWindow && !memoWindow.isDestroyed()) {
+    const memoBounds = memoWindow.getBounds();
+    const isInMemoBounds = x >= memoBounds.x && x <= memoBounds.x + memoBounds.width &&
+                           y >= memoBounds.y && y <= memoBounds.y + memoBounds.height;
+    if (isInMemoBounds) {
+      return true; // 메모 창 영역 안에 있음 -> 메인 창 클릭 차단
+    }
+  }
+  if (popupWindow && !popupWindow.isDestroyed()) {
+    const popupBounds = popupWindow.getBounds();
+    const isInPopupBounds = x >= popupBounds.x && x <= popupBounds.x + popupBounds.width &&
+                            y >= popupBounds.y && y <= popupBounds.y + popupBounds.height;
+    if (isInPopupBounds) {
+      return true; // 팝업 창 영역 안에 있음 -> 메인 창 클릭 차단
+    }
+  }
+
   // 클릭 위치의 창 가져오기 (DPI 보정 포함)
   const hwndAtPoint = windowFromPoint(x, y);
   if (!hwndAtPoint || hwndAtPoint === 0) return false;
@@ -330,6 +359,22 @@ function startMouseMonitoring() {
 
   mouseCheckInterval = setInterval(() => {
     if (!mainWindow || !desktopModeEnabled || !GetAsyncKeyState) return;
+
+    // 메모 창이나 팝업 창이 포커스를 가지고 있거나, 메모가 핀 고정되어 있으면 마우스 모니터링 스킵
+    // 이렇게 하면 메모/팝업 창의 드래그가 메인 창과 간섭하지 않음
+    if (memoWindow && !memoWindow.isDestroyed()) {
+      // 포커스가 있거나 핀 고정 상태면 스킵
+      if (memoWindow.isFocused() || isMemoPinned) {
+        wasMouseDown = false;
+        isDraggingInWindow = false;
+        return;
+      }
+    }
+    if (popupWindow && !popupWindow.isDestroyed() && popupWindow.isFocused()) {
+      wasMouseDown = false;
+      isDraggingInWindow = false;
+      return;
+    }
 
     const mouseState = GetAsyncKeyState(VK_LBUTTON);
     const isMouseDown = (mouseState & 0x8000) !== 0;
@@ -650,6 +695,56 @@ function registerIpcHandlers() {
     return true;
   });
 
+  // 메모 API (다중 메모 지원)
+  ipcMain.handle('get-memos', () => {
+    return store.get('memos') || [];
+  });
+
+  ipcMain.handle('get-memo', (_, id: string) => {
+    const memos: Memo[] = store.get('memos') || [];
+    return memos.find(m => m.id === id) || null;
+  });
+
+  ipcMain.handle('save-memo', (_, memo: Memo) => {
+    const memos: Memo[] = store.get('memos') || [];
+    const index = memos.findIndex(m => m.id === memo.id);
+    if (index >= 0) {
+      memos[index] = memo;
+    } else {
+      memos.push(memo);
+    }
+    store.set('memos', memos);
+    return true;
+  });
+
+  ipcMain.handle('delete-memo', (_, id: string) => {
+    const memos: Memo[] = store.get('memos') || [];
+    const filtered = memos.filter(m => m.id !== id);
+    store.set('memos', filtered);
+    return true;
+  });
+
+  // 메모 팝업 창
+  let currentMemoId: string | null = null;
+
+  ipcMain.on('open-memo', (_, id?: string) => {
+    currentMemoId = id || null;
+    createMemoWindow(id);
+  });
+
+  ipcMain.handle('get-current-memo-id', () => {
+    return currentMemoId;
+  });
+
+  ipcMain.on('close-memo', () => {
+    closeMemoWindow();
+  });
+
+  // 메모 핀 고정/해제
+  ipcMain.on('set-memo-pinned', (_, pinned: boolean) => {
+    setMemoPinned(pinned);
+  });
+
   ipcMain.on('minimize-window', () => {
     mainWindow?.minimize();
   });
@@ -890,14 +985,102 @@ function createPopupWindow(data: { type: string; date: string; event?: CalendarE
   }
 }
 
+// ==================== 메모 팝업 창 ====================
+function createMemoWindow(memoId?: string) {
+  // 이미 열려있으면 포커스만
+  if (memoWindow && !memoWindow.isDestroyed()) {
+    memoWindow.show();
+    memoWindow.focus();
+    return;
+  }
+
+  const savedSettings = store.get('settings');
+  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+
+  memoWindow = new BrowserWindow({
+    width: 350,
+    height: 450,
+    minWidth: 280,
+    minHeight: 350,
+    x: Math.round(screenWidth / 2 - 175),
+    y: Math.round(screenHeight / 2 - 225),
+    transparent: true,
+    frame: false,
+    skipTaskbar: false,
+    resizable: true,
+    minimizable: true,
+    maximizable: false,
+    focusable: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  });
+
+  // 메모 창은 'floating' 레벨로 설정하여 다른 alwaysOnTop 창보다 위에 표시
+  memoWindow.setAlwaysOnTop(true, 'floating');
+  memoWindow.setOpacity(savedSettings?.opacity ?? 0.95);
+
+  // 메모 페이지 로드 (id가 있으면 쿼리 파라미터로 전달)
+  const hashPath = memoId ? `/memo?id=${memoId}` : '/memo';
+  if (getIsDev()) {
+    memoWindow.loadURL(`http://localhost:5173/#${hashPath}`);
+  } else {
+    memoWindow.loadFile(path.join(__dirname, '../dist/index.html'), {
+      hash: hashPath
+    });
+  }
+
+  memoWindow.on('closed', () => {
+    memoWindow = null;
+    isMemoPinned = false;
+  });
+}
+
+function closeMemoWindow() {
+  if (memoWindow && !memoWindow.isDestroyed()) {
+    memoWindow.close();
+    memoWindow = null;
+  }
+}
+
+// 메모 핀 고정 상태
+let isMemoPinned = false;
+
+function setMemoPinned(pinned: boolean) {
+  if (!memoWindow || memoWindow.isDestroyed()) return;
+
+  isMemoPinned = pinned;
+
+  if (pinned) {
+    // 핀 고정: 다른 창 뒤로 이동하되 클릭은 가능하게 유지
+    memoWindow.setAlwaysOnTop(false);
+    memoWindow.setResizable(false);
+    memoWindow.setMovable(false);
+  } else {
+    // 핀 해제: 일반 창으로 복원
+    memoWindow.setResizable(true);
+    memoWindow.setMovable(true);
+    memoWindow.setAlwaysOnTop(true, 'floating');
+    memoWindow.focus();
+  }
+}
+
 // 리사이즈 핸들러 - app.whenReady() 이후에 등록됨
 let resizeInterval: NodeJS.Timeout | null = null;
+let resizingWindow: BrowserWindowType | null = null;
 const MIN_WIDTH = 300;
 const MIN_HEIGHT = 400;
+const MEMO_MIN_WIDTH = 280;
+const MEMO_MIN_HEIGHT = 350;
 
 function registerResizeHandlers() {
-  ipcMain.on('start-resize', (_, direction: string) => {
-    if (!mainWindow) return;
+  ipcMain.on('start-resize', (event, direction: string) => {
+    // 어떤 창에서 호출했는지 확인
+    const senderWindow = BrowserWindow.fromWebContents(event.sender);
+    console.log('[start-resize] direction:', direction, 'senderWindow:', senderWindow ? 'found' : 'null', 'isMemo:', senderWindow === memoWindow, 'isMain:', senderWindow === mainWindow);
+    if (!senderWindow) return;
 
     // 이전 리사이즈가 진행 중이면 중지
     if (resizeInterval) {
@@ -905,11 +1088,17 @@ function registerResizeHandlers() {
       resizeInterval = null;
     }
 
-    const startBounds = mainWindow.getBounds();
+    resizingWindow = senderWindow;
+    const isMemo = senderWindow === memoWindow;
+    const minWidth = isMemo ? MEMO_MIN_WIDTH : MIN_WIDTH;
+    const minHeight = isMemo ? MEMO_MIN_HEIGHT : MIN_HEIGHT;
+
+    const startBounds = senderWindow.getBounds();
     const mouseStartPos = screen.getCursorScreenPoint();
+    console.log('[start-resize] startBounds:', startBounds, 'mouseStartPos:', mouseStartPos);
 
     resizeInterval = setInterval(() => {
-      if (!mainWindow) {
+      if (!resizingWindow || resizingWindow.isDestroyed()) {
         if (resizeInterval) {
           clearInterval(resizeInterval);
           resizeInterval = null;
@@ -928,30 +1117,30 @@ function registerResizeHandlers() {
 
       // 오른쪽 (e)
       if (direction.includes('e')) {
-        newWidth = Math.max(MIN_WIDTH, startBounds.width + deltaX);
+        newWidth = Math.max(minWidth, startBounds.width + deltaX);
       }
       // 왼쪽 (w)
       if (direction.includes('w')) {
         const potentialWidth = startBounds.width - deltaX;
-        if (potentialWidth >= MIN_WIDTH) {
+        if (potentialWidth >= minWidth) {
           newWidth = potentialWidth;
           newX = startBounds.x + deltaX;
         }
       }
       // 아래쪽 (s)
       if (direction.includes('s')) {
-        newHeight = Math.max(MIN_HEIGHT, startBounds.height + deltaY);
+        newHeight = Math.max(minHeight, startBounds.height + deltaY);
       }
       // 위쪽 (n)
       if (direction.includes('n')) {
         const potentialHeight = startBounds.height - deltaY;
-        if (potentialHeight >= MIN_HEIGHT) {
+        if (potentialHeight >= minHeight) {
           newHeight = potentialHeight;
           newY = startBounds.y + deltaY;
         }
       }
 
-      mainWindow.setBounds({
+      resizingWindow.setBounds({
         x: Math.round(newX),
         y: Math.round(newY),
         width: Math.round(newWidth),
@@ -961,10 +1150,15 @@ function registerResizeHandlers() {
   });
 
   ipcMain.on('stop-resize', () => {
+    console.log('[stop-resize] called, resizingWindow:', resizingWindow ? 'exists' : 'null');
     if (resizeInterval) {
       clearInterval(resizeInterval);
       resizeInterval = null;
-      saveWindowBounds();
+      // 메인 윈도우 크기만 저장 (메모 창은 저장 안함)
+      if (resizingWindow === mainWindow) {
+        saveWindowBounds();
+      }
+      resizingWindow = null;
     }
   });
 }

@@ -134,3 +134,99 @@
   min-width: 14px;
   text-align: center;
 }
+
+/* 메모 버튼 컨테이너 */
+.memo-btn-container {
+  position: relative;
+}
+
+/* 메모 드롭다운 */
+.memo-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  min-width: 180px;
+  max-width: 250px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.memo-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.memo-dropdown-item:hover {
+  background: var(--bg-cell-hover);
+}
+
+.memo-dropdown-item.new {
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.memo-dropdown-item.new:hover {
+  background: var(--accent-light);
+}
+
+.memo-dropdown-item svg {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.memo-dropdown-item.new svg {
+  color: var(--accent-color);
+}
+
+.memo-preview {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memo-delete-btn {
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: all 0.15s;
+}
+
+.memo-dropdown-item:hover .memo-delete-btn {
+  opacity: 1;
+  color: var(--text-secondary);
+}
+
+.memo-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.memo-dropdown-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 4px 0;
+}

@@ -9,6 +9,12 @@ export interface RepeatConfig {
   count?: number; // 반복 횟수 (endDate 대신 사용 가능)
 }
 
+// 알림 설정
+export interface ReminderConfig {
+  enabled: boolean;
+  minutesBefore: number; // 몇 분 전에 알림
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -23,6 +29,19 @@ export interface CalendarEvent {
   repeat?: RepeatConfig;
   repeatGroupId?: string; // 같은 반복 일정 그룹 ID
   isRepeatInstance?: boolean; // 반복에서 생성된 인스턴스인지
+  // 알림
+  reminder?: ReminderConfig;
+  // D-Day
+  isDDay?: boolean; // D-Day로 표시할지
+}
+
+// 메모 타입
+export interface Memo {
+  id: string;
+  title?: string; // 메모 제목 (없으면 첫 줄 사용)
+  content: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Settings {
@@ -107,6 +126,14 @@ export interface ElectronAPI {
   googleCalendarCreateEvent: (event: GoogleCalendarEventInput) => Promise<{ success: boolean; event?: GoogleCalendarEventResponse; error?: string }>;
   googleCalendarUpdateEvent: (googleEventId: string, updates: GoogleCalendarEventUpdates) => Promise<{ success: boolean; event?: GoogleCalendarEventResponse; error?: string }>;
   googleCalendarDeleteEvent: (googleEventId: string) => Promise<{ success: boolean; error?: string }>;
+  // 메모 API (다중 메모 지원)
+  getMemos: () => Promise<Memo[]>;
+  getMemo: (id: string) => Promise<Memo | null>;
+  saveMemo: (memo: Memo) => Promise<boolean>;
+  deleteMemo: (id: string) => Promise<boolean>;
+  openMemo: (id?: string) => void; // id 없으면 새 메모
+  closeMemo: () => void;
+  setMemoPinned: (pinned: boolean) => void; // 메모 핀 고정
 }
 
 declare global {

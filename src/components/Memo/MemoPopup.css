@@ -1,0 +1,242 @@
+.memo-popup-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.memo-popup-container.dark {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --border-color: rgba(75, 85, 99, 0.5);
+  --accent-color: #3b82f6;
+  --bg-hover: rgba(55, 65, 81, 0.5);
+}
+
+.memo-popup-container.light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --accent-color: #3b82f6;
+  --bg-hover: rgba(243, 244, 246, 0.8);
+}
+
+/* 리사이즈 핸들 */
+.memo-popup-container .resize-handle {
+  position: absolute;
+  z-index: 10;
+}
+
+.memo-popup-container .resize-n {
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 4px;
+  cursor: n-resize;
+}
+
+.memo-popup-container .resize-s {
+  bottom: 0;
+  left: 8px;
+  right: 8px;
+  height: 4px;
+  cursor: s-resize;
+}
+
+.memo-popup-container .resize-e {
+  right: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  cursor: e-resize;
+}
+
+.memo-popup-container .resize-w {
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  cursor: w-resize;
+}
+
+.memo-popup-container .resize-ne {
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  cursor: ne-resize;
+}
+
+.memo-popup-container .resize-nw {
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  cursor: nw-resize;
+}
+
+.memo-popup-container .resize-se {
+  bottom: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  cursor: se-resize;
+}
+
+.memo-popup-container .resize-sw {
+  bottom: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  cursor: sw-resize;
+}
+
+.memo-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  -webkit-app-region: drag;
+}
+
+.memo-popup-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.memo-popup-title svg {
+  color: var(--accent-color);
+}
+
+.memo-popup-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.memo-popup-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.memo-popup-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.memo-popup-btn.pin.active {
+  color: var(--accent-color);
+}
+
+.memo-popup-btn.close:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.memo-popup-content {
+  flex: 1;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.memo-popup-textarea {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  resize: none;
+  outline: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  transition: border-color 0.15s ease;
+}
+
+.memo-popup-textarea:focus {
+  border-color: var(--accent-color);
+}
+
+.memo-popup-textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.memo-popup-footer {
+  padding: 8px 16px;
+  border-top: 1px solid var(--border-color);
+  min-height: 32px;
+}
+
+.memo-popup-footer .memo-status {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.memo-popup-footer .memo-status.saving {
+  color: var(--accent-color);
+}
+
+.memo-popup-footer .memo-status.saved {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+/* 핀 고정 모드 */
+.memo-popup-container.pinned {
+  pointer-events: none;
+}
+
+.memo-popup-container.pinned .memo-popup-header {
+  pointer-events: auto;
+}
+
+.memo-popup-container.pinned .memo-popup-btn.pin {
+  pointer-events: auto;
+}
+
+.memo-popup-display {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+
+.memo-popup-display:empty::before {
+  content: 'Write your memo here...';
+  color: var(--text-secondary);
+  opacity: 0.6;
+}

@@ -36,6 +36,14 @@ interface Settings {
   schedulePanelPosition: 'left' | 'right';
 }
 
+interface Memo {
+  id: string;
+  title?: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: (): Promise<Settings> => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings: Settings): Promise<boolean> => ipcRenderer.invoke('save-settings', settings),
@@ -93,4 +101,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('google-calendar-update-event', googleEventId, updates),
   googleCalendarDeleteEvent: (googleEventId: string): Promise<{ success: boolean; error?: string }> =>
     ipcRenderer.invoke('google-calendar-delete-event', googleEventId),
+
+  // 메모 API (다중 메모 지원)
+  getMemos: (): Promise<Memo[]> => ipcRenderer.invoke('get-memos'),
+  getMemo: (id: string): Promise<Memo | null> => ipcRenderer.invoke('get-memo', id),
+  saveMemo: (memo: Memo): Promise<boolean> => ipcRenderer.invoke('save-memo', memo),
+  deleteMemo: (id: string): Promise<boolean> => ipcRenderer.invoke('delete-memo', id),
+  openMemo: (id?: string): void => ipcRenderer.send('open-memo', id),
+  closeMemo: (): void => ipcRenderer.send('close-memo'),
+  setMemoPinned: (pinned: boolean): void => ipcRenderer.send('set-memo-pinned', pinned),
 });
