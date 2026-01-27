@@ -36,8 +36,9 @@ function App() {
     const api = window.electronAPI;
     if (!api) return;
 
-    // 클릭 이벤트
+    // 클릭 이벤트 (창이 포커스되어 있으면 브라우저가 이미 처리하므로 스킵)
     api.onDesktopClick?.((data) => {
+      if (document.hasFocus()) return;
       const element = document.elementFromPoint(data.x, data.y);
       if (element) {
         const clickEvent = new MouseEvent('click', {

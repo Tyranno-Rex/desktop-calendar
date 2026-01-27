@@ -981,6 +981,8 @@ function registerGoogleIpcHandlers() {
 
   // Google 로그인 (PKCE 방식)
   ipcMain.handle('google-auth-login', async () => {
+    console.log('[IPC] google-auth-login handler called');
+    console.log('[IPC] Stack trace:', new Error().stack);
     try {
       await googleAuth!.startAuthFlow();
       return { success: true };

@@ -24,6 +24,7 @@ export function SettingsPanel({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const dragHandleRef = useRef<HTMLDivElement>(null);
+  const googleAuthInProgressRef = useRef(false);
 
   // Google 연결 상태 확인
   useEffect(() => {
@@ -39,6 +40,9 @@ export function SettingsPanel({
   // Google 연결/해제
   const handleGoogleConnect = async () => {
     if (!window.electronAPI) return;
+    // 중복 호출 방지 (Desktop Mode에서 클릭 이벤트가 두 번 발생할 수 있음)
+    if (googleAuthInProgressRef.current) return;
+    googleAuthInProgressRef.current = true;
 
     setGoogleLoading(true);
     try {
@@ -59,6 +63,7 @@ export function SettingsPanel({
       console.error('Google auth error:', error);
     } finally {
       setGoogleLoading(false);
+      googleAuthInProgressRef.current = false;
     }
   };
 

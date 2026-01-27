@@ -23,8 +23,7 @@ export function initGoogleAuth(funcs: typeof electronFunctions) {
 
 // 환경 변수 캐시
 let cachedClientId: string | null = null;
-let cachedClientSecret: string | null = null;
-let cachedEnvVars: Record<string, string> | null = null;
+let cachedAuthServerUrl: string | null = null;
 
 // .env 파일 파싱 (dotenv 없이)
 function parseEnvFile(filePath: string): Record<string, string> {
@@ -88,14 +87,14 @@ function getClientId(): string {
   return '';
 }
 
-// Client Secret 가져오기
-function getClientSecret(): string {
-  if (cachedClientSecret) return cachedClientSecret;
+// Auth 서버 URL 가져오기
+function getAuthServerUrl(): string {
+  if (cachedAuthServerUrl) return cachedAuthServerUrl;
 
   // 환경 변수에서 먼저 확인
-  if (process.env.GOOGLE_CLIENT_SECRET) {
-    cachedClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    return cachedClientSecret;
+  if (process.env.AUTH_SERVER_URL) {
+    cachedAuthServerUrl = process.env.AUTH_SERVER_URL;
+    return cachedAuthServerUrl;
   }
 
   // .env 파일에서 로드
@@ -115,14 +114,14 @@ function getClientSecret(): string {
   for (const envPath of possiblePaths) {
     if (fs.existsSync(envPath)) {
       const envVars = parseEnvFile(envPath);
-      if (envVars.GOOGLE_CLIENT_SECRET) {
-        cachedClientSecret = envVars.GOOGLE_CLIENT_SECRET;
-        return cachedClientSecret;
+      if (envVars.AUTH_SERVER_URL) {
+        cachedAuthServerUrl = envVars.AUTH_SERVER_URL;
+        return cachedAuthServerUrl;
       }
     }
   }
 
-  return '';
+  return 'http://localhost:3001';
 }
 
 // PKCE: Code Verifier 생성 (43~128자 랜덤 문자열)
@@ -252,20 +251,15 @@ export async function getAccessToken(): Promise<string | null> {
   return token.access_token;
 }
 
-// Refresh Token으로 Access Token 갱신
+// Refresh Token으로 Access Token 갱신 (서버 경유)
 async function refreshAccessToken(refreshToken: string): Promise<TokenData | null> {
   try {
-    const response = await fetch('https://oauth2.googleapis.com/token', {
+    const response = await fetch(`${getAuthServerUrl()}/auth/google/refresh`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
-      body: new URLSearchParams({
-        client_id: getClientId(),
-        client_secret: getClientSecret(),
-        refresh_token: refreshToken,
-        grant_type: 'refresh_token',
-      }),
+      body: JSON.stringify({ refreshToken }),
     });
 
     const data = await response.json() as any;
@@ -291,11 +285,25 @@ async function refreshAccessToken(refreshToken: string): Promise<TokenData | nul
   }
 }
 
+// 인증 진행 중 플래그
+let authInProgress = false;
+
 // PKCE OAuth 인증 플로우 시작
 export function startAuthFlow(): Promise<TokenData> {
+  console.log('[GoogleAuth] startAuthFlow called, authInProgress:', authInProgress);
+
   if (!electronFunctions) {
     return Promise.reject(new Error('googleAuth not initialized'));
   }
+
+  // 이미 인증 진행 중이면 거부
+  if (authInProgress) {
+    console.log('[GoogleAuth] Rejected: already in progress');
+    return Promise.reject(new Error('Authentication already in progress'));
+  }
+
+  authInProgress = true;
+  console.log('[GoogleAuth] Starting auth flow...');
 
   return new Promise((resolve, reject) => {
     // PKCE 값 생성
@@ -322,25 +330,26 @@ export function startAuthFlow(): Promise<TokenData> {
           }
 
           if (code) {
-            const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+            // 서버를 통해 토큰 교환 (client_secret은 서버에서 처리)
+            console.log('[GoogleAuth] Got code, exchanging token via auth server...');
+            console.log('[GoogleAuth] Auth server URL:', getAuthServerUrl());
+            const tokenResponse = await fetch(`${getAuthServerUrl()}/auth/google/token`, {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-Type': 'application/json',
               },
-              body: new URLSearchParams({
-                client_id: getClientId(),
-                client_secret: getClientSecret(),
+              body: JSON.stringify({
                 code: code,
-                code_verifier: codeVerifier,
-                redirect_uri: REDIRECT_URI,
-                grant_type: 'authorization_code',
+                codeVerifier: codeVerifier,
               }),
             });
 
-            const tokenData = await tokenResponse.json() as TokenData & { error?: string; error_description?: string };
+            const tokenData = await tokenResponse.json() as TokenData & { error?: string; error_description?: string; details?: any };
+            console.log('[GoogleAuth] Token response:', tokenData.error ? tokenData : 'success');
 
             if (tokenData.error) {
-              throw new Error(`Token exchange failed: ${tokenData.error} - ${tokenData.error_description || 'no description'}`);
+              const details = tokenData.details ? JSON.stringify(tokenData.details) : '';
+              throw new Error(`Token exchange failed: ${tokenData.error} ${details}`);
             }
 
             const token: TokenData = {
@@ -368,6 +377,7 @@ export function startAuthFlow(): Promise<TokenData> {
             `);
 
             server.close();
+            authInProgress = false;
             resolve(token);
           } else {
             throw new Error('No authorization code received');
@@ -388,8 +398,15 @@ export function startAuthFlow(): Promise<TokenData> {
           </html>
         `);
         server.close();
+        authInProgress = false;
         reject(error);
       }
+    });
+
+    // 서버 에러 핸들링 (포트 충돌 등)
+    server.on('error', (err) => {
+      authInProgress = false;
+      reject(err);
     });
 
     server.listen(8089, '127.0.0.1', () => {
@@ -410,12 +427,14 @@ export function startAuthFlow(): Promise<TokenData> {
       // Electron 창 열기 (main.ts에서 전달받은 함수 사용)
       electronFunctions!.openAuthWindow(authUrl, () => {
         server.close();
+        authInProgress = false;
       });
     });
 
     // 타임아웃 (2분)
     setTimeout(() => {
       server.close();
+      authInProgress = false;
       reject(new Error('Authentication timeout'));
     }, 120000);
   });
