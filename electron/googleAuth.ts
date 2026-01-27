@@ -22,106 +22,67 @@ export function initGoogleAuth(funcs: typeof electronFunctions) {
 }
 
 // 환경 변수 캐시
-let cachedClientId: string | null = null;
-let cachedAuthServerUrl: string | null = null;
+let envCache: Record<string, string> | null = null;
 
-// .env 파일 파싱 (dotenv 없이)
-function parseEnvFile(filePath: string): Record<string, string> {
-  const result: Record<string, string> = {};
-  try {
-    const content = fs.readFileSync(filePath, 'utf-8');
-    for (const line of content.split('\n')) {
-      const trimmed = line.trim();
-      if (trimmed && !trimmed.startsWith('#')) {
-        const eqIndex = trimmed.indexOf('=');
-        if (eqIndex > 0) {
-          const key = trimmed.substring(0, eqIndex).trim();
-          const value = trimmed.substring(eqIndex + 1).trim();
-          result[key] = value;
+// .env 파일 로드 및 캐싱
+function getEnvVars(): Record<string, string> {
+  if (envCache) return envCache;
+
+  envCache = {};
+
+  // .env 파일 경로 후보
+  const possiblePaths = [
+    path.join(process.cwd(), 'env', '.env'),
+    path.join(__dirname, '..', 'env', '.env'),
+    path.join(__dirname, '..', '..', 'env', '.env'),
+  ];
+
+  const resourcesPath = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath;
+  if (resourcesPath) {
+    possiblePaths.push(
+      path.join(resourcesPath, 'app.asar', 'env', '.env'),
+      path.join(resourcesPath, 'app', 'env', '.env')
+    );
+  }
+
+  for (const envPath of possiblePaths) {
+    if (fs.existsSync(envPath)) {
+      try {
+        const content = fs.readFileSync(envPath, 'utf-8');
+        for (const line of content.split('\n')) {
+          const trimmed = line.trim();
+          if (trimmed && !trimmed.startsWith('#')) {
+            const eqIndex = trimmed.indexOf('=');
+            if (eqIndex > 0) {
+              const key = trimmed.substring(0, eqIndex).trim();
+              const value = trimmed.substring(eqIndex + 1).trim();
+              envCache[key] = value;
+            }
+          }
         }
+        break; // 첫 번째 발견된 파일만 사용
+      } catch {
+        // 파일 읽기 실패시 다음 경로 시도
       }
     }
-  } catch {
-    // 파일 없으면 무시
   }
-  return result;
+
+  return envCache;
+}
+
+// 환경 변수 가져오기 (process.env 우선, 없으면 .env 파일)
+function getEnv(key: string, defaultValue = ''): string {
+  return process.env[key] || getEnvVars()[key] || defaultValue;
 }
 
 // Client ID 가져오기
 function getClientId(): string {
-  if (cachedClientId) return cachedClientId;
-
-  // 환경 변수에서 먼저 확인
-  if (process.env.GOOGLE_CLIENT_ID) {
-    cachedClientId = process.env.GOOGLE_CLIENT_ID;
-    return cachedClientId;
-  }
-
-  // .env 파일에서 로드 (개발/프로덕션 모두 지원)
-  const possiblePaths = [
-    // 개발 환경
-    path.join(process.cwd(), 'env', '.env'),
-    path.join(__dirname, '..', 'env', '.env'),
-    // 패키지된 앱 (asar 내부)
-    path.join(__dirname, '..', '..', 'env', '.env'),
-  ];
-
-  // process.resourcesPath가 있으면 (패키지된 앱)
-  if (process.resourcesPath) {
-    possiblePaths.push(
-      path.join(process.resourcesPath, 'app.asar', 'env', '.env'),
-      path.join(process.resourcesPath, 'app', 'env', '.env')
-    );
-  }
-
-  for (const envPath of possiblePaths) {
-    if (fs.existsSync(envPath)) {
-      const envVars = parseEnvFile(envPath);
-      if (envVars.GOOGLE_CLIENT_ID) {
-        cachedClientId = envVars.GOOGLE_CLIENT_ID;
-        return cachedClientId;
-      }
-    }
-  }
-
-  return '';
+  return getEnv('GOOGLE_CLIENT_ID');
 }
 
 // Auth 서버 URL 가져오기
 function getAuthServerUrl(): string {
-  if (cachedAuthServerUrl) return cachedAuthServerUrl;
-
-  // 환경 변수에서 먼저 확인
-  if (process.env.AUTH_SERVER_URL) {
-    cachedAuthServerUrl = process.env.AUTH_SERVER_URL;
-    return cachedAuthServerUrl;
-  }
-
-  // .env 파일에서 로드
-  const possiblePaths = [
-    path.join(process.cwd(), 'env', '.env'),
-    path.join(__dirname, '..', 'env', '.env'),
-    path.join(__dirname, '..', '..', 'env', '.env'),
-  ];
-
-  if (process.resourcesPath) {
-    possiblePaths.push(
-      path.join(process.resourcesPath, 'app.asar', 'env', '.env'),
-      path.join(process.resourcesPath, 'app', 'env', '.env')
-    );
-  }
-
-  for (const envPath of possiblePaths) {
-    if (fs.existsSync(envPath)) {
-      const envVars = parseEnvFile(envPath);
-      if (envVars.AUTH_SERVER_URL) {
-        cachedAuthServerUrl = envVars.AUTH_SERVER_URL;
-        return cachedAuthServerUrl;
-      }
-    }
-  }
-
-  return 'http://localhost:3001';
+  return getEnv('AUTH_SERVER_URL', 'http://localhost:3001');
 }
 
 // PKCE: Code Verifier 생성 (43~128자 랜덤 문자열)
@@ -290,20 +251,16 @@ let authInProgress = false;
 
 // PKCE OAuth 인증 플로우 시작
 export function startAuthFlow(): Promise<TokenData> {
-  console.log('[GoogleAuth] startAuthFlow called, authInProgress:', authInProgress);
-
   if (!electronFunctions) {
     return Promise.reject(new Error('googleAuth not initialized'));
   }
 
   // 이미 인증 진행 중이면 거부
   if (authInProgress) {
-    console.log('[GoogleAuth] Rejected: already in progress');
     return Promise.reject(new Error('Authentication already in progress'));
   }
 
   authInProgress = true;
-  console.log('[GoogleAuth] Starting auth flow...');
 
   return new Promise((resolve, reject) => {
     // PKCE 값 생성
@@ -331,8 +288,6 @@ export function startAuthFlow(): Promise<TokenData> {
 
           if (code) {
             // 서버를 통해 토큰 교환 (client_secret은 서버에서 처리)
-            console.log('[GoogleAuth] Got code, exchanging token via auth server...');
-            console.log('[GoogleAuth] Auth server URL:', getAuthServerUrl());
             const tokenResponse = await fetch(`${getAuthServerUrl()}/auth/google/token`, {
               method: 'POST',
               headers: {
@@ -345,7 +300,6 @@ export function startAuthFlow(): Promise<TokenData> {
             });
 
             const tokenData = await tokenResponse.json() as TokenData & { error?: string; error_description?: string; details?: any };
-            console.log('[GoogleAuth] Token response:', tokenData.error ? tokenData : 'success');
 
             if (tokenData.error) {
               const details = tokenData.details ? JSON.stringify(tokenData.details) : '';

@@ -52,7 +52,7 @@ export function useEvents() {
         const localEvents = await window.electronAPI.getEvents();
 
         // Google 이벤트와 로컬 이벤트 병합
-        const googleEvents = result.events.map((ge: any) => ({
+        const googleEvents: CalendarEvent[] = result.events.map((ge) => ({
           id: ge.id,
           title: ge.title,
           date: ge.date,

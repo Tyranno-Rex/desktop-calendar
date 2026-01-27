@@ -1,6 +1,7 @@
 import { useMemo, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
 import type { CalendarEvent } from '../../types';
+import { isDateInRepeatSchedule, createRepeatInstance, getLocalDateString } from '../../utils/date';
 import './WeekView.css';
 
 // 시간대 (0시 ~ 23시)
@@ -79,11 +80,24 @@ export function WeekView({
 
   const columnCount = visibleDays.length;
 
-  // 해당 날짜의 이벤트 가져오기
-  const getEventsForDate = (date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    return events.filter(event => event.date === dateStr);
-  };
+  // 해당 날짜의 이벤트 가져오기 (반복 일정 포함)
+  const getEventsForDate = useCallback((date: Date): CalendarEvent[] => {
+    const dateStr = getLocalDateString(date);
+    const result: CalendarEvent[] = [];
+
+    for (const event of events) {
+      if (isDateInRepeatSchedule(dateStr, event)) {
+        // 반복 일정의 경우 해당 날짜에 대한 인스턴스 생성
+        if (event.repeat && event.repeat.type !== 'none' && event.date !== dateStr) {
+          result.push(createRepeatInstance(event, dateStr));
+        } else {
+          result.push(event);
+        }
+      }
+    }
+
+    return result;
+  }, [events]);
 
   // 이벤트 위치 및 높이 계산 (시간 기반)
   const getEventStyle = (event: CalendarEvent) => {

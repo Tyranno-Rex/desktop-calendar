@@ -49,6 +49,30 @@ export interface PopupData {
   y: number;
 }
 
+// Google Calendar API 관련 타입
+export interface GoogleCalendarEventInput {
+  title: string;
+  date: string;
+  time?: string;
+  description?: string;
+}
+
+export interface GoogleCalendarEventResponse {
+  id: string;
+  title: string;
+  date: string;
+  time?: string;
+  description?: string;
+  googleEventId: string;
+}
+
+export interface GoogleCalendarEventUpdates {
+  title?: string;
+  date?: string;
+  time?: string;
+  description?: string;
+}
+
 export interface ElectronAPI {
   getSettings: () => Promise<Settings>;
   saveSettings: (settings: Settings) => Promise<boolean>;
@@ -79,9 +103,9 @@ export interface ElectronAPI {
   googleAuthStatus: () => Promise<boolean>;
   googleAuthLogin: () => Promise<{ success: boolean; error?: string }>;
   googleAuthLogout: () => Promise<{ success: boolean }>;
-  googleCalendarGetEvents: (timeMin?: string, timeMax?: string) => Promise<{ success: boolean; events?: any[]; error?: string }>;
-  googleCalendarCreateEvent: (event: any) => Promise<{ success: boolean; event?: any; error?: string }>;
-  googleCalendarUpdateEvent: (googleEventId: string, updates: any) => Promise<{ success: boolean; event?: any; error?: string }>;
+  googleCalendarGetEvents: (timeMin?: string, timeMax?: string) => Promise<{ success: boolean; events?: GoogleCalendarEventResponse[]; error?: string }>;
+  googleCalendarCreateEvent: (event: GoogleCalendarEventInput) => Promise<{ success: boolean; event?: GoogleCalendarEventResponse; error?: string }>;
+  googleCalendarUpdateEvent: (googleEventId: string, updates: GoogleCalendarEventUpdates) => Promise<{ success: boolean; event?: GoogleCalendarEventResponse; error?: string }>;
   googleCalendarDeleteEvent: (googleEventId: string) => Promise<{ success: boolean; error?: string }>;
 }
 

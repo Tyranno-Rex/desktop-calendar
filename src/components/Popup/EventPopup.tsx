@@ -1,49 +1,16 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Trash2, ChevronDown, ChevronRight, Repeat, Settings } from 'lucide-react';
-import { getLocalDateString } from '../../utils/date';
-import type { RepeatType, RepeatConfig } from '../../types';
-
-// yyyy-MM-dd 문자열을 로컬 Date로 파싱 (타임존 문제 방지)
-const parseLocalDate = (dateStr: string) => {
-  const [year, month, day] = dateStr.split('-').map(Number);
-  return new Date(year, month - 1, day, 12, 0, 0, 0);
-};
-
-// 시간 옵션
-const PERIODS = ['AM', 'PM'] as const;
-const HOURS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-const MINUTES = [0, 10, 20, 30, 40, 50];
-
-// 반복 옵션
-const REPEAT_OPTIONS: { value: RepeatType; label: string }[] = [
-  { value: 'none', label: 'No repeat' },
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly', label: 'Yearly' },
-];
-
-// HH:mm -> {period, hour, minute} 파싱
-const parseTime = (t: string) => {
-  if (!t) return { period: 'AM' as const, hour: 12, minute: 0 };
-  const [h, m] = t.split(':').map(Number);
-  const period = h < 12 ? 'AM' : 'PM';
-  const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return { period, hour, minute: m };
-};
-
-// {period, hour, minute} -> HH:mm 변환
-const formatTime = (period: string, hour: number, minute: number) => {
-  let h = hour;
-  if (period === 'AM') {
-    h = hour === 12 ? 0 : hour;
-  } else {
-    h = hour === 12 ? 12 : hour + 12;
-  }
-  return `${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-};
-
-import type { CalendarEvent } from '../../types';
+import type { CalendarEvent, RepeatConfig, RepeatType } from '../../types';
+import {
+  getLocalDateString,
+  parseLocalDateString,
+  parseTime,
+  formatTime,
+  PERIODS,
+  HOURS,
+  MINUTES,
+  REPEAT_OPTIONS,
+} from '../../utils/date';
 import './Popup.css';
 
 export function EventPopup() {
@@ -114,7 +81,7 @@ export function EventPopup() {
     resetForm();
 
     if (data.date) {
-      setDate(parseLocalDate(data.date));
+      setDate(parseLocalDateString(data.date));
     }
 
     if (data.event?.id) {
@@ -152,7 +119,7 @@ export function EventPopup() {
     const eventIdParam = params.get('eventId');
 
     if (dateStr) {
-      setDate(parseLocalDate(dateStr));
+      setDate(parseLocalDateString(dateStr));
       setReady(true);
     }
 

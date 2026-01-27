@@ -1,42 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Trash2, ChevronDown, Repeat } from 'lucide-react';
-import type { CalendarEvent, RepeatType, RepeatConfig } from '../../types';
-import { getLocalDateString } from '../../utils/date';
+import type { CalendarEvent, RepeatConfig, RepeatType } from '../../types';
+import {
+  getLocalDateString,
+  parseTime,
+  formatTime,
+  PERIODS,
+  HOURS,
+  MINUTES,
+  REPEAT_OPTIONS,
+} from '../../utils/date';
 import './Event.css';
-
-// 시간 옵션
-const PERIODS = ['AM', 'PM'] as const;
-const HOURS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-const MINUTES = [0, 10, 20, 30, 40, 50];
-
-// 반복 옵션
-const REPEAT_OPTIONS: { value: RepeatType; label: string }[] = [
-  { value: 'none', label: 'No repeat' },
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly', label: 'Yearly' },
-];
-
-// HH:mm -> {period, hour, minute} 파싱
-const parseTime = (t: string) => {
-  if (!t) return { period: 'AM' as const, hour: 12, minute: 0 };
-  const [h, m] = t.split(':').map(Number);
-  const period = h < 12 ? 'AM' : 'PM';
-  const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return { period, hour, minute: m };
-};
-
-// {period, hour, minute} -> HH:mm 변환
-const formatTime = (period: string, hour: number, minute: number) => {
-  let h = hour;
-  if (period === 'AM') {
-    h = hour === 12 ? 0 : hour;
-  } else {
-    h = hour === 12 ? 12 : hour + 12;
-  }
-  return `${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-};
 
 
 interface EventModalProps {

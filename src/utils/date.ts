@@ -1,4 +1,46 @@
-import type { CalendarEvent } from '../types';
+import type { CalendarEvent, RepeatType } from '../types';
+
+// ==================== 시간 관련 상수 ====================
+
+export const PERIODS = ['AM', 'PM'] as const;
+export const HOURS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+export const MINUTES = [0, 10, 20, 30, 40, 50];
+
+export const REPEAT_OPTIONS: { value: RepeatType; label: string }[] = [
+  { value: 'none', label: 'No repeat' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'yearly', label: 'Yearly' },
+];
+
+// ==================== 시간 파싱/포맷 ====================
+
+/**
+ * HH:mm -> {period, hour, minute} 파싱
+ */
+export const parseTime = (t: string): { period: 'AM' | 'PM'; hour: number; minute: number } => {
+  if (!t) return { period: 'AM', hour: 12, minute: 0 };
+  const [h, m] = t.split(':').map(Number);
+  const period = h < 12 ? 'AM' : 'PM';
+  const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return { period, hour, minute: m };
+};
+
+/**
+ * {period, hour, minute} -> HH:mm 변환
+ */
+export const formatTime = (period: string, hour: number, minute: number): string => {
+  let h = hour;
+  if (period === 'AM') {
+    h = hour === 12 ? 0 : hour;
+  } else {
+    h = hour === 12 ? 12 : hour + 12;
+  }
+  return `${String(h).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+};
+
+// ==================== 날짜 관련 함수 ====================
 
 /**
  * 로컬 날짜를 yyyy-MM-dd 형식으로 변환 (타임존 문제 방지)
@@ -21,11 +63,11 @@ export const compareEventTime = (a: CalendarEvent, b: CalendarEvent): number => 
 };
 
 /**
- * yyyy-MM-dd 문자열을 Date 객체로 변환
+ * yyyy-MM-dd 문자열을 Date 객체로 변환 (정오 12시로 설정하여 타임존 문제 방지)
  */
 export const parseLocalDateString = (dateStr: string): Date => {
   const [year, month, day] = dateStr.split('-').map(Number);
-  return new Date(year, month - 1, day);
+  return new Date(year, month - 1, day, 12, 0, 0, 0);
 };
 
 /**

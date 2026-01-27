@@ -9,7 +9,6 @@ import {
   addWeeks,
   subWeeks,
   isSameMonth,
-  isSameDay,
   isToday,
   format,
 } from 'date-fns';
@@ -96,20 +95,6 @@ export function useCalendar() {
     setCurrentDate(prev => addWeeks(prev, 1));
   }, []);
 
-  const isCurrentWeek = useCallback(
-    (date: Date) => {
-      const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
-      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
-      return date >= weekStart && date <= weekEnd;
-    },
-    [currentDate]
-  );
-
-  const isSameDayAs = useCallback(
-    (date1: Date, date2: Date) => isSameDay(date1, date2),
-    []
-  );
-
   return {
     currentDate,
     calendarDays,
@@ -125,8 +110,6 @@ export function useCalendar() {
     currentMonth,
     currentYear,
     isCurrentMonth,
-    isCurrentWeek,
     isTodayDate,
-    isSameDayAs,
   };
 }
