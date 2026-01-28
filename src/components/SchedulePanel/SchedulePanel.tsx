@@ -141,9 +141,11 @@ export function SchedulePanel({
                   <p className={`schedule-item-title ${event.completed ? 'completed' : ''}`}>
                     {event.title}
                   </p>
-                  <span className={`schedule-item-dday ${getDDay(event.date) === 'D-Day' ? 'today' : getDDay(event.date).startsWith('D+') ? 'past' : ''}`}>
-                    {getDDay(event.date)}
-                  </span>
+                  {event.isDDay && (
+                    <span className={`schedule-item-dday ${getDDay(event.date) === 'D-Day' ? 'today' : getDDay(event.date).startsWith('D+') ? 'past' : ''}`}>
+                      {getDDay(event.date)}
+                    </span>
+                  )}
                 </div>
                 <div className="schedule-item-meta">
                   {event.time && (

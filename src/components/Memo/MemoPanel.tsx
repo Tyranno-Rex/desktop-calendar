@@ -19,8 +19,9 @@ export function MemoPanel({ onClose, position = 'right' }: MemoPanelProps) {
   // 메모 불러오기
   useEffect(() => {
     const loadMemo = async () => {
-      if (window.electronAPI?.getMemo) {
-        const savedMemo = await window.electronAPI.getMemo();
+      if (window.electronAPI?.getMemos) {
+        const memos = await window.electronAPI.getMemos();
+        const savedMemo = memos?.[0];
         if (savedMemo) {
           setMemo(savedMemo);
           setContent(savedMemo.content);

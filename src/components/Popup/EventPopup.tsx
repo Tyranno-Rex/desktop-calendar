@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Trash2, ChevronDown, ChevronRight, Repeat, Settings, Bell } from 'lucide-react';
+import { X, Trash2, ChevronDown, ChevronRight, Repeat, Settings, Bell, Calendar } from 'lucide-react';
 import type { CalendarEvent, RepeatConfig, RepeatType, ReminderConfig } from '../../types';
 import {
   getLocalDateString,
@@ -40,6 +40,9 @@ export function EventPopup() {
   const [reminderMinutes, setReminderMinutes] = useState<number>(0);
   const [showReminderDropdown, setShowReminderDropdown] = useState(false);
 
+  // D-Day 표시 상태
+  const [isDDay, setIsDDay] = useState(false);
+
   // 시간 선택 상태
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
   const [selectedHour, setSelectedHour] = useState(12);
@@ -61,6 +64,7 @@ export function EventPopup() {
     setSyncToGoogle(false);
     setShowMoreOptions(false);
     setReminderMinutes(0);
+    setIsDDay(false);
   }, []);
 
   // Google 연결 상태 및 테마 설정 확인
@@ -113,6 +117,10 @@ export function EventPopup() {
       if (data.event.reminder?.enabled) {
         setReminderMinutes(data.event.reminder.minutesBefore);
       }
+      // D-Day 설정 로드
+      if (data.event.isDDay) {
+        setIsDDay(true);
+      }
     }
 
     setReady(true);
@@ -158,6 +166,10 @@ export function EventPopup() {
       if (event.reminder?.enabled) {
         setReminderMinutes(event.reminder.minutesBefore);
       }
+      // D-Day 설정 로드
+      if (event.isDDay) {
+        setIsDDay(true);
+      }
     }
   };
 
@@ -186,6 +198,7 @@ export function EventPopup() {
       color: '#3b82f6',
       repeat,
       reminder,
+      isDDay: isDDay || undefined,
     };
 
     await window.electronAPI?.popupSaveEvent(event, syncToGoogle);
@@ -472,6 +485,22 @@ export function EventPopup() {
         {/* 추가 옵션 */}
         {showMoreOptions && (
           <div className="more-options-content">
+            {/* D-Day 표시 옵션 */}
+            <div className="popup-field popup-field-toggle">
+              <label className="toggle-label">
+                <span className="toggle-text">
+                  <Calendar size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                  Show D-Day
+                </span>
+                <div
+                  className={`toggle-switch ${isDDay ? 'active' : ''}`}
+                  onClick={() => setIsDDay(!isDDay)}
+                >
+                  <div className="toggle-knob" />
+                </div>
+              </label>
+            </div>
+
             {/* Google Calendar 동기화 토글 - 새 일정 추가 시에만 표시 */}
             {!isEdit && googleConnected && (
               <div className="popup-field popup-field-toggle">

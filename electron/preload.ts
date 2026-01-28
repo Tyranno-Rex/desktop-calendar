@@ -24,6 +24,7 @@ interface CalendarEvent {
     enabled: boolean;
     minutesBefore: number;
   };
+  isDDay?: boolean;
 }
 
 interface Settings {

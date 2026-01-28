@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Trash2, ChevronDown, Repeat, Bell } from 'lucide-react';
+import { X, Trash2, ChevronDown, Repeat, Bell, Calendar } from 'lucide-react';
 import type { CalendarEvent, RepeatConfig, RepeatType, ReminderConfig } from '../../types';
 import {
   getLocalDateString,
@@ -52,6 +52,9 @@ export function EventModal({
   );
   const [showReminderDropdown, setShowReminderDropdown] = useState(false);
   const reminderPickerRef = useRef<HTMLDivElement>(null);
+
+  // D-Day 표시 상태
+  const [isDDay, setIsDDay] = useState(event?.isDDay || false);
 
   // 시간 선택 상태
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
@@ -143,6 +146,7 @@ export function EventModal({
         description: description.trim() || undefined,
         repeat,
         reminder,
+        isDDay: isDDay || undefined,
       });
     } else {
       onSave({
@@ -153,6 +157,7 @@ export function EventModal({
         color: '#3b82f6',
         repeat,
         reminder,
+        isDDay: isDDay || undefined,
       }, syncToGoogle);
     }
     onClose();
@@ -347,6 +352,22 @@ export function EventModal({
               className="popup-textarea"
               rows={4}
             />
+          </div>
+
+          {/* D-Day 표시 옵션 */}
+          <div className="popup-field popup-field-toggle">
+            <label className="toggle-label">
+              <span className="toggle-text">
+                <Calendar size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                Show D-Day
+              </span>
+              <div
+                className={`toggle-switch ${isDDay ? 'active' : ''}`}
+                onClick={() => setIsDDay(!isDDay)}
+              >
+                <div className="toggle-knob" />
+              </div>
+            </label>
           </div>
 
           {/* Google Calendar 동기화 토글 - 새 일정 추가 시에만 표시 */}
