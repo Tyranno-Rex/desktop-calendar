@@ -181,6 +181,22 @@ export function AdvancedSettings({
 
           <div className="setting-divider" />
 
+          {/* 자동 백업 */}
+          <div className="setting-item setting-item-row">
+            <label>
+              Auto Backup
+              <span className="setting-hint">Backup on app start/quit</span>
+            </label>
+            <div
+              className={`toggle-btn ${settings.autoBackup !== false ? 'active' : ''}`}
+              onClick={() => onUpdateSettings({ autoBackup: !settings.autoBackup })}
+            >
+              <span className="toggle-slider"></span>
+            </div>
+          </div>
+
+          <div className="setting-divider" />
+
           {/* 요일 표시 설정 */}
           <div className="setting-item">
             <label>

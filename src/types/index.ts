@@ -44,6 +44,15 @@ export interface Memo {
   updatedAt: string;
 }
 
+// 데이터 내보내기/가져오기
+export interface ExportData {
+  version: string;
+  exportedAt: string;
+  events: CalendarEvent[];
+  memos: Memo[];
+  settings: Settings;
+}
+
 export interface Settings {
   opacity: number;
   alwaysOnTop: boolean;
@@ -60,6 +69,8 @@ export interface Settings {
   schedulePanelPosition: 'left' | 'right';
   // 패널 열림 상태에서 일정을 점으로 표시 (기본: false = 일정 상세 표시)
   showEventDots: boolean;
+  // 자동 백업 활성화 (앱 시작/종료 시 자동으로 백업)
+  autoBackup: boolean;
 }
 
 export interface PopupData {
@@ -136,6 +147,9 @@ export interface ElectronAPI {
   openMemo: (id?: string) => void; // id 없으면 새 메모
   closeMemo: () => void;
   setMemoPinned: (pinned: boolean) => void; // 메모 핀 고정
+  // 데이터 내보내기/가져오기
+  exportData: () => Promise<{ success: boolean; path?: string; error?: string }>;
+  importData: () => Promise<{ success: boolean; error?: string }>;
 }
 
 declare global {

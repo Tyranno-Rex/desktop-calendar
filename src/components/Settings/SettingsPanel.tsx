@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Download, Upload } from 'lucide-react';
 import type { Settings } from '../../types';
 import { AdvancedSettings } from './AdvancedSettings';
 import './Settings.css';
@@ -22,6 +22,8 @@ export function SettingsPanel({
   const [googleConnected, setGoogleConnected] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const dragHandleRef = useRef<HTMLDivElement>(null);
   const googleAuthInProgressRef = useRef(false);
@@ -70,6 +72,39 @@ export function SettingsPanel({
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
+    }
+  };
+
+  // 데이터 내보내기
+  const handleExport = async () => {
+    if (!window.electronAPI?.exportData) return;
+    setExportLoading(true);
+    try {
+      const result = await window.electronAPI.exportData();
+      if (result.success) {
+        console.log('Exported to:', result.path);
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  // 데이터 가져오기
+  const handleImport = async () => {
+    if (!window.electronAPI?.importData) return;
+    setImportLoading(true);
+    try {
+      const result = await window.electronAPI.importData();
+      if (result.success) {
+        // 페이지 새로고침으로 모든 데이터 반영
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+    } finally {
+      setImportLoading(false);
     }
   };
 
@@ -246,6 +281,36 @@ export function SettingsPanel({
             >
               {googleLoading ? '...' : googleConnected ? 'Disconnect' : 'Connect'}
             </button>
+          </div>
+
+          <div className="setting-divider" />
+
+          {/* 데이터 내보내기/가져오기 */}
+          <div className="setting-item">
+            <label>
+              Backup & Restore
+              <span className="setting-hint">Export or import all data</span>
+            </label>
+            <div className="data-buttons">
+              <button
+                className="data-btn"
+                onClick={handleExport}
+                disabled={exportLoading}
+                title="Export data"
+              >
+                <Download size={14} />
+                {exportLoading ? '...' : 'Export'}
+              </button>
+              <button
+                className="data-btn"
+                onClick={handleImport}
+                disabled={importLoading}
+                title="Import data"
+              >
+                <Upload size={14} />
+                {importLoading ? '...' : 'Import'}
+              </button>
+            </div>
           </div>
 
           {/* 고급 설정 */}

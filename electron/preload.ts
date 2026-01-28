@@ -40,6 +40,7 @@ interface Settings {
   hiddenDays: number[];
   schedulePanelPosition: 'left' | 'right';
   showEventDots: boolean;
+  autoBackup: boolean;
 }
 
 interface Memo {
@@ -116,4 +117,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openMemo: (id?: string): void => ipcRenderer.send('open-memo', id),
   closeMemo: (): void => ipcRenderer.send('close-memo'),
   setMemoPinned: (pinned: boolean): void => ipcRenderer.send('set-memo-pinned', pinned),
+
+  // 데이터 내보내기/가져오기
+  exportData: (): Promise<{ success: boolean; path?: string; error?: string }> =>
+    ipcRenderer.invoke('export-data'),
+  importData: (): Promise<{ success: boolean; error?: string }> =>
+    ipcRenderer.invoke('import-data'),
 });

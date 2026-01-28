@@ -14,6 +14,7 @@ const defaultSettings: Settings = {
   hiddenDays: [],
   schedulePanelPosition: 'right',
   showEventDots: false,
+  autoBackup: true,
 };
 
 export function useSettings() {

@@ -98,6 +98,7 @@ interface Settings {
   hiddenDays: number[];
   schedulePanelPosition: 'left' | 'right';
   showEventDots: boolean;
+  autoBackup: boolean;
 }
 
 interface ReminderConfig {
@@ -674,6 +675,7 @@ function registerIpcHandlers() {
       hiddenDays: [],
       schedulePanelPosition: 'right',
       showEventDots: false,
+      autoBackup: true,
     };
   });
 
@@ -731,6 +733,89 @@ function registerIpcHandlers() {
     const filtered = memos.filter(m => m.id !== id);
     store.set('memos', filtered);
     return true;
+  });
+
+  // 데이터 내보내기
+  ipcMain.handle('export-data', async () => {
+    try {
+      const { dialog } = await import('electron');
+      const result = await dialog.showSaveDialog(mainWindow!, {
+        title: 'Export Calendar Data',
+        defaultPath: `desktop-calendar-backup-${new Date().toISOString().split('T')[0]}.json`,
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+      });
+
+      if (result.canceled || !result.filePath) {
+        return { success: false, error: 'Cancelled' };
+      }
+
+      const exportData = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        events: store.get('events') || [],
+        memos: store.get('memos') || [],
+        settings: store.get('settings') || {},
+      };
+
+      const fs = await import('fs');
+      fs.writeFileSync(result.filePath, JSON.stringify(exportData, null, 2), 'utf-8');
+
+      return { success: true, path: result.filePath };
+    } catch (error) {
+      console.error('Export error:', error);
+      return { success: false, error: String(error) };
+    }
+  });
+
+  // 데이터 가져오기
+  ipcMain.handle('import-data', async () => {
+    try {
+      const { dialog } = await import('electron');
+      const result = await dialog.showOpenDialog(mainWindow!, {
+        title: 'Import Calendar Data',
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+        properties: ['openFile'],
+      });
+
+      if (result.canceled || result.filePaths.length === 0) {
+        return { success: false, error: 'Cancelled' };
+      }
+
+      const fs = await import('fs');
+      const fileContent = fs.readFileSync(result.filePaths[0], 'utf-8');
+      const importData = JSON.parse(fileContent);
+
+      // 버전 체크
+      if (!importData.version) {
+        return { success: false, error: 'Invalid backup file format' };
+      }
+
+      // 데이터 복원
+      if (importData.events) {
+        store.set('events', importData.events);
+      }
+      if (importData.memos) {
+        store.set('memos', importData.memos);
+      }
+      if (importData.settings) {
+        store.set('settings', importData.settings);
+        // 설정 적용
+        if (mainWindow) {
+          mainWindow.setOpacity(importData.settings.opacity || 0.95);
+          mainWindow.webContents.send('settings-updated', importData.settings);
+        }
+      }
+
+      // 이벤트 업데이트 알림
+      if (mainWindow) {
+        mainWindow.webContents.send('events-updated', importData.events || []);
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Import error:', error);
+      return { success: false, error: String(error) };
+    }
   });
 
   // 메모 팝업 창
@@ -1325,6 +1410,80 @@ function stopNotificationScheduler() {
 }
 // ==================== End Notification Scheduler ====================
 
+// ==================== Auto Backup ====================
+const MAX_AUTO_BACKUPS = 5; // 최대 보관할 자동 백업 파일 수
+
+function getAutoBackupDir(): string {
+  const userDataPath = app.getPath('userData');
+  return path.join(userDataPath, 'auto-backups');
+}
+
+// 자동 백업 실행
+function performAutoBackup(): void {
+  if (!store) return;
+
+  const settings = store.get('settings');
+  if (!settings?.autoBackup) return;
+
+  try {
+    const backupDir = getAutoBackupDir();
+
+    // 백업 디렉토리 생성
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+
+    // 백업 데이터 생성
+    const exportData = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      events: store.get('events') || [],
+      memos: store.get('memos') || [],
+      settings: store.get('settings') || {},
+    };
+
+    // 백업 파일명 (날짜-시간 기반)
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const backupFileName = `auto-backup-${timestamp}.json`;
+    const backupFilePath = path.join(backupDir, backupFileName);
+
+    // 백업 파일 저장
+    fs.writeFileSync(backupFilePath, JSON.stringify(exportData, null, 2), 'utf-8');
+    console.log(`Auto backup created: ${backupFilePath}`);
+
+    // 오래된 백업 파일 정리 (최대 개수 초과 시)
+    cleanOldBackups(backupDir);
+  } catch (error) {
+    console.error('Auto backup failed:', error);
+  }
+}
+
+// 오래된 백업 파일 삭제
+function cleanOldBackups(backupDir: string): void {
+  try {
+    const files = fs.readdirSync(backupDir)
+      .filter(f => f.startsWith('auto-backup-') && f.endsWith('.json'))
+      .map(f => ({
+        name: f,
+        path: path.join(backupDir, f),
+        time: fs.statSync(path.join(backupDir, f)).mtime.getTime(),
+      }))
+      .sort((a, b) => b.time - a.time); // 최신순 정렬
+
+    // 최대 개수 초과하는 파일 삭제
+    if (files.length > MAX_AUTO_BACKUPS) {
+      const toDelete = files.slice(MAX_AUTO_BACKUPS);
+      for (const file of toDelete) {
+        fs.unlinkSync(file.path);
+        console.log(`Old backup deleted: ${file.name}`);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to clean old backups:', error);
+  }
+}
+// ==================== End Auto Backup ====================
+
 // ==================== Google Calendar IPC Handlers ====================
 // Note: 이 핸들러들은 app.whenReady() 이후에 등록됨 (동적 import 때문)
 function registerGoogleIpcHandlers() {
@@ -1426,6 +1585,9 @@ app.whenReady().then(async () => {
   initWindowsAPI();
   store = new SimpleStore();
 
+  // 앱 시작 시 자동 백업
+  performAutoBackup();
+
   // IPC 핸들러 등록 (app.whenReady() 이후에 등록해야 함)
   registerIpcHandlers();
   registerMoveHandlers();
@@ -1474,6 +1636,11 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+// 앱 종료 전 자동 백업
+app.on('before-quit', () => {
+  performAutoBackup();
 });
 
 app.on('activate', () => {
