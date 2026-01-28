@@ -58,6 +58,8 @@ export interface Settings {
   hiddenDays: number[];
   // 스케줄 패널 위치 ('left' | 'right')
   schedulePanelPosition: 'left' | 'right';
+  // 패널 열림 상태에서 일정을 점으로 표시 (기본: false = 일정 상세 표시)
+  showEventDots: boolean;
 }
 
 export interface PopupData {

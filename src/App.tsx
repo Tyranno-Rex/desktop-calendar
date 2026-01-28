@@ -266,7 +266,7 @@ function App() {
             onOpenDate={handleOpenDate}
             onEventClick={handleEventClick}
             selectedDate={selectedDate}
-            showEventDetails={!showSchedulePanel}
+            showEventDetails={!showSchedulePanel || !settings.showEventDots}
             showHolidays={settings.showHolidays}
             showAdjacentMonths={settings.showAdjacentMonths}
             showGridLines={settings.showGridLines}

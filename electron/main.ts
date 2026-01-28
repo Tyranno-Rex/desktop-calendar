@@ -97,6 +97,7 @@ interface Settings {
   showGridLines: boolean;
   hiddenDays: number[];
   schedulePanelPosition: 'left' | 'right';
+  showEventDots: boolean;
 }
 
 interface ReminderConfig {
@@ -671,6 +672,8 @@ function registerIpcHandlers() {
       showHolidays: true,
       showAdjacentMonths: true,
       hiddenDays: [],
+      schedulePanelPosition: 'right',
+      showEventDots: false,
     };
   });
 

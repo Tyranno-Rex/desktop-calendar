@@ -273,6 +273,11 @@
   flex-shrink: 0;
 }
 
+.day-dot.large {
+  width: 8px;
+  height: 8px;
+}
+
 /* 이벤트 상세 표시 (패널 닫힘 상태) - Reference style */
 .day-events-detail {
   display: flex;

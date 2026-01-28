@@ -165,6 +165,20 @@ export function AdvancedSettings({
             </div>
           </div>
 
+          {/* 패널 열림 시 일정 점으로 표시 */}
+          <div className="setting-item setting-item-row">
+            <label>
+              Compact Events
+              <span className="setting-hint">Show dots instead of titles</span>
+            </label>
+            <div
+              className={`toggle-btn ${settings.showEventDots ? 'active' : ''}`}
+              onClick={() => onUpdateSettings({ showEventDots: !settings.showEventDots })}
+            >
+              <span className="toggle-slider"></span>
+            </div>
+          </div>
+
           <div className="setting-divider" />
 
           {/* 요일 표시 설정 */}

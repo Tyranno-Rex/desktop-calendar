@@ -13,6 +13,7 @@ const defaultSettings: Settings = {
   showGridLines: true,
   hiddenDays: [],
   schedulePanelPosition: 'right',
+  showEventDots: false,
 };
 
 export function useSettings() {

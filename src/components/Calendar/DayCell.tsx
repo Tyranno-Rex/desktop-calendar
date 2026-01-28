@@ -68,15 +68,26 @@ export const DayCell = memo(function DayCell({
           {dayNumber}
         </span>
 
-        {/* 패널이 열려있을 때: 점으로 표시 */}
+        {/* 패널이 열려있을 때: 점으로 표시 (큰 원=5개, 작은 원=1개) */}
         {!showEventDetails && sortedEvents.length > 0 && (
           <div className="day-dots">
-            {Array.from({ length: Math.min(sortedEvents.length, 3) }).map((_, i) => (
-              <div
-                key={i}
-                className="day-dot"
-              />
-            ))}
+            {(() => {
+              const count = sortedEvents.length;
+              const largeDots = Math.floor(count / 5);
+              const smallDots = count % 5;
+              const dots: React.ReactNode[] = [];
+
+              // 큰 원 (각각 5개 일정)
+              for (let i = 0; i < largeDots; i++) {
+                dots.push(<div key={`large-${i}`} className="day-dot large" />);
+              }
+              // 작은 원 (각각 1개 일정)
+              for (let i = 0; i < smallDots; i++) {
+                dots.push(<div key={`small-${i}`} className="day-dot" />);
+              }
+
+              return dots;
+            })()}
           </div>
         )}
 

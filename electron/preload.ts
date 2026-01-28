@@ -39,6 +39,7 @@ interface Settings {
   showGridLines: boolean;
   hiddenDays: number[];
   schedulePanelPosition: 'left' | 'right';
+  showEventDots: boolean;
 }
 
 interface Memo {
