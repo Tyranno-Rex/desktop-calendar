@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Trash2, ChevronDown, Repeat } from 'lucide-react';
-import type { CalendarEvent, RepeatConfig, RepeatType } from '../../types';
+import { X, Trash2, ChevronDown, Repeat, Bell } from 'lucide-react';
+import type { CalendarEvent, RepeatConfig, RepeatType, ReminderConfig } from '../../types';
 import {
   getLocalDateString,
   parseTime,
@@ -9,6 +9,7 @@ import {
   HOURS,
   MINUTES,
   REPEAT_OPTIONS,
+  REMINDER_OPTIONS,
 } from '../../utils/date';
 import './Event.css';
 
@@ -45,6 +46,13 @@ export function EventModal({
   const repeatEndDate = event?.repeat?.endDate || '';
   const [showRepeatDropdown, setShowRepeatDropdown] = useState(false);
 
+  // 알림 설정 상태
+  const [reminderMinutes, setReminderMinutes] = useState<number>(
+    event?.reminder?.enabled ? event.reminder.minutesBefore : 0
+  );
+  const [showReminderDropdown, setShowReminderDropdown] = useState(false);
+  const reminderPickerRef = useRef<HTMLDivElement>(null);
+
   // 시간 선택 상태
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
   const [selectedHour, setSelectedHour] = useState(12);
@@ -60,7 +68,7 @@ export function EventModal({
     ? event.repeatGroupId
     : event?.id;
 
-  // 시간/반복 선택기 외부 클릭 감지
+  // 시간/반복/알림 선택기 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (timePickerRef.current && !timePickerRef.current.contains(e.target as Node)) {
@@ -68,6 +76,9 @@ export function EventModal({
       }
       if (repeatPickerRef.current && !repeatPickerRef.current.contains(e.target as Node)) {
         setShowRepeatDropdown(false);
+      }
+      if (reminderPickerRef.current && !reminderPickerRef.current.contains(e.target as Node)) {
+        setShowReminderDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -119,12 +130,19 @@ export function EventModal({
       endDate: repeatEndDate || undefined,
     } : undefined;
 
+    // 알림 설정 생성
+    const reminder: ReminderConfig | undefined = reminderMinutes > 0 ? {
+      enabled: true,
+      minutesBefore: reminderMinutes,
+    } : undefined;
+
     if (isEditing && event && originalEventId) {
       onUpdate(originalEventId, {
         title: title.trim(),
         time: time || undefined,
         description: description.trim() || undefined,
         repeat,
+        reminder,
       });
     } else {
       onSave({
@@ -134,6 +152,7 @@ export function EventModal({
         description: description.trim() || undefined,
         color: '#3b82f6',
         repeat,
+        reminder,
       }, syncToGoogle);
     }
     onClose();
@@ -195,6 +214,34 @@ export function EventModal({
                         onClick={() => {
                           setRepeatType(option.value);
                           setShowRepeatDropdown(false);
+                        }}
+                      >
+                        {option.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="reminder-select-wrapper" ref={reminderPickerRef}>
+                <button
+                  type="button"
+                  className={`reminder-select-btn-compact ${reminderMinutes > 0 ? 'active' : ''}`}
+                  onClick={() => setShowReminderDropdown(!showReminderDropdown)}
+                  disabled={!time}
+                  title={!time ? 'Set time first to enable reminder' : ''}
+                >
+                  <Bell size={14} />
+                  <ChevronDown size={14} />
+                </button>
+                {showReminderDropdown && (
+                  <div className="reminder-dropdown">
+                    {REMINDER_OPTIONS.map((option) => (
+                      <div
+                        key={option.value}
+                        className={`reminder-dropdown-item ${reminderMinutes === option.value ? 'selected' : ''}`}
+                        onClick={() => {
+                          setReminderMinutes(option.value);
+                          setShowReminderDropdown(false);
                         }}
                       >
                         {option.label}

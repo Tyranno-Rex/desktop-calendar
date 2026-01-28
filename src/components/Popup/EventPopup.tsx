@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Trash2, ChevronDown, ChevronRight, Repeat, Settings } from 'lucide-react';
-import type { CalendarEvent, RepeatConfig, RepeatType } from '../../types';
+import { X, Trash2, ChevronDown, ChevronRight, Repeat, Settings, Bell } from 'lucide-react';
+import type { CalendarEvent, RepeatConfig, RepeatType, ReminderConfig } from '../../types';
 import {
   getLocalDateString,
   parseLocalDateString,
@@ -10,6 +10,7 @@ import {
   HOURS,
   MINUTES,
   REPEAT_OPTIONS,
+  REMINDER_OPTIONS,
 } from '../../utils/date';
 import './Popup.css';
 
@@ -26,6 +27,7 @@ export function EventPopup() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const timePickerRef = useRef<HTMLDivElement>(null);
   const repeatPickerRef = useRef<HTMLDivElement>(null);
+  const reminderPickerRef = useRef<HTMLDivElement>(null);
 
   // 반복 설정 상태
   const [repeatType, setRepeatType] = useState<RepeatType>('none');
@@ -33,6 +35,10 @@ export function EventPopup() {
   const [repeatEndDate, setRepeatEndDate] = useState('');
   const [showRepeatDropdown, setShowRepeatDropdown] = useState(false);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
+
+  // 알림 설정 상태
+  const [reminderMinutes, setReminderMinutes] = useState<number>(0);
+  const [showReminderDropdown, setShowReminderDropdown] = useState(false);
 
   // 시간 선택 상태
   const [selectedPeriod, setSelectedPeriod] = useState<'AM' | 'PM'>('AM');
@@ -54,6 +60,7 @@ export function EventPopup() {
     setRepeatEndDate('');
     setSyncToGoogle(false);
     setShowMoreOptions(false);
+    setReminderMinutes(0);
   }, []);
 
   // Google 연결 상태 및 테마 설정 확인
@@ -102,6 +109,10 @@ export function EventPopup() {
         setRepeatInterval(data.event.repeat.interval || 1);
         setRepeatEndDate(data.event.repeat.endDate || '');
       }
+      // 알림 설정 로드
+      if (data.event.reminder?.enabled) {
+        setReminderMinutes(data.event.reminder.minutesBefore);
+      }
     }
 
     setReady(true);
@@ -143,6 +154,10 @@ export function EventPopup() {
         setRepeatInterval(event.repeat.interval || 1);
         setRepeatEndDate(event.repeat.endDate || '');
       }
+      // 알림 설정 로드
+      if (event.reminder?.enabled) {
+        setReminderMinutes(event.reminder.minutesBefore);
+      }
     }
   };
 
@@ -156,6 +171,12 @@ export function EventPopup() {
       endDate: repeatEndDate || undefined,
     } : undefined;
 
+    // 알림 설정 생성
+    const reminder: ReminderConfig | undefined = reminderMinutes > 0 ? {
+      enabled: true,
+      minutesBefore: reminderMinutes,
+    } : undefined;
+
     const event: CalendarEvent = {
       id: eventId || crypto.randomUUID(),
       title: title.trim(),
@@ -164,6 +185,7 @@ export function EventPopup() {
       description: description.trim() || undefined,
       color: '#3b82f6',
       repeat,
+      reminder,
     };
 
     await window.electronAPI?.popupSaveEvent(event, syncToGoogle);
@@ -193,7 +215,7 @@ export function EventPopup() {
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  // 시간/반복 선택기 외부 클릭 감지
+  // 시간/반복/알림 선택기 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (timePickerRef.current && !timePickerRef.current.contains(e.target as Node)) {
@@ -201,6 +223,9 @@ export function EventPopup() {
       }
       if (repeatPickerRef.current && !repeatPickerRef.current.contains(e.target as Node)) {
         setShowRepeatDropdown(false);
+      }
+      if (reminderPickerRef.current && !reminderPickerRef.current.contains(e.target as Node)) {
+        setShowReminderDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -298,6 +323,34 @@ export function EventPopup() {
                       onClick={() => {
                         setRepeatType(option.value);
                         setShowRepeatDropdown(false);
+                      }}
+                    >
+                      {option.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="reminder-select-wrapper" ref={reminderPickerRef}>
+              <button
+                type="button"
+                className={`reminder-select-btn-compact ${reminderMinutes > 0 ? 'active' : ''}`}
+                onClick={() => setShowReminderDropdown(!showReminderDropdown)}
+                disabled={!time}
+                title={!time ? 'Set time first to enable reminder' : ''}
+              >
+                <Bell size={14} />
+                <ChevronDown size={14} />
+              </button>
+              {showReminderDropdown && (
+                <div className="reminder-dropdown">
+                  {REMINDER_OPTIONS.map((option) => (
+                    <div
+                      key={option.value}
+                      className={`reminder-dropdown-item ${reminderMinutes === option.value ? 'selected' : ''}`}
+                      onClick={() => {
+                        setReminderMinutes(option.value);
+                        setShowReminderDropdown(false);
                       }}
                     >
                       {option.label}

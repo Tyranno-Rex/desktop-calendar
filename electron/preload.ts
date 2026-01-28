@@ -20,6 +20,10 @@ interface CalendarEvent {
   };
   repeatGroupId?: string;
   isRepeatInstance?: boolean;
+  reminder?: {
+    enabled: boolean;
+    minutesBefore: number;
+  };
 }
 
 interface Settings {

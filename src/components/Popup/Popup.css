@@ -533,6 +533,74 @@
   font-weight: 500;
 }
 
+/* 알림 설정 스타일 */
+.reminder-select-wrapper {
+  position: relative;
+}
+
+.reminder-select-btn-compact {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.reminder-select-btn-compact:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.reminder-select-btn-compact:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.reminder-select-btn-compact.active {
+  background: var(--accent-light);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.reminder-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  min-width: 160px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.reminder-dropdown-item {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.reminder-dropdown-item:hover {
+  background: var(--bg-cell-hover);
+}
+
+.reminder-dropdown-item.selected {
+  background: var(--accent-color);
+  color: white;
+  font-weight: 500;
+}
+
 /* Google Calendar 동기화 토글 */
 .popup-field-toggle {
   padding-top: 8px;

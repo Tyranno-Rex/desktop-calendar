@@ -145,6 +145,74 @@
   color: var(--text-secondary);
 }
 
+/* 알림 선택 버튼 */
+.event-modal-popup .reminder-select-wrapper {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.event-modal-popup .reminder-select-btn-compact {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 14px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-sizing: border-box;
+}
+
+.event-modal-popup .reminder-select-btn-compact:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  background: var(--bg-cell-hover);
+}
+
+.event-modal-popup .reminder-select-btn-compact:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.event-modal-popup .reminder-select-btn-compact.active {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.event-modal-popup .reminder-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 160px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.event-modal-popup .reminder-dropdown-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-color);
+  transition: background 0.15s;
+}
+
+.event-modal-popup .reminder-dropdown-item:hover {
+  background: var(--bg-cell-hover);
+}
+
+.event-modal-popup .reminder-dropdown-item.selected {
+  background: var(--accent-light);
+  color: var(--accent-color);
+}
+
 .event-modal-popup .popup-textarea {
   width: 100%;
   padding: 14px 18px;

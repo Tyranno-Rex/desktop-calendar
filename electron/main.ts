@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, screen, nativeImage, safeStorage } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, screen, nativeImage, safeStorage, Notification } from 'electron';
 import type { NativeImage } from 'electron';
 import path from 'path';
 import fs from 'fs';
@@ -99,6 +99,11 @@ interface Settings {
   schedulePanelPosition: 'left' | 'right';
 }
 
+interface ReminderConfig {
+  enabled: boolean;
+  minutesBefore: number;
+}
+
 interface CalendarEvent {
   id: string;
   title: string;
@@ -116,6 +121,7 @@ interface CalendarEvent {
   };
   repeatGroupId?: string;
   isRepeatInstance?: boolean;
+  reminder?: ReminderConfig;
 }
 
 interface Memo {
@@ -1163,6 +1169,159 @@ function registerResizeHandlers() {
   });
 }
 
+// ==================== Notification Scheduler ====================
+// 이미 표시한 알림 추적 (중복 방지)
+const shownNotifications = new Set<string>();
+let notificationCheckInterval: NodeJS.Timeout | null = null;
+
+// 반복 일정이 특정 날짜에 해당하는지 확인
+function isDateInRepeatSchedule(targetDateStr: string, event: CalendarEvent): boolean {
+  if (!event.repeat || event.repeat.type === 'none') {
+    return event.date === targetDateStr;
+  }
+
+  const parseLocalDateString = (dateStr: string): Date => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day, 12, 0, 0, 0);
+  };
+
+  const targetDate = parseLocalDateString(targetDateStr);
+  const startDate = parseLocalDateString(event.date);
+  const { type, interval, endDate } = event.repeat;
+
+  // 시작일 이전이면 false
+  if (targetDate < startDate) return false;
+
+  // 종료일 이후면 false
+  if (endDate) {
+    const end = parseLocalDateString(endDate);
+    if (targetDate > end) return false;
+  }
+
+  // 시작일과 같으면 true
+  if (targetDateStr === event.date) return true;
+
+  // 반복 패턴에 맞는지 확인
+  const intervalNum = interval || 1;
+  switch (type) {
+    case 'daily': {
+      const diffDays = Math.floor((targetDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays % intervalNum === 0;
+    }
+    case 'weekly': {
+      const diffDays = Math.floor((targetDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays % (intervalNum * 7) === 0;
+    }
+    case 'monthly': {
+      if (targetDate.getDate() !== startDate.getDate()) return false;
+      const monthsDiff = (targetDate.getFullYear() - startDate.getFullYear()) * 12 +
+                         (targetDate.getMonth() - startDate.getMonth());
+      return monthsDiff >= 0 && monthsDiff % intervalNum === 0;
+    }
+    case 'yearly': {
+      if (targetDate.getMonth() !== startDate.getMonth() ||
+          targetDate.getDate() !== startDate.getDate()) return false;
+      const yearsDiff = targetDate.getFullYear() - startDate.getFullYear();
+      return yearsDiff >= 0 && yearsDiff % intervalNum === 0;
+    }
+    default:
+      return false;
+  }
+}
+
+// 알림을 체크하고 필요 시 표시
+function checkAndShowNotifications() {
+  if (!store) return;
+
+  const events: CalendarEvent[] = store.get('events') || [];
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  for (const event of events) {
+    // 알림이 설정되어 있고, 시간이 지정된 이벤트만 처리
+    if (!event.reminder?.enabled || !event.time) continue;
+
+    // 오늘 날짜에 해당하는 일정인지 확인 (반복 일정 포함)
+    if (!isDateInRepeatSchedule(todayStr, event)) continue;
+
+    // 이벤트 시간 파싱
+    const [hours, minutes] = event.time.split(':').map(Number);
+    const eventTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0, 0);
+
+    // 알림 시간 계산 (이벤트 시간 - minutesBefore)
+    const notificationTime = new Date(eventTime.getTime() - event.reminder.minutesBefore * 60 * 1000);
+
+    // 고유 알림 ID (이벤트ID + 날짜 + 알림분)
+    const notificationId = `${event.id}_${todayStr}_${event.reminder.minutesBefore}`;
+
+    // 이미 표시한 알림인지 확인
+    if (shownNotifications.has(notificationId)) continue;
+
+    // 알림 시간이 현재 시간 기준 ±30초 이내인지 확인
+    const timeDiff = now.getTime() - notificationTime.getTime();
+    if (timeDiff >= 0 && timeDiff < 30000) {
+      // Windows 토스트 알림 표시
+      const notification = new Notification({
+        title: event.title,
+        body: event.reminder.minutesBefore === 0
+          ? 'Starts now!'
+          : event.reminder.minutesBefore >= 60
+            ? `Starts in ${Math.floor(event.reminder.minutesBefore / 60)} hour(s)`
+            : `Starts in ${event.reminder.minutesBefore} minutes`,
+        icon: path.join(__dirname, '../build/icon.png'),
+        silent: false,
+      });
+
+      notification.show();
+      shownNotifications.add(notificationId);
+
+      // 클릭 시 앱 창 포커스
+      notification.on('click', () => {
+        if (mainWindow) {
+          if (mainWindow.isMinimized()) mainWindow.restore();
+          mainWindow.focus();
+        }
+      });
+    }
+  }
+
+  // 오래된 알림 ID 정리 (24시간 후)
+  // 매일 자정에 이전 날짜의 알림 ID 삭제 로직 (간단히 처리)
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+  for (const id of shownNotifications) {
+    if (id.includes(yesterdayStr)) {
+      shownNotifications.delete(id);
+    }
+  }
+}
+
+// 알림 스케줄러 시작 (15초마다 체크)
+function startNotificationScheduler() {
+  if (notificationCheckInterval) {
+    clearInterval(notificationCheckInterval);
+  }
+
+  // 즉시 한 번 체크
+  checkAndShowNotifications();
+
+  // 15초마다 체크 (알림의 정확도와 성능 균형)
+  notificationCheckInterval = setInterval(() => {
+    checkAndShowNotifications();
+  }, 15000);
+}
+
+// 알림 스케줄러 정지
+function stopNotificationScheduler() {
+  if (notificationCheckInterval) {
+    clearInterval(notificationCheckInterval);
+    notificationCheckInterval = null;
+  }
+}
+// ==================== End Notification Scheduler ====================
+
 // ==================== Google Calendar IPC Handlers ====================
 // Note: 이 핸들러들은 app.whenReady() 이후에 등록됨 (동적 import 때문)
 function registerGoogleIpcHandlers() {
@@ -1302,9 +1461,13 @@ app.whenReady().then(async () => {
   setTimeout(() => {
     preCreatePopupWindow();
   }, 1000);
+
+  // 알림 스케줄러 시작
+  startNotificationScheduler();
 });
 
 app.on('window-all-closed', () => {
+  stopNotificationScheduler();
   if (process.platform !== 'darwin') {
     app.quit();
   }

@@ -14,6 +14,17 @@ export const REPEAT_OPTIONS: { value: RepeatType; label: string }[] = [
   { value: 'yearly', label: 'Yearly' },
 ];
 
+// 알림 옵션 (분 단위)
+export const REMINDER_OPTIONS: { value: number; label: string }[] = [
+  { value: 0, label: 'No reminder' },
+  { value: 5, label: '5 minutes before' },
+  { value: 10, label: '10 minutes before' },
+  { value: 15, label: '15 minutes before' },
+  { value: 30, label: '30 minutes before' },
+  { value: 60, label: '1 hour before' },
+  { value: 1440, label: '1 day before' },
+];
+
 // ==================== 시간 파싱/포맷 ====================
 
 /**

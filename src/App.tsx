@@ -125,13 +125,19 @@ function App() {
     });
   }, []);
 
-  // 단일 클릭: 날짜 선택 + 패널 열기
+  // 단일 클릭: 날짜 선택 + 패널 토글
   const handleSelectDate = useCallback((date: Date) => {
-    setSelectedDate(date);
-    if (!showSchedulePanel) {
+    const isSameDate = selectedDate && date.toDateString() === selectedDate.toDateString();
+
+    if (isSameDate && showSchedulePanel) {
+      // 같은 날짜 클릭 + 패널 열려있음 → 패널 닫기
+      setShowSchedulePanel(false);
+    } else {
+      // 다른 날짜 클릭 또는 패널 닫혀있음 → 날짜 선택 + 패널 열기
+      setSelectedDate(date);
       setShowSchedulePanel(true);
     }
-  }, [showSchedulePanel]);
+  }, [selectedDate, showSchedulePanel]);
 
   // 더블 클릭: 팝업/모달 열기
   const handleOpenDate = useCallback((date: Date, clickEvent: React.MouseEvent) => {
