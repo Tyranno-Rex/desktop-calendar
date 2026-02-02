@@ -99,6 +99,7 @@ interface Settings {
   schedulePanelPosition: 'left' | 'right';
   showEventDots: boolean;
   autoBackup: boolean;
+  showOverdueTasks: boolean;
 }
 
 interface ReminderConfig {
@@ -676,6 +677,7 @@ function registerIpcHandlers() {
       schedulePanelPosition: 'right',
       showEventDots: false,
       autoBackup: true,
+      showOverdueTasks: true,
     };
   });
 
@@ -1489,9 +1491,14 @@ function cleanOldBackups(backupDir: string): void {
 function registerGoogleIpcHandlers() {
   if (!googleAuth || !googleCalendar) return;
 
-  // Google 인증 상태 확인
-  ipcMain.handle('google-auth-status', () => {
-    return googleAuth!.isAuthenticated();
+  // Google 인증 상태 확인 (토큰 유효성 검증 포함)
+  ipcMain.handle('google-auth-status', async () => {
+    // 먼저 토큰 파일 존재 여부 확인
+    if (!googleAuth!.isAuthenticated()) {
+      return false;
+    }
+    // 토큰이 있으면 실제 유효성 검증
+    return await googleAuth!.validateToken();
   });
 
   // Google 로그인 (PKCE 방식)
@@ -1507,6 +1514,7 @@ function registerGoogleIpcHandlers() {
   // Google 로그아웃
   ipcMain.handle('google-auth-logout', () => {
     googleAuth!.deleteToken();
+    googleAuth!.clearValidationCache();
     return { success: true };
   });
 

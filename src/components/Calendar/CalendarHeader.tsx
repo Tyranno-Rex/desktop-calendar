@@ -7,6 +7,9 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
+// Desktop Mode에서 클릭 중복 방지를 위한 디바운스 시간 (ms)
+const CLICK_DEBOUNCE_MS = 100;
+
 export type ViewMode = 'month' | 'week';
 
 interface CalendarHeaderProps {
@@ -118,8 +121,32 @@ export const CalendarHeader = memo(function CalendarHeader({
     };
   }, [isDraggingMonth, isDraggingYear, currentMonth, currentYear, onMonthSelect, onYearSelect]);
 
-  const handlePrev = viewMode === 'week' ? onPrevWeek : onPrevMonth;
-  const handleNext = viewMode === 'week' ? onNextWeek : onNextMonth;
+  // Desktop Mode 클릭 중복 방지
+  const lastNavClickTime = useRef(0);
+
+  const handlePrev = useCallback(() => {
+    const now = Date.now();
+    if (now - lastNavClickTime.current < CLICK_DEBOUNCE_MS) return;
+    lastNavClickTime.current = now;
+
+    if (viewMode === 'week') {
+      onPrevWeek?.();
+    } else {
+      onPrevMonth();
+    }
+  }, [viewMode, onPrevWeek, onPrevMonth]);
+
+  const handleNext = useCallback(() => {
+    const now = Date.now();
+    if (now - lastNavClickTime.current < CLICK_DEBOUNCE_MS) return;
+    lastNavClickTime.current = now;
+
+    if (viewMode === 'week') {
+      onNextWeek?.();
+    } else {
+      onNextMonth();
+    }
+  }, [viewMode, onNextWeek, onNextMonth]);
 
   return (
     <div className="calendar-header">
@@ -188,7 +215,12 @@ export const CalendarHeader = memo(function CalendarHeader({
       <div className="header-right">
         <motion.button
           className="today-btn"
-          onClick={onToday}
+          onClick={() => {
+            const now = Date.now();
+            if (now - lastNavClickTime.current < CLICK_DEBOUNCE_MS) return;
+            lastNavClickTime.current = now;
+            onToday();
+          }}
           title="Go to today"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

@@ -186,10 +186,76 @@ export function deleteToken(): void {
   }
 }
 
-// 인증 상태 확인
+// 인증 상태 확인 (토큰 존재 여부만 체크, 만료는 getAccessToken에서 처리)
 export function isAuthenticated(): boolean {
   const token = loadToken();
   return token !== null;
+}
+
+// 토큰 검증 캐시 (5분간 유효)
+let lastValidationTime = 0;
+let lastValidationResult = false;
+const VALIDATION_CACHE_MS = 5 * 60 * 1000; // 5분
+
+// 토큰 유효성 검증 (서버 프록시 사용, 캐싱 적용)
+export async function validateToken(): Promise<boolean> {
+  // 캐시된 결과가 있고 5분 이내면 재사용
+  const now = Date.now();
+  if (lastValidationResult && (now - lastValidationTime) < VALIDATION_CACHE_MS) {
+    return true;
+  }
+
+  try {
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      // 토큰 없거나 갱신 실패 → 토큰 삭제
+      deleteToken();
+      lastValidationResult = false;
+      return false;
+    }
+
+    // 서버 프록시를 통해 토큰 유효성 확인
+    const response = await fetch(`${getAuthServerUrl()}/auth/google/validate`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.log('Token validation failed, status:', response.status);
+      // 토큰 무효 → 삭제
+      deleteToken();
+      lastValidationResult = false;
+      return false;
+    }
+
+    // 토큰 정보 확인
+    const result = await response.json() as { valid: boolean; expiresIn?: number };
+
+    if (!result.valid) {
+      deleteToken();
+      lastValidationResult = false;
+      return false;
+    }
+
+    console.log('Token valid, expires in:', result.expiresIn, 'seconds');
+
+    // 검증 결과 캐싱
+    lastValidationTime = now;
+    lastValidationResult = true;
+    return true;
+  } catch (error) {
+    console.error('Token validation error:', error);
+    deleteToken();
+    lastValidationResult = false;
+    return false;
+  }
+}
+
+// 캐시 초기화 (로그아웃 시 호출)
+export function clearValidationCache(): void {
+  lastValidationTime = 0;
+  lastValidationResult = false;
 }
 
 // Access Token 가져오기 (필요시 갱신)
@@ -206,6 +272,9 @@ export async function getAccessToken(): Promise<string | null> {
         return newToken.access_token;
       }
     }
+    // 갱신 실패 → 토큰 삭제 (재인증 필요)
+    console.log('Token refresh failed, deleting token');
+    deleteToken();
     return null;
   }
 

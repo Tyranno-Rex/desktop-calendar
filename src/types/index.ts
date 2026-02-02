@@ -71,6 +71,8 @@ export interface Settings {
   showEventDots: boolean;
   // 자동 백업 활성화 (앱 시작/종료 시 자동으로 백업)
   autoBackup: boolean;
+  // 미완료 과거 일정 표시 (사이드 패널 하단)
+  showOverdueTasks: boolean;
 }
 
 export interface PopupData {

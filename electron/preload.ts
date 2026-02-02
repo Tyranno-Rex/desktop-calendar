@@ -41,6 +41,7 @@ interface Settings {
   schedulePanelPosition: 'left' | 'right';
   showEventDots: boolean;
   autoBackup: boolean;
+  showOverdueTasks: boolean;
 }
 
 interface Memo {

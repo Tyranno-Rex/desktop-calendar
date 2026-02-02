@@ -195,6 +195,20 @@ export function AdvancedSettings({
             </div>
           </div>
 
+          {/* 미완료 과거 일정 표시 */}
+          <div className="setting-item setting-item-row">
+            <label>
+              Show Overdue
+              <span className="setting-hint">Show incomplete past tasks</span>
+            </label>
+            <div
+              className={`toggle-btn ${settings.showOverdueTasks !== false ? 'active' : ''}`}
+              onClick={() => onUpdateSettings({ showOverdueTasks: !settings.showOverdueTasks })}
+            >
+              <span className="toggle-slider"></span>
+            </div>
+          </div>
+
           <div className="setting-divider" />
 
           {/* 요일 표시 설정 */}

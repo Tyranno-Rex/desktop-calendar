@@ -24,7 +24,7 @@ function App() {
     window.electronAPI?.openMemo?.(id);
   }, []);
 
-  const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, refreshEvents, syncWithGoogle, googleConnected, loading: eventsLoading } = useEvents();
+  const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, refreshEvents, syncWithGoogle, googleConnected, setGoogleConnected, loading: eventsLoading } = useEvents();
   const { settings, updateSettings, loading: settingsLoading } = useSettings();
 
   // 팝업에서 이벤트가 변경되면 메인 창에서 새로고침
@@ -253,6 +253,7 @@ function App() {
                 onToggleComplete={handleToggleComplete}
                 onClose={() => setShowSchedulePanel(false)}
                 position="left"
+                showOverdueTasks={settings.showOverdueTasks}
               />
             )}
           </AnimatePresence>
@@ -287,6 +288,7 @@ function App() {
                 onToggleComplete={handleToggleComplete}
                 onClose={() => setShowSchedulePanel(false)}
                 position="right"
+                showOverdueTasks={settings.showOverdueTasks}
               />
             )}
           </AnimatePresence>
@@ -325,6 +327,8 @@ function App() {
           onUpdateSettings={updateSettings}
           onClose={() => setShowSettings(false)}
           onGoogleSync={syncWithGoogle}
+          googleConnected={googleConnected}
+          onGoogleConnectionChange={setGoogleConnected}
         />
       )}
     </div>

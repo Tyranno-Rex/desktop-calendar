@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { CalendarEvent } from '../types';
 import { getLocalDateString, isDateInRepeatSchedule, createRepeatInstance } from '../utils/date';
@@ -7,6 +7,8 @@ export function useEvents() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [googleConnected, setGoogleConnected] = useState(false);
+  const syncInProgressRef = useRef(false); // 동기화 중복 방지
+  const deletingEventsRef = useRef(new Set<string>()); // 삭제 중인 이벤트 추적
 
   useEffect(() => {
     loadEvents();
@@ -45,22 +47,42 @@ export function useEvents() {
       return;
     }
 
+    // 동기화 중복 방지
+    if (syncInProgressRef.current) {
+      console.log('Sync already in progress, skipping...');
+      return;
+    }
+    syncInProgressRef.current = true;
+
     try {
       const result = await window.electronAPI.googleCalendarGetEvents();
       if (result.success && result.events) {
         // 현재 로컬 이벤트 가져오기
         const localEvents = await window.electronAPI.getEvents();
 
-        // Google 이벤트와 로컬 이벤트 병합
-        const googleEvents: CalendarEvent[] = result.events.map((ge) => ({
-          id: ge.id,
-          title: ge.title,
-          date: ge.date,
-          time: ge.time,
-          description: ge.description,
-          googleEventId: ge.googleEventId,
-          isGoogleEvent: true,
-        }));
+        // 기존 Google 이벤트의 로컬 상태 (completed 등) 보존을 위한 맵
+        const existingGoogleEventsMap = new Map<string, CalendarEvent>();
+        localEvents.forEach((e: CalendarEvent) => {
+          if (e.googleEventId || e.isGoogleEvent) {
+            existingGoogleEventsMap.set(e.id, e);
+          }
+        });
+
+        // Google 이벤트와 로컬 이벤트 병합 (기존 로컬 상태 보존)
+        const googleEvents: CalendarEvent[] = result.events.map((ge) => {
+          const existingEvent = existingGoogleEventsMap.get(ge.id);
+          return {
+            id: ge.id,
+            title: ge.title,
+            date: ge.date,
+            time: ge.time,
+            description: ge.description,
+            googleEventId: ge.googleEventId,
+            isGoogleEvent: true,
+            // 기존 로컬 상태 보존 (completed 등)
+            completed: existingEvent?.completed,
+          };
+        });
 
         // 로컬 이벤트 중 Google 이벤트가 아닌 것만 유지
         const localOnlyEvents = localEvents.filter(
@@ -74,20 +96,15 @@ export function useEvents() {
       }
     } catch (error) {
       console.error('Failed to sync with Google Calendar:', error);
+    } finally {
+      syncInProgressRef.current = false;
     }
   }, []);
 
+  // 로컬 이벤트만 새로고침 (Google 동기화는 명시적 요청 시에만)
   const refreshEvents = useCallback(async () => {
     await loadEvents();
-
-    // Google 연결되어 있으면 동기화도 실행
-    if (window.electronAPI?.googleAuthStatus) {
-      const isConnected = await window.electronAPI.googleAuthStatus();
-      if (isConnected) {
-        await syncWithGoogle();
-      }
-    }
-  }, [loadEvents, syncWithGoogle]);
+  }, [loadEvents]);
 
   const saveEvents = useCallback(async (newEvents: CalendarEvent[]) => {
     try {
@@ -160,15 +177,22 @@ export function useEvents() {
 
     const eventToUpdate = events.find(e => e.id === id);
 
-    // Google 이벤트면 Google에도 업데이트
+    // Google 이벤트면 Google에도 업데이트 (단, completed는 로컬 전용)
+    // Google Calendar API는 completed 필드를 지원하지 않음 (Tasks API만 지원)
     if (eventToUpdate?.googleEventId && window.electronAPI?.googleCalendarUpdateEvent) {
-      try {
-        await window.electronAPI.googleCalendarUpdateEvent(
-          eventToUpdate.googleEventId,
-          updates
-        );
-      } catch (error) {
-        console.error('Failed to update Google event:', error);
+      // completed 필드를 제외한 업데이트만 Google에 전송
+      const { completed, ...googleUpdates } = updates;
+
+      // Google에 전송할 업데이트가 있을 때만 호출
+      if (Object.keys(googleUpdates).length > 0) {
+        try {
+          await window.electronAPI.googleCalendarUpdateEvent(
+            eventToUpdate.googleEventId,
+            googleUpdates
+          );
+        } catch (error) {
+          console.error('Failed to update Google event:', error);
+        }
       }
     }
 
@@ -184,20 +208,31 @@ export function useEvents() {
     // 현재는 원본 이벤트를 삭제하면 모든 반복이 삭제됨
     const actualId = id.includes('_') ? id.split('_')[0] : id;
 
-    const eventToDelete = events.find(e => e.id === actualId);
-
-    // Google 이벤트면 Google에서도 삭제
-    if (eventToDelete?.googleEventId && window.electronAPI?.googleCalendarDeleteEvent) {
-      try {
-        await window.electronAPI.googleCalendarDeleteEvent(eventToDelete.googleEventId);
-      } catch (error) {
-        console.error('Failed to delete Google event:', error);
-      }
+    // 중복 삭제 방지
+    if (deletingEventsRef.current.has(actualId)) {
+      console.log('Delete already in progress for:', actualId);
+      return;
     }
+    deletingEventsRef.current.add(actualId);
 
-    const newEvents = events.filter((event) => event.id !== actualId);
-    setEvents(newEvents);
-    await saveEvents(newEvents);
+    try {
+      const eventToDelete = events.find(e => e.id === actualId);
+
+      // Google 이벤트면 Google에서도 삭제
+      if (eventToDelete?.googleEventId && window.electronAPI?.googleCalendarDeleteEvent) {
+        try {
+          await window.electronAPI.googleCalendarDeleteEvent(eventToDelete.googleEventId);
+        } catch (error) {
+          console.error('Failed to delete Google event:', error);
+        }
+      }
+
+      const newEvents = events.filter((event) => event.id !== actualId);
+      setEvents(newEvents);
+      await saveEvents(newEvents);
+    } finally {
+      deletingEventsRef.current.delete(actualId);
+    }
   }, [events, saveEvents]);
 
   const getEventsForDate = useCallback((date: Date) => {
@@ -236,5 +271,6 @@ export function useEvents() {
     refreshEvents,
     syncWithGoogle,
     googleConnected,
+    setGoogleConnected,
   };
 }

@@ -15,6 +15,7 @@ const defaultSettings: Settings = {
   schedulePanelPosition: 'right',
   showEventDots: false,
   autoBackup: true,
+  showOverdueTasks: true,
 };
 
 export function useSettings() {

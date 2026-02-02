@@ -71,7 +71,7 @@ export const TitleBar = memo(function TitleBar({
       await onSync();
     } finally {
       setIsSyncing(false);
-      setSyncCooldown(10); // 10초 쿨다운
+      setSyncCooldown(30); // 30초 쿨다운
     }
   }, [syncCooldown, isSyncing, onSync]);
 

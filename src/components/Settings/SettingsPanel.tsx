@@ -9,6 +9,8 @@ interface SettingsPanelProps {
   onUpdateSettings: (updates: Partial<Settings>) => void;
   onClose: () => void;
   onGoogleSync?: () => void;
+  googleConnected?: boolean;
+  onGoogleConnectionChange?: (connected: boolean) => void;
 }
 
 export function SettingsPanel({
@@ -16,10 +18,12 @@ export function SettingsPanel({
   onUpdateSettings,
   onClose,
   onGoogleSync,
+  googleConnected: initialGoogleConnected = false,
+  onGoogleConnectionChange,
 }: SettingsPanelProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [googleConnected, setGoogleConnected] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(initialGoogleConnected);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
@@ -27,17 +31,6 @@ export function SettingsPanel({
   const dragStartRef = useRef({ x: 0, y: 0 });
   const dragHandleRef = useRef<HTMLDivElement>(null);
   const googleAuthInProgressRef = useRef(false);
-
-  // Google 연결 상태 확인
-  useEffect(() => {
-    const checkGoogleAuth = async () => {
-      if (window.electronAPI?.googleAuthStatus) {
-        const isConnected = await window.electronAPI.googleAuthStatus();
-        setGoogleConnected(isConnected);
-      }
-    };
-    checkGoogleAuth();
-  }, []);
 
   // Google 연결/해제
   const handleGoogleConnect = async () => {
@@ -52,11 +45,13 @@ export function SettingsPanel({
         // 연결 해제
         await window.electronAPI.googleAuthLogout();
         setGoogleConnected(false);
+        onGoogleConnectionChange?.(false);
       } else {
         // 연결
         const result = await window.electronAPI.googleAuthLogin();
         if (result.success) {
           setGoogleConnected(true);
+          onGoogleConnectionChange?.(true);
           // 연결 성공 후 동기화
           onGoogleSync?.();
         }

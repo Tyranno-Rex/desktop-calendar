@@ -1,6 +1,66 @@
-// Google Calendar REST API 직접 호출 (googleapis 라이브러리 없이)
+// Google Calendar REST API - 서버 프록시 사용
+// 직접 Google API 호출 대신 calendar-auth-server를 경유
 
-const CALENDAR_API_BASE = 'https://www.googleapis.com/calendar/v3';
+import fs from 'fs';
+import path from 'path';
+
+// 환경 변수 캐시
+let envCache: Record<string, string> | null = null;
+
+// .env 파일 로드 및 캐싱
+function getEnvVars(): Record<string, string> {
+  if (envCache) return envCache;
+
+  envCache = {};
+
+  const possiblePaths = [
+    path.join(process.cwd(), 'env', '.env'),
+    path.join(__dirname, '..', 'env', '.env'),
+    path.join(__dirname, '..', '..', 'env', '.env'),
+  ];
+
+  const resourcesPath = (process as NodeJS.Process & { resourcesPath?: string }).resourcesPath;
+  if (resourcesPath) {
+    possiblePaths.push(
+      path.join(resourcesPath, 'app.asar', 'env', '.env'),
+      path.join(resourcesPath, 'app', 'env', '.env')
+    );
+  }
+
+  for (const envPath of possiblePaths) {
+    if (fs.existsSync(envPath)) {
+      try {
+        const content = fs.readFileSync(envPath, 'utf-8');
+        for (const line of content.split('\n')) {
+          const trimmed = line.trim();
+          if (trimmed && !trimmed.startsWith('#')) {
+            const eqIndex = trimmed.indexOf('=');
+            if (eqIndex > 0) {
+              const key = trimmed.substring(0, eqIndex).trim();
+              const value = trimmed.substring(eqIndex + 1).trim();
+              envCache[key] = value;
+            }
+          }
+        }
+        break;
+      } catch {
+        // 파일 읽기 실패시 다음 경로 시도
+      }
+    }
+  }
+
+  return envCache;
+}
+
+// 환경 변수 가져오기
+function getEnv(key: string, defaultValue = ''): string {
+  return process.env[key] || getEnvVars()[key] || defaultValue;
+}
+
+// Auth 서버 URL
+function getAuthServerUrl(): string {
+  return getEnv('AUTH_SERVER_URL', 'http://localhost:3001');
+}
 
 export interface GoogleCalendarEvent {
   id: string;
@@ -147,7 +207,7 @@ function convertToGoogleEvent(event: GoogleCalendarEvent): GoogleCalendarApiRequ
   return googleEvent;
 }
 
-// 특정 기간의 이벤트 가져오기
+// 특정 기간의 이벤트 가져오기 (서버 프록시 경유)
 export async function getEvents(
   accessToken: string,
   timeMin?: Date,
@@ -160,14 +220,12 @@ export async function getEvents(
   const params = new URLSearchParams({
     timeMin: (timeMin || defaultTimeMin).toISOString(),
     timeMax: (timeMax || defaultTimeMax).toISOString(),
-    singleEvents: 'true',
-    orderBy: 'startTime',
     maxResults: '500',
   });
 
   try {
     const response = await fetch(
-      `${CALENDAR_API_BASE}/calendars/primary/events?${params}`,
+      `${getAuthServerUrl()}/calendar/events?${params}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -191,14 +249,14 @@ export async function getEvents(
   }
 }
 
-// 이벤트 생성
+// 이벤트 생성 (서버 프록시 경유)
 export async function createEvent(
   accessToken: string,
   event: GoogleCalendarEvent
 ): Promise<GoogleCalendarEvent> {
   try {
     const response = await fetch(
-      `${CALENDAR_API_BASE}/calendars/primary/events`,
+      `${getAuthServerUrl()}/calendar/events`,
       {
         method: 'POST',
         headers: {
@@ -224,7 +282,7 @@ export async function createEvent(
   }
 }
 
-// 이벤트 수정
+// 이벤트 수정 (서버 프록시 경유)
 export async function updateEvent(
   accessToken: string,
   googleEventId: string,
@@ -251,7 +309,7 @@ export async function updateEvent(
     }
 
     const response = await fetch(
-      `${CALENDAR_API_BASE}/calendars/primary/events/${googleEventId}`,
+      `${getAuthServerUrl()}/calendar/events/${googleEventId}`,
       {
         method: 'PATCH',
         headers: {
@@ -263,6 +321,8 @@ export async function updateEvent(
     );
 
     if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('Google Calendar update error:', response.status, errorBody);
       throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
 
@@ -277,14 +337,14 @@ export async function updateEvent(
   }
 }
 
-// 이벤트 삭제
+// 이벤트 삭제 (서버 프록시 경유)
 export async function deleteEvent(
   accessToken: string,
   googleEventId: string
 ): Promise<void> {
   try {
     const response = await fetch(
-      `${CALENDAR_API_BASE}/calendars/primary/events/${googleEventId}`,
+      `${getAuthServerUrl()}/calendar/events/${googleEventId}`,
       {
         method: 'DELETE',
         headers: {
