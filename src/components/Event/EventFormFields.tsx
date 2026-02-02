@@ -2,6 +2,17 @@ import { ChevronDown, Repeat, Bell, Calendar } from 'lucide-react';
 import type { RepeatType } from '../../types';
 import { PERIODS, HOURS, MINUTES, REPEAT_OPTIONS, REMINDER_OPTIONS } from '../../utils/date';
 
+// 반복 타입에 따른 숫자 반환 (1=매일, 7=매주, 31=매월, 365=매년, -=없음)
+function getRepeatNumber(repeatType: RepeatType): string {
+  switch (repeatType) {
+    case 'daily': return '1';
+    case 'weekly': return '7';
+    case 'monthly': return '31';
+    case 'yearly': return '365';
+    default: return '-';
+  }
+}
+
 interface TimePickerProps {
   time: string;
   selectedPeriod: 'AM' | 'PM';
@@ -148,6 +159,128 @@ export function RepeatSelector({
               className={`repeat-dropdown-item ${repeatType === option.value ? 'selected' : ''}`}
               onClick={() => {
                 onSelectType(option.value);
+                onSetShowDropdown(false);
+              }}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 아이콘만 있는 반복 선택기 (숫자 표시)
+interface RepeatIconButtonProps {
+  repeatType: RepeatType;
+  showDropdown: boolean;
+  onSetShowDropdown: (show: boolean) => void;
+  onSelectType: (type: RepeatType) => void;
+  pickerRef: React.RefObject<HTMLDivElement | null>;
+}
+
+export function RepeatIconButton({
+  repeatType,
+  showDropdown,
+  onSetShowDropdown,
+  onSelectType,
+  pickerRef,
+}: RepeatIconButtonProps) {
+  const isActive = repeatType !== 'none';
+  const repeatNumber = getRepeatNumber(repeatType);
+
+  return (
+    <div className="icon-btn-wrapper" ref={pickerRef}>
+      <button
+        type="button"
+        className={`icon-btn ${isActive ? 'active' : ''}`}
+        onClick={() => onSetShowDropdown(!showDropdown)}
+        title="Repeat"
+      >
+        <Repeat size={16} />
+        <span className="icon-btn-badge">{repeatNumber}</span>
+      </button>
+      {showDropdown && (
+        <div className="icon-btn-dropdown">
+          {REPEAT_OPTIONS.map((option) => (
+            <div
+              key={option.value}
+              className={`icon-btn-dropdown-item ${repeatType === option.value ? 'selected' : ''}`}
+              onClick={() => {
+                onSelectType(option.value);
+                onSetShowDropdown(false);
+              }}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 구글 동기화 아이콘 버튼
+interface GoogleSyncIconButtonProps {
+  syncToGoogle: boolean;
+  onToggle: () => void;
+  disabled?: boolean;
+}
+
+export function GoogleSyncIconButton({ syncToGoogle, onToggle, disabled }: GoogleSyncIconButtonProps) {
+  return (
+    <button
+      type="button"
+      className={`icon-btn ${syncToGoogle ? 'active' : ''} ${disabled ? 'disabled' : ''}`}
+      onClick={disabled ? undefined : onToggle}
+      title={disabled ? 'Google Calendar not connected' : 'Sync to Google Calendar'}
+      disabled={disabled}
+    >
+      <span className="google-icon">G</span>
+    </button>
+  );
+}
+
+// 알림 아이콘 버튼
+interface ReminderIconButtonProps {
+  reminderMinutes: number;
+  showDropdown: boolean;
+  onSetShowDropdown: (show: boolean) => void;
+  onSelectMinutes: (minutes: number) => void;
+  disabled?: boolean;
+  pickerRef: React.RefObject<HTMLDivElement | null>;
+}
+
+export function ReminderIconButton({
+  reminderMinutes,
+  showDropdown,
+  onSetShowDropdown,
+  onSelectMinutes,
+  disabled = false,
+  pickerRef,
+}: ReminderIconButtonProps) {
+  const isActive = reminderMinutes > 0;
+
+  return (
+    <div className="icon-btn-wrapper" ref={pickerRef}>
+      <button
+        type="button"
+        className={`icon-btn ${isActive ? 'active' : ''} ${disabled ? 'disabled' : ''}`}
+        onClick={() => !disabled && onSetShowDropdown(!showDropdown)}
+        title={disabled ? 'Set time first to enable reminder' : 'Reminder'}
+        disabled={disabled}
+      >
+        <Bell size={16} />
+      </button>
+      {showDropdown && !disabled && (
+        <div className="icon-btn-dropdown">
+          {REMINDER_OPTIONS.map((option) => (
+            <div
+              key={option.value}
+              className={`icon-btn-dropdown-item ${reminderMinutes === option.value ? 'selected' : ''}`}
+              onClick={() => {
+                onSelectMinutes(option.value);
                 onSetShowDropdown(false);
               }}
             >

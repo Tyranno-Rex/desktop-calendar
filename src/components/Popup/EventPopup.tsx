@@ -3,7 +3,7 @@ import { X, Trash2, ChevronRight, Settings } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
 import { getLocalDateString, parseLocalDateString } from '../../utils/date';
 import { useEventForm } from '../../hooks/useEventForm';
-import { TimePicker, RepeatSelector, ReminderSelector, DDayToggle, GoogleSyncToggle } from '../Event/EventFormFields';
+import { TimePicker, RepeatIconButton, GoogleSyncIconButton, ReminderIconButton, DDayToggle } from '../Event/EventFormFields';
 import './Popup.css';
 
 export function EventPopup() {
@@ -177,33 +177,43 @@ export function EventPopup() {
 
       {/* Content */}
       <div className="popup-content">
+        {/* Title 필드 - 독립적인 한 줄 */}
         <div className="popup-field">
           <label className="popup-label">Title</label>
-          <div className="title-repeat-row">
-            <input
-              type="text"
-              placeholder="Enter title"
-              value={state.title}
-              onChange={(e) => actions.setTitle(e.target.value)}
-              className="popup-input"
-              autoFocus
+          <input
+            type="text"
+            placeholder="Enter title"
+            value={state.title}
+            onChange={(e) => actions.setTitle(e.target.value)}
+            className="popup-input"
+            autoFocus
+          />
+        </div>
+
+        {/* 아이콘 버튼 행 - 반복, 구글, 알람 */}
+        <div className="icon-row">
+          <RepeatIconButton
+            repeatType={state.repeatType}
+            showDropdown={state.showRepeatDropdown}
+            onSetShowDropdown={actions.setShowRepeatDropdown}
+            onSelectType={actions.setRepeatType}
+            pickerRef={refs.repeatPickerRef}
+          />
+          {!isEdit && (
+            <GoogleSyncIconButton
+              syncToGoogle={state.syncToGoogle}
+              onToggle={() => actions.setSyncToGoogle(!state.syncToGoogle)}
+              disabled={!googleConnected}
             />
-            <RepeatSelector
-              repeatType={state.repeatType}
-              showDropdown={state.showRepeatDropdown}
-              onSetShowDropdown={actions.setShowRepeatDropdown}
-              onSelectType={actions.setRepeatType}
-              pickerRef={refs.repeatPickerRef}
-            />
-            <ReminderSelector
-              reminderMinutes={state.reminderMinutes}
-              showDropdown={state.showReminderDropdown}
-              onSetShowDropdown={actions.setShowReminderDropdown}
-              onSelectMinutes={actions.setReminderMinutes}
-              disabled={!state.time}
-              pickerRef={refs.reminderPickerRef}
-            />
-          </div>
+          )}
+          <ReminderIconButton
+            reminderMinutes={state.reminderMinutes}
+            showDropdown={state.showReminderDropdown}
+            onSetShowDropdown={actions.setShowReminderDropdown}
+            onSelectMinutes={actions.setReminderMinutes}
+            disabled={!state.time}
+            pickerRef={refs.reminderPickerRef}
+          />
         </div>
 
         <div className="popup-field">
@@ -253,14 +263,6 @@ export function EventPopup() {
               isDDay={state.isDDay}
               onToggle={() => actions.setIsDDay(!state.isDDay)}
             />
-
-            {/* Google Calendar 동기화 토글 - 새 일정 추가 시에만 표시 */}
-            {!isEdit && googleConnected && (
-              <GoogleSyncToggle
-                syncToGoogle={state.syncToGoogle}
-                onToggle={() => actions.setSyncToGoogle(!state.syncToGoogle)}
-              />
-            )}
           </div>
         )}
       </div>
