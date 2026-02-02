@@ -9,6 +9,7 @@ import { TitleBar } from './components/TitleBar';
 import { ResizeHandle } from './components/ResizeHandle';
 import { useEvents } from './hooks/useEvents';
 import { useSettings } from './hooks/useSettings';
+import { useDesktopMouseEvents } from './hooks/useDesktopMouseEvents';
 import type { CalendarEvent } from './types';
 import './App.css';
 
@@ -34,6 +35,9 @@ function App() {
 
   const { settings, updateSettings, loading: settingsLoading } = useSettings();
 
+  // Desktop Mode 마우스 이벤트 핸들링
+  useDesktopMouseEvents();
+
   // 메모 팝업 열기
   const handleOpenMemo = useCallback((id?: string) => {
     window.electronAPI?.openMemo?.(id);
@@ -43,83 +47,6 @@ function App() {
   useEffect(() => {
     window.electronAPI?.onEventsUpdated?.(() => refreshEvents());
   }, [refreshEvents]);
-
-  // Desktop Mode 마우스 이벤트 핸들링
-  useEffect(() => {
-    const api = window.electronAPI;
-    if (!api) return;
-
-    api.onDesktopClick?.((data) => {
-      if (document.hasFocus()) return;
-      const element = document.elementFromPoint(data.x, data.y);
-      if (element) {
-        element.dispatchEvent(new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-          clientX: data.x,
-          clientY: data.y,
-          screenX: data.screenX,
-          screenY: data.screenY
-        }));
-      }
-    });
-
-    api.onDesktopMouseDown?.((data) => {
-      const element = document.elementFromPoint(data.x, data.y);
-      element?.dispatchEvent(new MouseEvent('mousedown', {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        clientX: data.x,
-        clientY: data.y,
-        screenX: data.screenX,
-        screenY: data.screenY
-      }));
-    });
-
-    api.onDesktopMouseMove?.((data) => {
-      window.dispatchEvent(new MouseEvent('mousemove', {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        clientX: data.x,
-        clientY: data.y,
-        screenX: data.screenX,
-        screenY: data.screenY
-      }));
-    });
-
-    api.onDesktopMouseUp?.((data) => {
-      window.dispatchEvent(new MouseEvent('mouseup', {
-        bubbles: true,
-        cancelable: true,
-        view: window,
-        clientX: data.x,
-        clientY: data.y,
-        screenX: data.screenX,
-        screenY: data.screenY
-      }));
-    });
-
-    api.onDesktopDblClick?.((data) => {
-      const element = document.elementFromPoint(data.x, data.y);
-      if (element) {
-        const dateCell = element.closest('[data-date]');
-        if (dateCell) {
-          const dateStr = dateCell.getAttribute('data-date');
-          if (dateStr) {
-            api.openPopup?.({
-              type: 'add-event',
-              date: dateStr,
-              x: data.screenX,
-              y: data.screenY
-            });
-          }
-        }
-      }
-    });
-  }, []);
 
   // 날짜 선택 + 패널 토글
   const handleSelectDate = useCallback((date: Date) => {
