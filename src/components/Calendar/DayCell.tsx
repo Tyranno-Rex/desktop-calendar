@@ -97,7 +97,7 @@ export const DayCell = memo(function DayCell({
             {visibleEvents.map((event) => (
               <div
                 key={event.id}
-                className="day-event-item"
+                className={`day-event-item ${event.completed ? 'completed' : ''}`}
                 title={event.title}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -110,7 +110,9 @@ export const DayCell = memo(function DayCell({
                 {event.time && (
                   <span className="day-event-time">{event.time}</span>
                 )}
-                {event.title}
+                <span className={event.completed ? 'day-event-title-completed' : ''}>
+                  {event.title}
+                </span>
               </div>
             ))}
             {remainingCount > 0 && (

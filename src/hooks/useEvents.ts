@@ -160,8 +160,8 @@ export function useEvents() {
 
   // 이벤트 업데이트 (함수형 업데이트로 events 의존성 제거)
   const updateEvent = useCallback(async (id: string, updates: Partial<CalendarEvent>) => {
-    // 반복 인스턴스 처리
-    if (id.includes('_')) {
+    // 반복 인스턴스 처리 (단, 구글 이벤트 ID는 제외 - google_로 시작하는 ID)
+    if (id.includes('_') && !id.startsWith('google_')) {
       const [originalId, instanceDate] = id.split('_');
 
       setEvents(prev => {

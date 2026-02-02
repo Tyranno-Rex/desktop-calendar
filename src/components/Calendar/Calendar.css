@@ -328,3 +328,18 @@
   padding: 2px 6px;
 }
 
+/* 완료된 이벤트 스타일 */
+.day-event-item.completed {
+  opacity: 0.5;
+  background: var(--bg-cell-hover);
+}
+
+.day-event-item.completed:hover {
+  opacity: 0.7;
+  background: var(--bg-cell-hover);
+}
+
+.day-event-title-completed {
+  text-decoration: line-through;
+}
+
