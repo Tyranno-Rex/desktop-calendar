@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Trash2, ChevronRight, Settings } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
 import { getLocalDateString, parseLocalDateString } from '../../utils/date';
@@ -17,14 +17,14 @@ export function EventPopup() {
 
   const { state, actions, refs } = useEventForm();
 
-  // Google 연결 상태 및 테마 설정 확인
+  // 리스너 중복 등록 방지
+  const listenerRegisteredRef = useRef(false);
+  // actions를 ref로 저장 (useEffect 의존성 문제 해결)
+  const actionsRef = useRef(actions);
+  actionsRef.current = actions;
+
+  // 테마 설정 로드 (마운트 시 1회)
   useEffect(() => {
-    const checkGoogleAuth = async () => {
-      if (window.electronAPI?.googleAuthStatus) {
-        const isConnected = await window.electronAPI.googleAuthStatus();
-        setGoogleConnected(isConnected);
-      }
-    };
     const loadTheme = async () => {
       if (window.electronAPI?.getSettings) {
         const settings = await window.electronAPI.getSettings();
@@ -33,37 +33,45 @@ export function EventPopup() {
         }
       }
     };
-    checkGoogleAuth();
     loadTheme();
   }, []);
 
-  // 팝업 데이터 처리
-  const handlePopupData = useCallback(async (data: { type: string; date: string; event?: CalendarEvent }) => {
-    actions.resetForm();
-    setShowMoreOptions(false);
-
-    if (data.date) {
-      setDate(parseLocalDateString(data.date));
-    }
-
-    if (data.event?.id) {
-      // 반복 인스턴스인 경우 원본 ID 사용, 아니면 그대로
-      const originalId = data.event.isRepeatInstance && data.event.repeatGroupId
-        ? data.event.repeatGroupId
-        : data.event.id;
-      setEventId(originalId);
-      setIsEdit(true);
-      actions.loadFromEvent(data.event);
-    } else {
-      setEventId(null);
-      setIsEdit(false);
-    }
-
-    setReady(true);
-  }, [actions]);
-
+  // IPC 리스너 등록 (마운트 시 1회만)
   useEffect(() => {
-    // IPC로 데이터 수신 (미리 로드된 팝업용)
+    if (listenerRegisteredRef.current) return;
+    listenerRegisteredRef.current = true;
+
+    // 팝업 데이터 수신 핸들러
+    const handlePopupData = async (data: { type: string; date: string; event?: CalendarEvent }) => {
+      actionsRef.current.resetForm();
+      setShowMoreOptions(false);
+
+      // 팝업이 열릴 때마다 Google 연결 상태 확인
+      if (window.electronAPI?.googleAuthStatus) {
+        const isConnected = await window.electronAPI.googleAuthStatus();
+        setGoogleConnected(isConnected);
+      }
+
+      if (data.date) {
+        setDate(parseLocalDateString(data.date));
+      }
+
+      if (data.event?.id) {
+        const originalId = data.event.isRepeatInstance && data.event.repeatGroupId
+          ? data.event.repeatGroupId
+          : data.event.id;
+        setEventId(originalId);
+        setIsEdit(true);
+        actionsRef.current.loadFromEvent(data.event);
+      } else {
+        setEventId(null);
+        setIsEdit(false);
+      }
+
+      setReady(true);
+    };
+
+    // IPC로 데이터 수신
     window.electronAPI?.onPopupData?.(handlePopupData);
 
     // URL에서 파라미터 추출 (기존 호환성 유지)
@@ -75,21 +83,25 @@ export function EventPopup() {
 
     if (dateStr) {
       setDate(parseLocalDateString(dateStr));
+      // URL 파라미터로 열릴 때도 Google 연결 상태 확인
+      if (window.electronAPI?.googleAuthStatus) {
+        window.electronAPI.googleAuthStatus().then(setGoogleConnected);
+      }
       setReady(true);
     }
 
     if (eventIdParam) {
       setEventId(eventIdParam);
       setIsEdit(true);
-      loadEvent(eventIdParam);
+      loadEventById(eventIdParam);
     }
-  }, [handlePopupData]);
+  }, []);
 
-  const loadEvent = async (id: string) => {
+  const loadEventById = async (id: string) => {
     const events = await window.electronAPI?.getEvents();
     const event = events?.find((e: CalendarEvent) => e.id === id);
     if (event) {
-      actions.loadFromEvent(event);
+      actionsRef.current.loadFromEvent(event);
     }
   };
 
@@ -127,7 +139,7 @@ export function EventPopup() {
   };
 
   // 리사이즈 핸들러
-  const handleResizeStart = (direction: string) => (e: React.MouseEvent) => {
+  const handleResizeStart = useCallback((direction: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     window.electronAPI?.startResize(direction);
 
@@ -136,7 +148,7 @@ export function EventPopup() {
       window.removeEventListener('mouseup', handleMouseUp);
     };
     window.addEventListener('mouseup', handleMouseUp);
-  };
+  }, []);
 
   // 팝업이 준비되지 않았으면 빈 컨테이너만 표시
   if (!ready) {

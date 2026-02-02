@@ -220,7 +220,10 @@ export function useEvents() {
 
   // 이벤트 삭제 (함수형 업데이트로 events 의존성 제거)
   const deleteEvent = useCallback(async (id: string) => {
-    const actualId = id.includes('_') ? id.split('_')[0] : id;
+    // 반복 인스턴스 ID 처리 (단, 구글 이벤트 ID는 제외)
+    const actualId = (id.includes('_') && !id.startsWith('google_'))
+      ? id.split('_')[0]
+      : id;
 
     // 중복 삭제 방지
     if (deletingEventsRef.current.has(actualId)) {
@@ -230,12 +233,16 @@ export function useEvents() {
     deletingEventsRef.current.add(actualId);
 
     try {
+      // Google 삭제 플래그 (setEvents 콜백이 2번 실행되어도 1회만 삭제)
+      let googleDeleteTriggered = false;
+
       setEvents(prev => {
         const eventToDelete = prev.find(e => e.id === actualId);
 
-        // Google 삭제
-        if (eventToDelete?.googleEventId && window.electronAPI?.googleCalendarDeleteEvent) {
-          window.electronAPI.googleCalendarDeleteEvent(eventToDelete.googleEventId)
+        // Google 삭제 (첫 번째 실행에서만)
+        if (eventToDelete?.googleEventId && !googleDeleteTriggered) {
+          googleDeleteTriggered = true;
+          window.electronAPI?.googleCalendarDeleteEvent?.(eventToDelete.googleEventId)
             .catch(error => console.error('Failed to delete Google event:', error));
         }
 
