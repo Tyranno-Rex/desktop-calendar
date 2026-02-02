@@ -19,34 +19,41 @@ function App() {
   const [showSchedulePanel, setShowSchedulePanel] = useState(true);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | undefined>();
 
-  // 메모 팝업 열기 (id가 있으면 해당 메모, 없으면 새 메모)
+  const {
+    events,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    getEventsForDate,
+    refreshEvents,
+    syncWithGoogle,
+    googleConnected,
+    setGoogleConnected,
+    loading: eventsLoading
+  } = useEvents();
+
+  const { settings, updateSettings, loading: settingsLoading } = useSettings();
+
+  // 메모 팝업 열기
   const handleOpenMemo = useCallback((id?: string) => {
     window.electronAPI?.openMemo?.(id);
   }, []);
 
-  const { events, addEvent, updateEvent, deleteEvent, getEventsForDate, refreshEvents, syncWithGoogle, googleConnected, setGoogleConnected, loading: eventsLoading } = useEvents();
-  const { settings, updateSettings, loading: settingsLoading } = useSettings();
-
-  // 팝업에서 이벤트가 변경되면 메인 창에서 새로고침
+  // 팝업에서 이벤트 변경 시 새로고침
   useEffect(() => {
-    if (window.electronAPI?.onEventsUpdated) {
-      window.electronAPI.onEventsUpdated(() => {
-        refreshEvents();
-      });
-    }
+    window.electronAPI?.onEventsUpdated?.(() => refreshEvents());
   }, [refreshEvents]);
 
-  // Desktop Mode: 마우스 이벤트를 받아서 해당 위치의 요소에 이벤트 발생
+  // Desktop Mode 마우스 이벤트 핸들링
   useEffect(() => {
     const api = window.electronAPI;
     if (!api) return;
 
-    // 클릭 이벤트 (창이 포커스되어 있으면 브라우저가 이미 처리하므로 스킵)
     api.onDesktopClick?.((data) => {
       if (document.hasFocus()) return;
       const element = document.elementFromPoint(data.x, data.y);
       if (element) {
-        const clickEvent = new MouseEvent('click', {
+        element.dispatchEvent(new MouseEvent('click', {
           bubbles: true,
           cancelable: true,
           view: window,
@@ -54,31 +61,25 @@ function App() {
           clientY: data.y,
           screenX: data.screenX,
           screenY: data.screenY
-        });
-        element.dispatchEvent(clickEvent);
+        }));
       }
     });
 
-    // mousedown 이벤트
     api.onDesktopMouseDown?.((data) => {
       const element = document.elementFromPoint(data.x, data.y);
-      if (element) {
-        const mousedownEvent = new MouseEvent('mousedown', {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-          clientX: data.x,
-          clientY: data.y,
-          screenX: data.screenX,
-          screenY: data.screenY
-        });
-        element.dispatchEvent(mousedownEvent);
-      }
+      element?.dispatchEvent(new MouseEvent('mousedown', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+        clientX: data.x,
+        clientY: data.y,
+        screenX: data.screenX,
+        screenY: data.screenY
+      }));
     });
 
-    // mousemove 이벤트 (window에 전달)
     api.onDesktopMouseMove?.((data) => {
-      const mousemoveEvent = new MouseEvent('mousemove', {
+      window.dispatchEvent(new MouseEvent('mousemove', {
         bubbles: true,
         cancelable: true,
         view: window,
@@ -86,13 +87,11 @@ function App() {
         clientY: data.y,
         screenX: data.screenX,
         screenY: data.screenY
-      });
-      window.dispatchEvent(mousemoveEvent);
+      }));
     });
 
-    // mouseup 이벤트 (window에 전달)
     api.onDesktopMouseUp?.((data) => {
-      const mouseupEvent = new MouseEvent('mouseup', {
+      window.dispatchEvent(new MouseEvent('mouseup', {
         bubbles: true,
         cancelable: true,
         view: window,
@@ -100,15 +99,12 @@ function App() {
         clientY: data.y,
         screenX: data.screenX,
         screenY: data.screenY
-      });
-      window.dispatchEvent(mouseupEvent);
+      }));
     });
 
-    // 더블클릭 이벤트 (날짜 셀의 data-date 속성으로 날짜 찾기)
     api.onDesktopDblClick?.((data) => {
       const element = document.elementFromPoint(data.x, data.y);
       if (element) {
-        // 클릭된 요소 또는 부모에서 data-date 찾기
         const dateCell = element.closest('[data-date]');
         if (dateCell) {
           const dateStr = dateCell.getAttribute('data-date');
@@ -125,15 +121,13 @@ function App() {
     });
   }, []);
 
-  // 단일 클릭: 날짜 선택 + 패널 토글
+  // 날짜 선택 + 패널 토글
   const handleSelectDate = useCallback((date: Date) => {
     const isSameDate = selectedDate && date.toDateString() === selectedDate.toDateString();
 
     if (isSameDate && showSchedulePanel) {
-      // 같은 날짜 클릭 + 패널 열려있음 → 패널 닫기
       setShowSchedulePanel(false);
     } else {
-      // 다른 날짜 클릭 또는 패널 닫혀있음 → 날짜 선택 + 패널 열기
       setSelectedDate(date);
       setShowSchedulePanel(true);
     }
@@ -144,7 +138,6 @@ function App() {
     setSelectedDate(date);
 
     if (settings.desktopMode && window.electronAPI?.openPopup) {
-      // Desktop Mode: 별도 팝업 창 열기
       window.electronAPI.openPopup({
         type: 'add-event',
         date: getLocalDateString(date),
@@ -152,13 +145,13 @@ function App() {
         y: clickEvent.screenY,
       });
     } else {
-      // 일반 모드: EventModal 열기
       setEditingEvent(undefined);
       setShowEventModal(true);
     }
   }, [settings.desktopMode]);
 
-  const handleEditEvent = (event: CalendarEvent) => {
+  // 이벤트 편집
+  const handleEditEvent = useCallback((event: CalendarEvent) => {
     if (settings.desktopMode && window.electronAPI?.openPopup) {
       window.electronAPI.openPopup({
         type: 'edit-event',
@@ -171,9 +164,9 @@ function App() {
       setEditingEvent(event);
       setShowEventModal(true);
     }
-  };
+  }, [settings.desktopMode]);
 
-  // 캘린더에서 이벤트 클릭 시 편집 팝업 열기
+  // 캘린더에서 이벤트 클릭
   const handleEventClick = useCallback((event: CalendarEvent, clickEvent: React.MouseEvent) => {
     if (settings.desktopMode && window.electronAPI?.openPopup) {
       window.electronAPI.openPopup({
@@ -189,40 +182,33 @@ function App() {
     }
   }, [settings.desktopMode]);
 
-  const handleSaveEvent = async (event: Omit<CalendarEvent, 'id'>, syncToGoogle?: boolean) => {
-    await addEvent(event, syncToGoogle);
-  };
-
-  const handleUpdateEvent = async (id: string, updates: Partial<CalendarEvent>) => {
-    await updateEvent(id, updates);
-  };
-
-  const handleDeleteEvent = async (id: string) => {
-    await deleteEvent(id);
-  };
-
-  // 패널에서 일정 추가
-  const handlePanelAddEvent = useCallback(async (event: Omit<CalendarEvent, 'id'>) => {
-    await addEvent(event);
-  }, [addEvent]);
-
-  // 패널에서 일정 삭제
-  const handlePanelDeleteEvent = useCallback(async (id: string) => {
-    await deleteEvent(id);
-  }, [deleteEvent]);
-
-  // 패널에서 일정 완료 토글
-  const handleToggleComplete = useCallback(async (id: string) => {
+  // 완료 토글
+  const handleToggleComplete = useCallback((id: string) => {
     const event = events.find(e => e.id === id);
     if (event) {
-      await updateEvent(id, { completed: !event.completed });
+      updateEvent(id, { completed: !event.completed });
     }
   }, [events, updateEvent]);
+
+  // 모달 닫기
+  const closeEventModal = useCallback(() => {
+    setShowEventModal(false);
+    setEditingEvent(undefined);
+  }, []);
+
+  // 설정 닫기
+  const closeSettings = useCallback(() => setShowSettings(false), []);
+
+  // 설정 열기
+  const openSettings = useCallback(() => setShowSettings(true), []);
+
+  // 패널 닫기
+  const closePanel = useCallback(() => setShowSchedulePanel(false), []);
 
   if (eventsLoading || settingsLoading) {
     return (
       <div className={`app ${settings.theme}`} style={{ fontSize: settings.fontSize }}>
-        <TitleBar onSettings={() => setShowSettings(true)} />
+        <TitleBar onSettings={openSettings} />
         <div className="app-content loading">Loading...</div>
       </div>
     );
@@ -231,7 +217,7 @@ function App() {
   return (
     <div className={`app ${settings.theme}`} style={{ fontSize: settings.fontSize }}>
       <TitleBar
-        onSettings={() => setShowSettings(true)}
+        onSettings={openSettings}
         resizeMode={settings.resizeMode}
         onSync={syncWithGoogle}
         googleConnected={googleConnected}
@@ -240,18 +226,18 @@ function App() {
       />
 
       <div className={`app-content ${settings.schedulePanelPosition === 'left' ? 'panel-left' : ''}`}>
-        {/* 사이드 패널 - 왼쪽일 때 먼저 렌더링 */}
+        {/* 사이드 패널 - 왼쪽 */}
         {settings.schedulePanelPosition === 'left' && (
           <AnimatePresence>
             {showSchedulePanel && (
               <SchedulePanel
                 selectedDate={selectedDate}
                 events={events}
-                onAddEvent={handlePanelAddEvent}
+                onAddEvent={addEvent}
                 onEditEvent={handleEditEvent}
-                onDeleteEvent={handlePanelDeleteEvent}
+                onDeleteEvent={deleteEvent}
                 onToggleComplete={handleToggleComplete}
-                onClose={() => setShowSchedulePanel(false)}
+                onClose={closePanel}
                 position="left"
                 showOverdueTasks={settings.showOverdueTasks}
               />
@@ -275,18 +261,18 @@ function App() {
           />
         </div>
 
-        {/* 사이드 패널 - 오른쪽일 때 */}
+        {/* 사이드 패널 - 오른쪽 */}
         {settings.schedulePanelPosition === 'right' && (
           <AnimatePresence>
             {showSchedulePanel && (
               <SchedulePanel
                 selectedDate={selectedDate}
                 events={events}
-                onAddEvent={handlePanelAddEvent}
+                onAddEvent={addEvent}
                 onEditEvent={handleEditEvent}
-                onDeleteEvent={handlePanelDeleteEvent}
+                onDeleteEvent={deleteEvent}
                 onToggleComplete={handleToggleComplete}
-                onClose={() => setShowSchedulePanel(false)}
+                onClose={closePanel}
                 position="right"
                 showOverdueTasks={settings.showOverdueTasks}
               />
@@ -295,12 +281,11 @@ function App() {
         )}
       </div>
 
-      {/* 리사이즈 핸들 - 4방향 모서리 */}
+      {/* 리사이즈 핸들 */}
       <ResizeHandle direction="nw" visible={settings.resizeMode} />
       <ResizeHandle direction="ne" visible={settings.resizeMode} />
       <ResizeHandle direction="sw" visible={settings.resizeMode} />
       <ResizeHandle direction="se" visible={settings.resizeMode} />
-      {/* 리사이즈 핸들 - 4방향 변 */}
       <ResizeHandle direction="n" visible={settings.resizeMode} />
       <ResizeHandle direction="s" visible={settings.resizeMode} />
       <ResizeHandle direction="w" visible={settings.resizeMode} />
@@ -310,13 +295,10 @@ function App() {
         <EventModal
           date={selectedDate}
           event={editingEvent}
-          onSave={handleSaveEvent}
-          onUpdate={handleUpdateEvent}
-          onDelete={handleDeleteEvent}
-          onClose={() => {
-            setShowEventModal(false);
-            setEditingEvent(undefined);
-          }}
+          onSave={addEvent}
+          onUpdate={updateEvent}
+          onDelete={deleteEvent}
+          onClose={closeEventModal}
           googleConnected={googleConnected}
         />
       )}
@@ -325,7 +307,7 @@ function App() {
         <SettingsPanel
           settings={settings}
           onUpdateSettings={updateSettings}
-          onClose={() => setShowSettings(false)}
+          onClose={closeSettings}
           onGoogleSync={syncWithGoogle}
           googleConnected={googleConnected}
           onGoogleConnectionChange={setGoogleConnected}

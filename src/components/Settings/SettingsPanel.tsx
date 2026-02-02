@@ -1,7 +1,8 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { ChevronRight, Download, Upload } from 'lucide-react';
 import type { Settings } from '../../types';
 import { AdvancedSettings } from './AdvancedSettings';
+import { useDraggableModal } from '../../hooks/useDraggableModal';
 import './Settings.css';
 
 interface SettingsPanelProps {
@@ -21,38 +22,31 @@ export function SettingsPanel({
   googleConnected: initialGoogleConnected = false,
   onGoogleConnectionChange,
 }: SettingsPanelProps) {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
+  const { position, isDragging, handleDragStart } = useDraggableModal();
   const [googleConnected, setGoogleConnected] = useState(initialGoogleConnected);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const dragHandleRef = useRef<HTMLDivElement>(null);
   const googleAuthInProgressRef = useRef(false);
 
   // Google 연결/해제
-  const handleGoogleConnect = async () => {
+  const handleGoogleConnect = useCallback(async () => {
     if (!window.electronAPI) return;
-    // 중복 호출 방지 (Desktop Mode에서 클릭 이벤트가 두 번 발생할 수 있음)
     if (googleAuthInProgressRef.current) return;
     googleAuthInProgressRef.current = true;
 
     setGoogleLoading(true);
     try {
       if (googleConnected) {
-        // 연결 해제
         await window.electronAPI.googleAuthLogout();
         setGoogleConnected(false);
         onGoogleConnectionChange?.(false);
       } else {
-        // 연결
         const result = await window.electronAPI.googleAuthLogin();
         if (result.success) {
           setGoogleConnected(true);
           onGoogleConnectionChange?.(true);
-          // 연결 성공 후 동기화
           onGoogleSync?.();
         }
       }
@@ -62,102 +56,55 @@ export function SettingsPanel({
       setGoogleLoading(false);
       googleAuthInProgressRef.current = false;
     }
-  };
+  }, [googleConnected, onGoogleConnectionChange, onGoogleSync]);
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose();
+  }, [onClose]);
 
   // 데이터 내보내기
-  const handleExport = async () => {
+  const handleExport = useCallback(async () => {
     if (!window.electronAPI?.exportData) return;
     setExportLoading(true);
     try {
       const result = await window.electronAPI.exportData();
-      if (result.success) {
-        console.log('Exported to:', result.path);
-      }
+      if (result.success) console.log('Exported to:', result.path);
     } catch (error) {
       console.error('Export error:', error);
     } finally {
       setExportLoading(false);
     }
-  };
+  }, []);
 
   // 데이터 가져오기
-  const handleImport = async () => {
+  const handleImport = useCallback(async () => {
     if (!window.electronAPI?.importData) return;
     setImportLoading(true);
     try {
       const result = await window.electronAPI.importData();
-      if (result.success) {
-        // 페이지 새로고침으로 모든 데이터 반영
-        window.location.reload();
-      }
+      if (result.success) window.location.reload();
     } catch (error) {
       console.error('Import error:', error);
     } finally {
       setImportLoading(false);
     }
-  };
-
-  const handleDragHandleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    dragStartRef.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    };
-  }, [position]);
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      setPosition({
-        x: e.clientX - dragStartRef.current.x,
-        y: e.clientY - dragStartRef.current.y
-      });
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
+  }, []);
 
   return (
-    <div
-      className="settings-backdrop"
-      onClick={handleBackdropClick}
-    >
+    <div className="settings-backdrop" onClick={handleBackdropClick}>
       <div
         className="settings-panel"
-        style={{
-          transform: `translate(${position.x}px, ${position.y}px)`
-        }}
+        style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
       >
         <div className="settings-header">
           <div
             className="settings-drag-handle"
-            ref={dragHandleRef}
-            onMouseDown={handleDragHandleMouseDown}
+            onMouseDown={handleDragStart}
             style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
           >
             <h3>Settings</h3>
           </div>
-          <button className="btn-close" onClick={onClose}>
-            &times;
-          </button>
+          <button className="btn-close" onClick={onClose}>&times;</button>
         </div>
 
         <div className="settings-content">
@@ -261,7 +208,6 @@ export function SettingsPanel({
 
           <div className="setting-divider" />
 
-          {/* Google Calendar 연동 */}
           <div className="setting-item">
             <label>
               Google Calendar
@@ -280,7 +226,6 @@ export function SettingsPanel({
 
           <div className="setting-divider" />
 
-          {/* 데이터 내보내기/가져오기 */}
           <div className="setting-item">
             <label>
               Backup & Restore
@@ -308,7 +253,6 @@ export function SettingsPanel({
             </div>
           </div>
 
-          {/* 고급 설정 */}
           <button
             className="advanced-settings-btn"
             onClick={() => setShowAdvanced(true)}
@@ -319,7 +263,6 @@ export function SettingsPanel({
         </div>
       </div>
 
-      {/* 고급 설정 팝업 */}
       {showAdvanced && (
         <AdvancedSettings
           settings={settings}

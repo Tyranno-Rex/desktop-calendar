@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Settings } from '../../types';
+import { useDraggableModal } from '../../hooks/useDraggableModal';
 import './Settings.css';
 
 const WEEKDAYS = [
@@ -23,11 +23,7 @@ export function AdvancedSettings({
   onUpdateSettings,
   onClose,
 }: AdvancedSettingsProps) {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const dragHandleRef = useRef<HTMLDivElement>(null);
-
+  const { position, isDragging, handleDragStart } = useDraggableModal();
   const hiddenDays = settings.hiddenDays || [];
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -35,38 +31,6 @@ export function AdvancedSettings({
       onClose();
     }
   };
-
-  const handleDragHandleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    dragStartRef.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    };
-  }, [position]);
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      setPosition({
-        x: e.clientX - dragStartRef.current.x,
-        y: e.clientY - dragStartRef.current.y
-      });
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
 
   const toggleDay = (dayId: number) => {
     const newHiddenDays = hiddenDays.includes(dayId)
@@ -101,8 +65,7 @@ export function AdvancedSettings({
         <div className="settings-header">
           <div
             className="settings-drag-handle"
-            ref={dragHandleRef}
-            onMouseDown={handleDragHandleMouseDown}
+            onMouseDown={handleDragStart}
             style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
           >
             <h3>Advanced Settings</h3>
