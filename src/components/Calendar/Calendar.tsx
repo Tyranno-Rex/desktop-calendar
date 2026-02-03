@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { CalendarHeader, type ViewMode } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { WeekView } from './WeekView';
 import { useCalendar } from '../../hooks/useCalendar';
+import { isSameDay } from '../../utils/date';
 import type { CalendarEvent } from '../../types';
 import './Calendar.css';
 
@@ -20,7 +21,19 @@ interface CalendarProps {
   hiddenDays?: number[];
 }
 
-export function Calendar({ events, getEventsForDate, onSelectDate, onOpenDate, onEventClick, selectedDate, showEventDetails = false, showHolidays = true, showAdjacentMonths = true, showGridLines = true, hiddenDays = [] }: CalendarProps) {
+function CalendarInner({
+  events,
+  getEventsForDate,
+  onSelectDate,
+  onOpenDate,
+  onEventClick,
+  selectedDate,
+  showEventDetails = false,
+  showHolidays = true,
+  showAdjacentMonths = true,
+  showGridLines = true,
+  hiddenDays = [],
+}: CalendarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
 
   const {
@@ -40,14 +53,7 @@ export function Calendar({ events, getEventsForDate, onSelectDate, onOpenDate, o
     isTodayDate,
   } = useCalendar();
 
-  const isSelected = (date: Date) => {
-    if (!selectedDate) return false;
-    return (
-      date.getFullYear() === selectedDate.getFullYear() &&
-      date.getMonth() === selectedDate.getMonth() &&
-      date.getDate() === selectedDate.getDate()
-    );
-  };
+  const isSelected = useCallback((date: Date) => isSameDay(date, selectedDate), [selectedDate]);
 
   return (
     <div className="calendar">
@@ -96,3 +102,5 @@ export function Calendar({ events, getEventsForDate, onSelectDate, onOpenDate, o
     </div>
   );
 }
+
+export const Calendar = memo(CalendarInner);

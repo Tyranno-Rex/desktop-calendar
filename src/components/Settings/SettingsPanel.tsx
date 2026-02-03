@@ -50,8 +50,8 @@ export function SettingsPanel({
           onGoogleSync?.();
         }
       }
-    } catch (error) {
-      console.error('Google auth error:', error);
+    } catch {
+      // Auth failed silently
     } finally {
       setGoogleLoading(false);
       googleAuthInProgressRef.current = false;
@@ -67,10 +67,9 @@ export function SettingsPanel({
     if (!window.electronAPI?.exportData) return;
     setExportLoading(true);
     try {
-      const result = await window.electronAPI.exportData();
-      if (result.success) console.log('Exported to:', result.path);
-    } catch (error) {
-      console.error('Export error:', error);
+      await window.electronAPI.exportData();
+    } catch {
+      // Export failed silently
     } finally {
       setExportLoading(false);
     }
@@ -83,8 +82,8 @@ export function SettingsPanel({
     try {
       const result = await window.electronAPI.importData();
       if (result.success) window.location.reload();
-    } catch (error) {
-      console.error('Import error:', error);
+    } catch {
+      // Import failed silently
     } finally {
       setImportLoading(false);
     }

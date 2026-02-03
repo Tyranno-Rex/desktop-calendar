@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { DayCell } from './DayCell';
 import type { CalendarEvent } from '../../types';
 import './Calendar.css';
@@ -29,7 +29,7 @@ interface CalendarGridProps {
   hiddenDays?: number[];
 }
 
-export function CalendarGrid({
+export const CalendarGrid = memo(function CalendarGrid({
   days,
   isCurrentMonth,
   isSelected,
@@ -101,4 +101,4 @@ export function CalendarGrid({
       </div>
     </div>
   );
-}
+});

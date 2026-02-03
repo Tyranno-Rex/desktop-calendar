@@ -29,10 +29,7 @@ export function useEvents() {
 
   // Google 인증 상태 확인 (중복 호출 방지)
   const checkGoogleAuth = useCallback(async () => {
-    if (authCheckInProgressRef.current) {
-      console.log('Auth check already in progress, skipping...');
-      return;
-    }
+    if (authCheckInProgressRef.current) return;
     authCheckInProgressRef.current = true;
 
     try {
@@ -72,10 +69,7 @@ export function useEvents() {
   // Google Calendar 동기화
   const syncWithGoogle = useCallback(async () => {
     if (!window.electronAPI?.googleCalendarGetEvents) return;
-    if (syncInProgressRef.current) {
-      console.log('Sync already in progress, skipping...');
-      return;
-    }
+    if (syncInProgressRef.current) return;
     syncInProgressRef.current = true;
 
     try {
@@ -186,10 +180,7 @@ export function useEvents() {
     }
 
     // 중복 업데이트 방지
-    if (updatingEventsRef.current.has(id)) {
-      console.log('Update already in progress for:', id);
-      return;
-    }
+    if (updatingEventsRef.current.has(id)) return;
     updatingEventsRef.current.add(id);
 
     try {
@@ -226,10 +217,7 @@ export function useEvents() {
       : id;
 
     // 중복 삭제 방지
-    if (deletingEventsRef.current.has(actualId)) {
-      console.log('Delete already in progress for:', actualId);
-      return;
-    }
+    if (deletingEventsRef.current.has(actualId)) return;
     deletingEventsRef.current.add(actualId);
 
     try {

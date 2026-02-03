@@ -3,27 +3,8 @@ import { format } from 'date-fns';
 import { motion } from 'motion/react';
 import { Clock, Trash2, Check, X, Repeat, ChevronDown, ChevronRight, AlertCircle } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
-import { getLocalDateString, compareEventTime, isDateInRepeatSchedule, createRepeatInstance } from '../../utils/date';
+import { getLocalDateString, getEventsForDateString, sortEventsByCompletion, getDDay, getTodayString } from '../../utils/date';
 import './SchedulePanel.css';
-
-// 오늘 날짜 문자열 (컴포넌트 외부에서 한 번만 계산)
-const getTodayStr = () => getLocalDateString(new Date());
-
-// D-Day 계산 함수 (컴포넌트 외부)
-const getDDay = (dateStr: string): string => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const [year, month, day] = dateStr.split('-').map(Number);
-  const eventDate = new Date(year, month - 1, day);
-  eventDate.setHours(0, 0, 0, 0);
-
-  const diffTime = eventDate.getTime() - today.getTime();
-  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return 'D-Day';
-  if (diffDays > 0) return `D-${diffDays}`;
-  return `D+${Math.abs(diffDays)}`;
-};
 
 // 메모이제이션된 스케줄 아이템 컴포넌트
 interface ScheduleItemProps {
@@ -136,39 +117,13 @@ const SchedulePanelInner = ({
   const [overdueExpanded, setOverdueExpanded] = useState(true);
 
   // 오늘 날짜 문자열 (세션 동안 고정)
-  const todayStr = useMemo(getTodayStr, []);
+  const todayStr = useMemo(getTodayString, []);
 
   const filteredEvents = useMemo(() => {
     if (!selectedDate) return [];
     const dateStr = getLocalDateString(selectedDate);
-
-    // 반복 일정 인스턴스 포함하여 필터링
-    const filtered: CalendarEvent[] = [];
-    for (const event of events) {
-      if (!event.repeat || event.repeat.type === 'none') {
-        // 반복 없는 일정: 단순 날짜 비교
-        if (event.date === dateStr) {
-          filtered.push(event);
-        }
-      } else {
-        // 반복 일정: 해당 날짜에 표시되어야 하는지 확인
-        if (isDateInRepeatSchedule(dateStr, event)) {
-          if (event.date === dateStr) {
-            // 원본 일정 날짜와 같으면 원본 사용
-            filtered.push(event);
-          } else {
-            // 반복 인스턴스 생성
-            filtered.push(createRepeatInstance(event, dateStr));
-          }
-        }
-      }
-    }
-
-    // 완료 여부로 분리 후 각각 시간순 정렬
-    const incomplete = filtered.filter(e => !e.completed).sort(compareEventTime);
-    const completed = filtered.filter(e => e.completed).sort(compareEventTime);
-
-    return [...incomplete, ...completed];
+    const eventsForDate = getEventsForDateString(dateStr, events);
+    return sortEventsByCompletion(eventsForDate);
   }, [selectedDate, events]);
 
   // 미완료 과거 일정 (오늘 이전, completed=false, 반복 일정 제외)

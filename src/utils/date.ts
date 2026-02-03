@@ -152,3 +152,75 @@ export const createRepeatInstance = (
     repeatGroupId: event.id,
   };
 };
+
+// ==================== 추가 유틸리티 함수 ====================
+
+/**
+ * 두 날짜가 같은 날인지 비교 (Date 객체)
+ */
+export const isSameDay = (date1: Date | null, date2: Date | null): boolean => {
+  if (!date1 || !date2) return false;
+  return date1.getFullYear() === date2.getFullYear() &&
+         date1.getMonth() === date2.getMonth() &&
+         date1.getDate() === date2.getDate();
+};
+
+/**
+ * 이벤트 목록을 완료 여부로 정렬 (미완료 먼저, 각각 시간순)
+ */
+export const sortEventsByCompletion = (events: CalendarEvent[]): CalendarEvent[] => {
+  const incomplete = events.filter(e => !e.completed).sort(compareEventTime);
+  const completed = events.filter(e => e.completed).sort(compareEventTime);
+  return [...incomplete, ...completed];
+};
+
+/**
+ * 특정 날짜의 이벤트 가져오기 (반복 일정 포함)
+ */
+export const getEventsForDateString = (
+  dateStr: string,
+  events: CalendarEvent[]
+): CalendarEvent[] => {
+  const result: CalendarEvent[] = [];
+
+  for (const event of events) {
+    if (!event.repeat || event.repeat.type === 'none') {
+      if (event.date === dateStr) {
+        result.push(event);
+      }
+    } else {
+      if (isDateInRepeatSchedule(dateStr, event)) {
+        if (event.date === dateStr) {
+          result.push(event);
+        } else {
+          result.push(createRepeatInstance(event, dateStr));
+        }
+      }
+    }
+  }
+
+  return result;
+};
+
+/**
+ * D-Day 계산
+ */
+export const getDDay = (dateStr: string): string => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const eventDate = new Date(year, month - 1, day);
+  eventDate.setHours(0, 0, 0, 0);
+
+  const diffTime = eventDate.getTime() - today.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'D-Day';
+  if (diffDays > 0) return `D-${diffDays}`;
+  return `D+${Math.abs(diffDays)}`;
+};
+
+/**
+ * 오늘 날짜 문자열 가져오기 (캐시용)
+ */
+export const getTodayString = (): string => getLocalDateString(new Date());
