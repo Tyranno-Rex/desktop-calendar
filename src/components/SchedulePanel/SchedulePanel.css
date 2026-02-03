@@ -13,6 +13,45 @@
   border-right: 1px solid var(--border-color);
 }
 
+/* Light theme - Glassmorphism panel */
+.app.light .schedule-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.app.light .schedule-panel.panel-left {
+  border-left: none;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Dark theme - Glassmorphism panel */
+.app.dark .schedule-panel {
+  background: rgba(44, 44, 46, 0.65);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app.dark .schedule-panel.panel-left {
+  border-left: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Mood theme - Glassmorphism panel */
+.app.orange .schedule-panel {
+  background: rgba(44, 44, 46, 0.65);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app.orange .schedule-panel.panel-left {
+  border-left: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .schedule-header {
   display: flex;
   align-items: flex-start;
@@ -20,6 +59,24 @@
   padding: 24px;
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-primary);
+}
+
+/* Light theme - Glassmorphism header */
+.app.light .schedule-header {
+  background: rgba(255, 255, 255, 0.6);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Dark theme - Glassmorphism header */
+.app.dark .schedule-header {
+  background: rgba(28, 28, 30, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Mood theme - Glassmorphism header */
+.app.orange .schedule-header {
+  background: rgba(28, 28, 30, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .schedule-header-content {
@@ -76,9 +133,82 @@
   box-shadow: var(--shadow-sm);
 }
 
-.schedule-item:hover {
+.schedule-item:hover,
+.schedule-item.desktop-hover {
   border-color: var(--text-muted);
   box-shadow: var(--shadow-md);
+  transform: scale(1.01);
+}
+
+.schedule-item:active,
+.schedule-item.desktop-active {
+  transform: scale(0.98);
+}
+
+/* Light theme - Glassmorphism schedule item with depth */
+.app.light .schedule-item {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 2px 8px -2px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.app.light .schedule-item:hover,
+.app.light .schedule-item.desktop-hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 8px 24px -8px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+/* Dark theme - Glassmorphism schedule item with depth */
+.app.dark .schedule-item {
+  background: rgba(58, 58, 60, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 2px 8px -2px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.app.dark .schedule-item:hover,
+.app.dark .schedule-item.desktop-hover {
+  background: rgba(58, 58, 60, 0.7);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 8px 24px -8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Mood theme - Glassmorphism schedule item with depth */
+.app.orange .schedule-item {
+  background: rgba(58, 58, 60, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 2px 8px -2px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.app.orange .schedule-item:hover,
+.app.orange .schedule-item.desktop-hover {
+  background: rgba(58, 58, 60, 0.7);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 8px 24px -8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
 }
 
 /* 체크박스 스타일 - Reference style */
@@ -100,7 +230,8 @@
   padding: 0;
 }
 
-.schedule-item-checkbox:hover {
+.schedule-item-checkbox:hover,
+.schedule-item-checkbox.desktop-hover {
   border-color: var(--accent-color);
 }
 
@@ -197,11 +328,13 @@
   justify-content: center;
 }
 
-.schedule-item:hover .schedule-item-delete {
+.schedule-item:hover .schedule-item-delete,
+.schedule-item.desktop-hover .schedule-item-delete {
   opacity: 1;
 }
 
-.schedule-item-delete:hover {
+.schedule-item-delete:hover,
+.schedule-item-delete.desktop-hover {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
 }
@@ -231,7 +364,8 @@
   transition: background 0.15s;
 }
 
-.schedule-section-header:hover {
+.schedule-section-header:hover,
+.schedule-section-header.desktop-hover {
   background: var(--bg-cell-hover);
 }
 
@@ -272,7 +406,8 @@
   background: rgba(239, 68, 68, 0.05);
 }
 
-.schedule-item.overdue:hover {
+.schedule-item.overdue:hover,
+.schedule-item.overdue.desktop-hover {
   border-color: rgba(239, 68, 68, 0.5);
 }
 

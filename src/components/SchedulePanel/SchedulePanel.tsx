@@ -37,16 +37,22 @@ const ScheduleItem = memo(function ScheduleItem({
   }, [onDelete, event.id, originalId, isOverdue]);
 
   return (
-    <div
+    <motion.div
       className={`schedule-item ${isOverdue ? 'overdue' : ''}`}
       onClick={handleClick}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
     >
-      <button
+      <motion.button
         className={`schedule-item-checkbox ${event.completed ? 'checked' : ''}`}
         onClick={handleToggle}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 20 }}
       >
         {event.completed && <Check size={12} strokeWidth={3} />}
-      </button>
+      </motion.button>
 
       <div className="schedule-item-content">
         <div className="schedule-item-title-row">
@@ -80,13 +86,16 @@ const ScheduleItem = memo(function ScheduleItem({
         </div>
       </div>
 
-      <button
+      <motion.button
         className="schedule-item-delete"
         onClick={handleDelete}
+        whileHover={{ scale: 1.15, color: '#ff453a' }}
+        whileTap={{ scale: 0.9 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 20 }}
       >
         <Trash2 size={16} />
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 });
 

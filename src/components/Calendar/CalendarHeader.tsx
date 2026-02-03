@@ -354,8 +354,9 @@ export const CalendarHeader = memo(function CalendarHeader({
             onToday();
           }}
           title="Go to today"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.92, opacity: 0.8 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         >
           Today
         </motion.button>

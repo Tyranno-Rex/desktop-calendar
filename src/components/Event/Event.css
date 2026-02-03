@@ -25,6 +25,17 @@
   border: 1px solid var(--border-color);
 }
 
+/* Mood theme - Glassmorphism event modal */
+.app.orange .event-modal-popup {
+  background: rgba(44, 44, 46, 0.8);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 .event-modal-popup .popup-header {
   display: flex;
   justify-content: space-between;

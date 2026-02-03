@@ -96,6 +96,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onDesktopDblClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
     ipcRenderer.on('desktop-dblclick', (_, data) => callback(data));
   },
+  onDesktopHover: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
+    ipcRenderer.on('desktop-hover', (_, data) => callback(data));
+  },
+  onDesktopMouseEnter: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
+    ipcRenderer.on('desktop-mouseenter', (_, data) => callback(data));
+  },
+  onDesktopMouseLeave: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
+    ipcRenderer.on('desktop-mouseleave', (_, data) => callback(data));
+  },
 
   // Google Calendar API
   googleAuthStatus: (): Promise<boolean> => ipcRenderer.invoke('google-auth-status'),

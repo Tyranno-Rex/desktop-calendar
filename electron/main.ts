@@ -273,7 +273,7 @@ function createMemoWindow(memoId?: string): void {
     },
   });
 
-  memoWindow.setAlwaysOnTop(true, 'floating');
+  memoWindow.setAlwaysOnTop(true, 'screen-saver');
   memoWindow.setOpacity(savedSettings?.opacity ?? 0.95);
   updateAllWindowRefs();
 

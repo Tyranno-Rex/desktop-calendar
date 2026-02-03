@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { motion } from 'motion/react';
 import { ChevronRight, Download, Upload } from 'lucide-react';
 import type { Settings } from '../../types';
 import { AdvancedSettings } from './AdvancedSettings';
@@ -110,18 +111,33 @@ export function SettingsPanel({
           <div className="setting-item">
             <label>Theme</label>
             <div className="theme-options">
-              <button
+              <motion.button
                 className={`theme-btn ${settings.theme === 'dark' ? 'active' : ''}`}
                 onClick={() => onUpdateSettings({ theme: 'dark' })}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               >
                 Dark
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 className={`theme-btn ${settings.theme === 'light' ? 'active' : ''}`}
                 onClick={() => onUpdateSettings({ theme: 'light' })}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               >
                 Light
-              </button>
+              </motion.button>
+              <motion.button
+                className={`theme-btn ${settings.theme === 'orange' ? 'active' : ''}`}
+                onClick={() => onUpdateSettings({ theme: 'orange' })}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              >
+                Orange
+              </motion.button>
             </div>
           </div>
 
@@ -129,37 +145,49 @@ export function SettingsPanel({
             <div className="setting-item-inline">
               <label>Opacity</label>
               <div className="stepper-control-compact">
-                <button
+                <motion.button
                   className="stepper-btn-sm"
                   onClick={() => onUpdateSettings({ opacity: Math.max(0.3, settings.opacity - 0.1) })}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                 >
                   -
-                </button>
+                </motion.button>
                 <span className="stepper-value-sm">{Math.round(settings.opacity * 100)}%</span>
-                <button
+                <motion.button
                   className="stepper-btn-sm"
                   onClick={() => onUpdateSettings({ opacity: Math.min(1, settings.opacity + 0.1) })}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                 >
                   +
-                </button>
+                </motion.button>
               </div>
             </div>
             <div className="setting-item-inline">
               <label>Font</label>
               <div className="stepper-control-compact">
-                <button
+                <motion.button
                   className="stepper-btn-sm"
                   onClick={() => onUpdateSettings({ fontSize: Math.max(10, settings.fontSize - 1) })}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                 >
                   -
-                </button>
+                </motion.button>
                 <span className="stepper-value-sm">{settings.fontSize}px</span>
-                <button
+                <motion.button
                   className="stepper-btn-sm"
                   onClick={() => onUpdateSettings({ fontSize: Math.min(20, settings.fontSize + 1) })}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                 >
                   +
-                </button>
+                </motion.button>
               </div>
             </div>
           </div>
@@ -214,13 +242,16 @@ export function SettingsPanel({
                 {googleConnected ? 'Connected' : 'Sync with Google'}
               </span>
             </label>
-            <button
+            <motion.button
               className={`google-btn ${googleConnected ? 'connected' : ''}`}
               onClick={handleGoogleConnect}
               disabled={googleLoading}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
               {googleLoading ? '...' : googleConnected ? 'Disconnect' : 'Connect'}
-            </button>
+            </motion.button>
           </div>
 
           <div className="setting-divider" />
@@ -231,34 +262,43 @@ export function SettingsPanel({
               <span className="setting-hint">Export or import all data</span>
             </label>
             <div className="data-buttons">
-              <button
+              <motion.button
                 className="data-btn"
                 onClick={handleExport}
                 disabled={exportLoading}
                 title="Export data"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               >
                 <Download size={14} />
                 {exportLoading ? '...' : 'Export'}
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 className="data-btn"
                 onClick={handleImport}
                 disabled={importLoading}
                 title="Import data"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               >
                 <Upload size={14} />
                 {importLoading ? '...' : 'Import'}
-              </button>
+              </motion.button>
             </div>
           </div>
 
-          <button
+          <motion.button
             className="advanced-settings-btn"
             onClick={() => setShowAdvanced(true)}
+            whileHover={{ scale: 1.01, x: 2 }}
+            whileTap={{ scale: 0.99 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
           >
             <span>Advanced Settings</span>
             <ChevronRight size={16} />
-          </button>
+          </motion.button>
         </div>
       </div>
 

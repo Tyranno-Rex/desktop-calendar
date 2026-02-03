@@ -57,7 +57,7 @@ export interface Settings {
   opacity: number;
   alwaysOnTop: boolean;
   desktopMode: boolean;
-  theme: 'dark' | 'light';
+  theme: 'dark' | 'light' | 'orange';
   fontSize: number;
   resizeMode: boolean;
   showHolidays: boolean;
@@ -133,6 +133,9 @@ export interface ElectronAPI {
   onDesktopMouseMove: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
   onDesktopMouseUp: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
   onDesktopDblClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
+  onDesktopHover: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
+  onDesktopMouseEnter: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
+  onDesktopMouseLeave: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
   // Google Calendar API
   googleAuthStatus: () => Promise<boolean>;
   googleAuthLogin: () => Promise<{ success: boolean; error?: string }>;

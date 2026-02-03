@@ -12,7 +12,7 @@ export function EventPopup() {
   const [isEdit, setIsEdit] = useState(false);
   const [ready, setReady] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark' | 'orange' | null>(null);
   const [fontSize, setFontSize] = useState(14);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
@@ -29,7 +29,7 @@ export function EventPopup() {
     const loadSettings = async () => {
       if (window.electronAPI?.getSettings) {
         const settings = await window.electronAPI.getSettings();
-        setTheme(settings?.theme || 'light');
+        setTheme((settings?.theme as 'light' | 'dark' | 'orange') || 'light');
         if (settings?.fontSize) {
           setFontSize(settings.fontSize);
         }
@@ -53,7 +53,7 @@ export function EventPopup() {
       // 팝업이 열릴 때마다 설정 다시 로드 (테마 변경 반영)
       if (window.electronAPI?.getSettings) {
         const settings = await window.electronAPI.getSettings();
-        setTheme(settings?.theme || 'light');
+        setTheme((settings?.theme as 'light' | 'dark' | 'orange') || 'light');
         if (settings?.fontSize) {
           setFontSize(settings.fontSize);
         }

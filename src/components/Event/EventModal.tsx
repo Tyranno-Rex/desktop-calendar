@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { motion } from 'motion/react';
 import { X, Trash2 } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
 import { getLocalDateString } from '../../utils/date';
@@ -128,9 +129,15 @@ export function EventModal({
           style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
         >
           <h2 className="popup-title">Schedule Details</h2>
-          <button className="popup-close" onClick={onClose}>
+          <motion.button
+            className="popup-close"
+            onClick={onClose}
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          >
             <X size={20} />
-          </button>
+          </motion.button>
         </div>
 
         {/* Content */}
@@ -210,22 +217,37 @@ export function EventModal({
         {/* Footer */}
         <div className="popup-footer">
           {isEditing && (
-            <button className="popup-btn popup-btn-delete" onClick={handleDelete}>
+            <motion.button
+              className="popup-btn popup-btn-delete"
+              onClick={handleDelete}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            >
               <Trash2 size={16} />
               Delete
-            </button>
+            </motion.button>
           )}
           <div className="popup-footer-right">
-            <button className="popup-btn popup-btn-cancel" onClick={onClose}>
+            <motion.button
+              className="popup-btn popup-btn-cancel"
+              onClick={onClose}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            >
               Cancel
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               className="popup-btn popup-btn-save"
               onClick={handleSubmit}
               disabled={!state.title.trim()}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
               Save
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>

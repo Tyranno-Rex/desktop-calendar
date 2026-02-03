@@ -1,43 +1,79 @@
-/* Light theme (default) */
+/* Light theme (default) - Apple-inspired Glassmorphism */
 .popup-container {
   --bg-primary: #ffffff;
-  --bg-secondary: #ffffff;
+  --bg-secondary: #f5f5f7;
   --bg-cell: #ffffff;
-  --bg-cell-hover: #f9fafb;
-  --text-color: #111827;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --accent-color: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-light: #eff6ff;
-  --accent-text: #1d4ed8;
-  --border-color: #e5e7eb;
+  --bg-cell-hover: rgba(0, 0, 0, 0.04);
+  --text-color: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-muted: #86868b;
+  --accent-color: #007aff;
+  --accent-hover: #0056b3;
+  --accent-light: rgba(0, 122, 255, 0.12);
+  --accent-text: #0055cc;
+  --border-color: rgba(0, 0, 0, 0.1);
 
-  background: var(--bg-primary);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
   border-radius: 16px;
   display: flex;
   flex-direction: column;
   height: 100vh;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  border: 1px solid var(--border-color);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   overflow: hidden;
   position: relative;
 }
 
-/* Dark theme */
+/* Dark theme - Apple-inspired Glassmorphism */
 .popup-container.dark {
-  --bg-primary: #111827;
-  --bg-secondary: #1f2937;
-  --bg-cell: #111827;
-  --bg-cell-hover: #1f2937;
-  --text-color: #f9fafb;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --accent-color: #3b82f6;
-  --accent-hover: #60a5fa;
-  --accent-light: rgba(59, 130, 246, 0.15);
-  --accent-text: #93c5fd;
-  --border-color: rgba(75, 85, 99, 0.5);
+  --bg-primary: #1c1c1e;
+  --bg-secondary: #2c2c2e;
+  --bg-cell: #1c1c1e;
+  --bg-cell-hover: rgba(255, 255, 255, 0.08);
+  --text-color: #ffffff;
+  --text-secondary: #ebebf5;
+  --text-muted: #8e8e93;
+  --accent-color: #0a84ff;
+  --accent-hover: #409cff;
+  --accent-light: rgba(10, 132, 255, 0.18);
+  --accent-text: #64d2ff;
+  --border-color: rgba(84, 84, 88, 0.65);
+
+  background: rgba(28, 28, 30, 0.85);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Orange theme - Apple-inspired Glassmorphism */
+.popup-container.orange {
+  --bg-primary: #1c1c1e;
+  --bg-secondary: #2c2c2e;
+  --bg-cell: #1c1c1e;
+  --bg-cell-hover: #3a3a3c;
+  --text-color: #ffffff;
+  --text-secondary: #ebebf5;
+  --text-muted: #8e8e93;
+  --accent-color: #ff9f0a;
+  --accent-hover: #ffb340;
+  --accent-light: rgba(255, 159, 10, 0.18);
+  --accent-text: #ffd60a;
+  --border-color: rgba(84, 84, 88, 0.65);
+
+  background: rgba(28, 28, 30, 0.85);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* 리사이즈 핸들 */
@@ -765,4 +801,405 @@
   background: var(--accent-color);
   color: white;
   font-weight: 500;
+}
+
+/* ========== Light Theme Specific Styles ========== */
+
+/* Header with glassmorphism */
+.popup-container.light .popup-header,
+.popup-container:not(.dark):not(.orange) .popup-header {
+  background: rgba(255, 255, 255, 0.6);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Input fields with subtle glow on focus */
+.popup-container.light .popup-input:focus,
+.popup-container.light .popup-textarea:focus,
+.popup-container:not(.dark):not(.orange) .popup-input:focus,
+.popup-container:not(.dark):not(.orange) .popup-textarea:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.15);
+}
+
+/* Buttons with depth */
+.popup-container.light .popup-btn-save,
+.popup-container:not(.dark):not(.orange) .popup-btn-save {
+  box-shadow:
+    0 2px 8px rgba(0, 122, 255, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.popup-container.light .popup-btn-save:hover:not(:disabled),
+.popup-container:not(.dark):not(.orange) .popup-btn-save:hover:not(:disabled) {
+  box-shadow:
+    0 4px 16px rgba(0, 122, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.popup-container.light .popup-btn-cancel,
+.popup-container:not(.dark):not(.orange) .popup-btn-cancel {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.popup-container.light .popup-btn-cancel:hover,
+.popup-container:not(.dark):not(.orange) .popup-btn-cancel:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* Icon buttons with glow */
+.popup-container.light .icon-btn,
+.popup-container:not(.dark):not(.orange) .icon-btn {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.popup-container.light .icon-btn:hover:not(:disabled),
+.popup-container:not(.dark):not(.orange) .icon-btn:hover:not(:disabled) {
+  background: rgba(0, 122, 255, 0.1);
+  border-color: rgba(0, 122, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.15);
+}
+
+.popup-container.light .icon-btn.active,
+.popup-container:not(.dark):not(.orange) .icon-btn.active {
+  background: rgba(0, 122, 255, 0.12);
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+}
+
+/* Dropdowns with glassmorphism */
+.popup-container.light .time-dropdown,
+.popup-container.light .repeat-dropdown,
+.popup-container.light .reminder-dropdown,
+.popup-container.light .icon-btn-dropdown,
+.popup-container:not(.dark):not(.orange) .time-dropdown,
+.popup-container:not(.dark):not(.orange) .repeat-dropdown,
+.popup-container:not(.dark):not(.orange) .reminder-dropdown,
+.popup-container:not(.dark):not(.orange) .icon-btn-dropdown {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Dropdown items hover */
+.popup-container.light .time-dropdown-item:hover,
+.popup-container.light .repeat-dropdown-item:hover,
+.popup-container.light .reminder-dropdown-item:hover,
+.popup-container.light .icon-btn-dropdown-item:hover,
+.popup-container:not(.dark):not(.orange) .time-dropdown-item:hover,
+.popup-container:not(.dark):not(.orange) .repeat-dropdown-item:hover,
+.popup-container:not(.dark):not(.orange) .reminder-dropdown-item:hover,
+.popup-container:not(.dark):not(.orange) .icon-btn-dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Selected dropdown items with glow */
+.popup-container.light .time-dropdown-item.selected,
+.popup-container.light .repeat-dropdown-item.selected,
+.popup-container.light .reminder-dropdown-item.selected,
+.popup-container.light .icon-btn-dropdown-item.selected,
+.popup-container:not(.dark):not(.orange) .time-dropdown-item.selected,
+.popup-container:not(.dark):not(.orange) .repeat-dropdown-item.selected,
+.popup-container:not(.dark):not(.orange) .reminder-dropdown-item.selected,
+.popup-container:not(.dark):not(.orange) .icon-btn-dropdown-item.selected {
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+}
+
+/* Time select buttons */
+.popup-container.light .time-select-btn,
+.popup-container:not(.dark):not(.orange) .time-select-btn {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.popup-container.light .time-select-btn:hover,
+.popup-container:not(.dark):not(.orange) .time-select-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Toggle switch with glow when active */
+.popup-container.light .toggle-switch.active,
+.popup-container:not(.dark):not(.orange) .toggle-switch.active {
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+/* More options button */
+.popup-container.light .more-options-btn,
+.popup-container:not(.dark):not(.orange) .more-options-btn {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.popup-container.light .more-options-btn:hover,
+.popup-container:not(.dark):not(.orange) .more-options-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* More options content */
+.popup-container.light .more-options-content,
+.popup-container:not(.dark):not(.orange) .more-options-content {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Footer with subtle border */
+.popup-container.light .popup-footer,
+.popup-container:not(.dark):not(.orange) .popup-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* ========== Dark Theme Specific Styles ========== */
+
+/* Header with glassmorphism */
+.popup-container.dark .popup-header {
+  background: rgba(44, 44, 46, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Input fields with subtle glow on focus */
+.popup-container.dark .popup-input:focus,
+.popup-container.dark .popup-textarea:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.2);
+}
+
+/* Buttons with depth */
+.popup-container.dark .popup-btn-save {
+  box-shadow:
+    0 2px 8px rgba(10, 132, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.popup-container.dark .popup-btn-save:hover:not(:disabled) {
+  box-shadow:
+    0 4px 16px rgba(10, 132, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.popup-container.dark .popup-btn-cancel {
+  background: rgba(58, 58, 60, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.popup-container.dark .popup-btn-cancel:hover {
+  background: rgba(58, 58, 60, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Icon buttons with glow */
+.popup-container.dark .icon-btn {
+  background: rgba(58, 58, 60, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.popup-container.dark .icon-btn:hover:not(:disabled) {
+  background: rgba(10, 132, 255, 0.15);
+  border-color: rgba(10, 132, 255, 0.5);
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.2);
+}
+
+.popup-container.dark .icon-btn.active {
+  background: rgba(10, 132, 255, 0.2);
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+}
+
+/* Dropdowns with glassmorphism */
+.popup-container.dark .time-dropdown,
+.popup-container.dark .repeat-dropdown,
+.popup-container.dark .reminder-dropdown,
+.popup-container.dark .icon-btn-dropdown {
+  background: rgba(44, 44, 46, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Dropdown items hover */
+.popup-container.dark .time-dropdown-item:hover,
+.popup-container.dark .repeat-dropdown-item:hover,
+.popup-container.dark .reminder-dropdown-item:hover,
+.popup-container.dark .icon-btn-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Selected dropdown items with glow */
+.popup-container.dark .time-dropdown-item.selected,
+.popup-container.dark .repeat-dropdown-item.selected,
+.popup-container.dark .reminder-dropdown-item.selected,
+.popup-container.dark .icon-btn-dropdown-item.selected {
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+}
+
+/* Time select buttons */
+.popup-container.dark .time-select-btn {
+  background: rgba(58, 58, 60, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.popup-container.dark .time-select-btn:hover {
+  background: rgba(58, 58, 60, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Toggle switch with glow when active */
+.popup-container.dark .toggle-switch.active {
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.4);
+}
+
+/* More options button */
+.popup-container.dark .more-options-btn {
+  background: rgba(58, 58, 60, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.popup-container.dark .more-options-btn:hover {
+  background: rgba(58, 58, 60, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* More options content */
+.popup-container.dark .more-options-content {
+  background: rgba(44, 44, 46, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Footer with subtle border */
+.popup-container.dark .popup-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ========== Orange Theme Specific Styles ========== */
+
+/* Header with glassmorphism */
+.popup-container.orange .popup-header {
+  background: rgba(44, 44, 46, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Input fields with subtle glow on focus */
+.popup-container.orange .popup-input:focus,
+.popup-container.orange .popup-textarea:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(255, 159, 10, 0.2);
+}
+
+/* Buttons with depth */
+.popup-container.orange .popup-btn-save {
+  box-shadow:
+    0 2px 8px rgba(255, 159, 10, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.popup-container.orange .popup-btn-save:hover:not(:disabled) {
+  box-shadow:
+    0 4px 16px rgba(255, 159, 10, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.popup-container.orange .popup-btn-cancel {
+  background: rgba(58, 58, 60, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.popup-container.orange .popup-btn-cancel:hover {
+  background: rgba(58, 58, 60, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Icon buttons with glow */
+.popup-container.orange .icon-btn {
+  background: rgba(58, 58, 60, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.popup-container.orange .icon-btn:hover:not(:disabled) {
+  background: rgba(255, 159, 10, 0.15);
+  border-color: rgba(255, 159, 10, 0.5);
+  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.2);
+}
+
+.popup-container.orange .icon-btn.active {
+  background: rgba(255, 159, 10, 0.2);
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.3);
+}
+
+/* Dropdowns with glassmorphism */
+.popup-container.orange .time-dropdown,
+.popup-container.orange .repeat-dropdown,
+.popup-container.orange .reminder-dropdown,
+.popup-container.orange .icon-btn-dropdown {
+  background: rgba(44, 44, 46, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Dropdown items hover */
+.popup-container.orange .time-dropdown-item:hover,
+.popup-container.orange .repeat-dropdown-item:hover,
+.popup-container.orange .reminder-dropdown-item:hover,
+.popup-container.orange .icon-btn-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Selected dropdown items with glow */
+.popup-container.orange .time-dropdown-item.selected,
+.popup-container.orange .repeat-dropdown-item.selected,
+.popup-container.orange .reminder-dropdown-item.selected,
+.popup-container.orange .icon-btn-dropdown-item.selected {
+  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.3);
+}
+
+/* Time select buttons */
+.popup-container.orange .time-select-btn {
+  background: rgba(58, 58, 60, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.popup-container.orange .time-select-btn:hover {
+  background: rgba(58, 58, 60, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Toggle switch with glow when active */
+.popup-container.orange .toggle-switch.active {
+  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.4);
+}
+
+/* More options button */
+.popup-container.orange .more-options-btn {
+  background: rgba(58, 58, 60, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.popup-container.orange .more-options-btn:hover {
+  background: rgba(58, 58, 60, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* More options content */
+.popup-container.orange .more-options-content {
+  background: rgba(44, 44, 46, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Footer with subtle border */
+.popup-container.orange .popup-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }

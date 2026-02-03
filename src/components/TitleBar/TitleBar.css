@@ -6,6 +6,32 @@
   background: transparent;
   -webkit-app-region: drag;
   flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+}
+
+/* Light theme - Glassmorphism title bar */
+.app.light .title-bar {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Dark theme - Glassmorphism title bar */
+.app.dark .title-bar {
+  background: rgba(44, 44, 46, 0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Mood theme - Glassmorphism title bar */
+.app.orange .title-bar {
+  background: rgba(44, 44, 46, 0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .title-bar-drag {
@@ -45,12 +71,14 @@
   -webkit-app-region: no-drag;
 }
 
-.window-btn:hover {
+.window-btn:hover,
+.window-btn.desktop-hover {
   background: var(--bg-cell-hover);
   color: var(--text-color);
 }
 
-.window-btn.close:hover {
+.window-btn.close:hover,
+.window-btn.close.desktop-hover {
   background: #ef4444;
   color: white;
 }
@@ -59,7 +87,8 @@
   color: var(--text-secondary);
 }
 
-.window-btn.panel-toggle:hover {
+.window-btn.panel-toggle:hover,
+.window-btn.panel-toggle.desktop-hover {
   background: var(--bg-cell-hover);
   color: var(--text-color);
 }
@@ -152,8 +181,35 @@
   min-width: 180px;
   max-width: 250px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  z-index: 9999;
   overflow: hidden;
+}
+
+/* Light theme - Glassmorphism memo dropdown */
+.app.light .memo-dropdown {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark theme - Glassmorphism memo dropdown */
+.app.dark .memo-dropdown {
+  background: rgba(44, 44, 46, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Orange theme - Glassmorphism memo dropdown */
+.app.orange .memo-dropdown {
+  background: rgba(44, 44, 46, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .memo-dropdown-item {
@@ -172,7 +228,8 @@
   user-select: none;
 }
 
-.memo-dropdown-item:hover {
+.memo-dropdown-item:hover,
+.memo-dropdown-item.desktop-hover {
   background: var(--bg-cell-hover);
 }
 
@@ -181,7 +238,8 @@
   font-weight: 500;
 }
 
-.memo-dropdown-item.new:hover {
+.memo-dropdown-item.new:hover,
+.memo-dropdown-item.new.desktop-hover {
   background: var(--accent-light);
 }
 
@@ -215,12 +273,14 @@
   transition: all 0.15s;
 }
 
-.memo-dropdown-item:hover .memo-delete-btn {
+.memo-dropdown-item:hover .memo-delete-btn,
+.memo-dropdown-item.desktop-hover .memo-delete-btn {
   opacity: 1;
   color: var(--text-secondary);
 }
 
-.memo-delete-btn:hover {
+.memo-delete-btn:hover,
+.memo-delete-btn.desktop-hover {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
 }

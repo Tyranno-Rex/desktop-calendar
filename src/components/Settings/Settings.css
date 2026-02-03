@@ -20,6 +20,163 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
+/* Light theme - Glassmorphism settings panel */
+.app.light .settings-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Light theme - Settings panel inner elements */
+.app.light .settings-panel .stepper-btn-sm,
+.app.light .settings-panel .stepper-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.app.light .settings-panel .stepper-btn-sm:hover,
+.app.light .settings-panel .stepper-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.15);
+}
+
+.app.light .settings-panel .theme-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.app.light .settings-panel .theme-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.app.light .settings-panel .theme-btn.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.app.light .settings-panel .google-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.app.light .settings-panel .google-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 2px 8px rgba(66, 133, 244, 0.2);
+}
+
+.app.light .settings-panel .google-btn.connected {
+  background: rgba(66, 133, 244, 0.08);
+  border-color: #4285f4;
+}
+
+.app.light .settings-panel .advanced-settings-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.app.light .settings-panel .advanced-settings-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.12);
+}
+
+.app.light .settings-panel .weekday-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.app.light .settings-panel .weekday-btn:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.app.light .settings-panel .weekday-btn.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.app.light .settings-panel .preset-btn {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.app.light .settings-panel .preset-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--accent-color);
+}
+
+.app.light .settings-panel .data-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.app.light .settings-panel .data-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.15);
+}
+
+.app.light .settings-panel .toggle-slider {
+  background: rgba(120, 120, 128, 0.4);
+}
+
+.app.light .settings-panel .toggle-slider::before {
+  background: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Light theme - toggle-btn OFF state (더 진하게) */
+.app.light .toggle-btn .toggle-slider {
+  background: rgba(120, 120, 128, 0.4);
+}
+
+.app.light .toggle-btn .toggle-slider::before {
+  background: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.app.light .settings-panel .setting-divider {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.app.light .settings-panel .btn-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Dark theme - Glassmorphism settings panel */
+.app.dark .settings-panel {
+  background: rgba(44, 44, 46, 0.75);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Mood theme - Glassmorphism settings panel */
+.app.orange .settings-panel {
+  background: rgba(44, 44, 46, 0.75);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 .settings-header {
   display: flex;
   justify-content: space-between;
@@ -55,7 +212,8 @@
   transition: background 0.2s;
 }
 
-.btn-close:hover {
+.btn-close:hover,
+.btn-close.desktop-hover {
   background: var(--bg-cell-hover);
 }
 
@@ -126,13 +284,16 @@
   transition: all 0.15s;
 }
 
-.stepper-btn-sm:hover {
+.stepper-btn-sm:hover,
+.stepper-btn-sm.desktop-hover {
   background: var(--bg-cell-hover);
   border-color: var(--accent-color);
+  transform: scale(1.1);
 }
 
-.stepper-btn-sm:active {
-  transform: scale(0.95);
+.stepper-btn-sm:active,
+.stepper-btn-sm.desktop-active {
+  transform: scale(0.9);
 }
 
 .stepper-value-sm {
@@ -160,14 +321,22 @@
   transition: all 0.2s;
 }
 
-.theme-btn:hover {
+.theme-btn:hover,
+.theme-btn.desktop-hover {
   background: var(--bg-cell-hover);
+  transform: scale(1.03);
+}
+
+.theme-btn:active,
+.theme-btn.desktop-active {
+  transform: scale(0.97);
 }
 
 .theme-btn.active {
   background: var(--accent-color);
   border-color: var(--accent-color);
 }
+
 
 .slider {
   width: 100%;
@@ -298,6 +467,21 @@
   background: white;
 }
 
+/* Light theme - toggle with glow when active */
+.app.light .toggle-btn.active .toggle-slider {
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+/* Dark theme - toggle with glow when active */
+.app.dark .toggle-btn.active .toggle-slider {
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.4);
+}
+
+/* Mood theme - toggle with glow when active */
+.app.orange .toggle-btn.active .toggle-slider {
+  box-shadow: 0 2px 6px rgba(255, 159, 10, 0.25);
+}
+
 .toggle-btn.disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -334,12 +518,14 @@
   transition: all 0.15s;
 }
 
-.stepper-btn:hover {
+.stepper-btn:hover,
+.stepper-btn.desktop-hover {
   background: var(--bg-cell-hover);
   border-color: var(--accent-color);
 }
 
-.stepper-btn:active {
+.stepper-btn:active,
+.stepper-btn.desktop-active {
   transform: scale(0.95);
 }
 
@@ -365,10 +551,17 @@
   width: 100%;
 }
 
-.google-btn:hover:not(:disabled) {
+.google-btn:hover:not(:disabled),
+.google-btn.desktop-hover:not(:disabled) {
   background: var(--bg-cell-hover);
   border-color: #4285f4;
   color: #4285f4;
+  transform: scale(1.03);
+}
+
+.google-btn:active:not(:disabled),
+.google-btn.desktop-active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .google-btn.connected {
@@ -377,7 +570,8 @@
   color: #4285f4;
 }
 
-.google-btn.connected:hover:not(:disabled) {
+.google-btn.connected:hover:not(:disabled),
+.google-btn.connected.desktop-hover:not(:disabled) {
   background: rgba(234, 67, 53, 0.1);
   border-color: #ea4335;
   color: #ea4335;
@@ -406,9 +600,16 @@
   transition: all 0.2s;
 }
 
-.advanced-settings-btn:hover {
+.advanced-settings-btn:hover,
+.advanced-settings-btn.desktop-hover {
   background: var(--bg-cell-hover);
   border-color: var(--accent-color);
+  transform: scale(1.01) translateX(2px);
+}
+
+.advanced-settings-btn:active,
+.advanced-settings-btn.desktop-active {
+  transform: scale(0.99);
 }
 
 .advanced-settings-btn svg {
@@ -416,7 +617,8 @@
   transition: transform 0.2s;
 }
 
-.advanced-settings-btn:hover svg {
+.advanced-settings-btn:hover svg,
+.advanced-settings-btn.desktop-hover svg {
   transform: translateX(2px);
   color: var(--accent-color);
 }
@@ -472,7 +674,8 @@
   justify-content: center;
 }
 
-.weekday-btn:hover {
+.weekday-btn:hover,
+.weekday-btn.desktop-hover {
   background: var(--bg-cell-hover);
   border-color: var(--text-secondary);
 }
@@ -501,7 +704,8 @@
   transition: all 0.15s;
 }
 
-.preset-btn:hover {
+.preset-btn:hover,
+.preset-btn.desktop-hover {
   background: var(--bg-cell-hover);
   border-color: var(--accent-color);
   color: var(--text-color);
@@ -528,10 +732,17 @@
   transition: all 0.2s;
 }
 
-.data-btn:hover:not(:disabled) {
+.data-btn:hover:not(:disabled),
+.data-btn.desktop-hover:not(:disabled) {
   background: var(--bg-cell-hover);
   border-color: var(--accent-color);
   color: var(--accent-color);
+  transform: scale(1.05);
+}
+
+.data-btn:active:not(:disabled),
+.data-btn.desktop-active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .data-btn:disabled {

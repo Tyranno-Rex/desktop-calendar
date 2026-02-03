@@ -175,17 +175,34 @@ function startMouseMonitoring(): void {
     const clickInfo = isClickInWindow();
     const isMouseInWindow = clickInfo.inWindow;
 
+    const relX = mousePos.x - bounds.x;
+    const relY = mousePos.y - bounds.y;
+
     // Handle mouse enter/leave
     if (isMouseInWindow && !wasMouseInWindow && !isDraggingInWindow) {
       mainWindowRef.setIgnoreMouseEvents(false);
+      mainWindowRef.webContents.send('desktop-mouseenter', {
+        x: clickInfo.relX, y: clickInfo.relY,
+        screenX: mousePos.x, screenY: mousePos.y
+      });
     }
     if (!isMouseInWindow && wasMouseInWindow && !isDraggingInWindow) {
       mainWindowRef.setIgnoreMouseEvents(true, { forward: true });
+      mainWindowRef.webContents.send('desktop-mouseleave', {
+        x: relX, y: relY,
+        screenX: mousePos.x, screenY: mousePos.y
+      });
     }
-    wasMouseInWindow = isMouseInWindow;
 
-    const relX = mousePos.x - bounds.x;
-    const relY = mousePos.y - bounds.y;
+    // Always send hover position when mouse is in window (for hover effects)
+    if (isMouseInWindow && !isMouseDown) {
+      mainWindowRef.webContents.send('desktop-hover', {
+        x: clickInfo.relX, y: clickInfo.relY,
+        screenX: mousePos.x, screenY: mousePos.y
+      });
+    }
+
+    wasMouseInWindow = isMouseInWindow;
 
     // Mouse down
     if (isMouseDown && !wasMouseDown) {

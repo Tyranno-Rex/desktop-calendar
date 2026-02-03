@@ -1,38 +1,70 @@
 :root {
-  /* Light theme (default) - Reference style */
+  /* Light theme (default) - Apple-inspired design */
   --bg-primary: #ffffff;
-  --bg-secondary: #ffffff;
+  --bg-secondary: #f5f5f7;
   --bg-cell: #ffffff;
-  --bg-cell-hover: #f9fafb;
-  --text-color: #111827;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --accent-color: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-light: #eff6ff;
-  --accent-text: #1d4ed8;
-  --border-color: #e5e7eb;
-  --weekend-color: #ef4444;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --bg-cell-hover: rgba(0, 0, 0, 0.04);
+  --text-color: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-muted: #86868b;
+  --accent-color: #007aff;
+  --accent-hover: #0056b3;
+  --accent-light: rgba(0, 122, 255, 0.12);
+  --accent-text: #0055cc;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --weekend-color: #ff3b30;
+  /* Apple-style layered shadows for light theme */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.12);
+  --shadow-lg: 0 10px 40px -10px rgb(0 0 0 / 0.15), 0 4px 16px -4px rgb(0 0 0 / 0.08);
+  --shadow-float: 0 20px 60px -15px rgb(0 0 0 / 0.15), 0 8px 24px -8px rgb(0 0 0 / 0.1);
+  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .app.dark {
-  --bg-primary: #111827;
-  --bg-secondary: #1f2937;
-  --bg-cell: #111827;
-  --bg-cell-hover: #1f2937;
-  --text-color: #f9fafb;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --accent-color: #3b82f6;
-  --accent-hover: #60a5fa;
-  --accent-light: rgba(59, 130, 246, 0.15);
-  --accent-text: #93c5fd;
-  --border-color: rgba(75, 85, 99, 0.5);
-  --weekend-color: #f87171;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  /* Dark theme - Apple-inspired design */
+  --bg-primary: #1c1c1e;
+  --bg-secondary: #2c2c2e;
+  --bg-cell: #1c1c1e;
+  --bg-cell-hover: rgba(255, 255, 255, 0.08);
+  --text-color: #ffffff;
+  --text-secondary: #ebebf5;
+  --text-muted: #8e8e93;
+  --accent-color: #0a84ff;
+  --accent-hover: #409cff;
+  --accent-light: rgba(10, 132, 255, 0.18);
+  --accent-text: #64d2ff;
+  --border-color: rgba(84, 84, 88, 0.65);
+  --weekend-color: #ff453a;
+  /* Apple-style layered shadows for dark theme */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 10px 40px -10px rgb(0 0 0 / 0.6), 0 4px 16px -4px rgb(0 0 0 / 0.4);
+  --shadow-float: 0 20px 60px -15px rgb(0 0 0 / 0.5), 0 8px 24px -8px rgb(0 0 0 / 0.3);
+  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Mood theme - Apple-inspired design */
+.app.orange {
+  --bg-primary: #1c1c1e;
+  --bg-secondary: #2c2c2e;
+  --bg-cell: #1c1c1e;
+  --bg-cell-hover: #3a3a3c;
+  --text-color: #ffffff;
+  --text-secondary: #ebebf5;
+  --text-muted: #8e8e93;
+  --accent-color: #ff9f0a;
+  --accent-hover: #ffb340;
+  --accent-light: rgba(255, 159, 10, 0.18);
+  --accent-text: #ffd60a;
+  --border-color: rgba(84, 84, 88, 0.65);
+  --weekend-color: #ff453a;
+  /* Apple-style layered shadows */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 10px 40px -10px rgb(0 0 0 / 0.6), 0 4px 16px -4px rgb(0 0 0 / 0.4);
+  --shadow-float: 0 20px 60px -15px rgb(0 0 0 / 0.5), 0 8px 24px -8px rgb(0 0 0 / 0.3);
+  --shadow-inner: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 * {
@@ -65,9 +97,21 @@ body {
   position: relative;
 }
 
+/* Light theme - Glassmorphism */
+.app.light {
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+
+/* Dark theme - Glassmorphism */
 .app.dark {
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+
+.app.orange {
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
 }
 
 .app-content {
