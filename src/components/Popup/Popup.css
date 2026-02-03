@@ -720,6 +720,20 @@
   color: var(--accent-color);
 }
 
+.icon-btn-badge.dday-badge {
+  font-size: 7px;
+  bottom: 1px;
+  right: 1px;
+}
+
+.icon-btn-badge.google-badge {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'Google Sans', Arial, sans-serif;
+  bottom: 1px;
+  right: 2px;
+}
+
 .google-icon {
   font-size: 16px;
   font-weight: 700;

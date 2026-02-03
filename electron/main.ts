@@ -971,9 +971,9 @@ function preCreatePopupWindow() {
 
   popupWindow = new BrowserWindow({
     width: 320,
-    height: 560,
+    height: 500,
     minWidth: 280,
-    minHeight: 480,
+    minHeight: 500,
     x: -1000, // 화면 밖에 숨김
     y: -1000,
     transparent: true,
@@ -1044,7 +1044,7 @@ function showPopupWithData(data: { type: string; date: string; event?: CalendarE
   }
 
   const popupWidth = 340;
-  const popupHeight = 520;
+  const popupHeight = 400;
 
   // 화면 경계 체크
   const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;

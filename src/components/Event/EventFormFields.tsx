@@ -1,4 +1,4 @@
-import { ChevronDown, Repeat, Bell, Calendar } from 'lucide-react';
+import { ChevronDown, Repeat, Bell, Calendar, Target } from 'lucide-react';
 import type { RepeatType } from '../../types';
 import { PERIODS, HOURS, MINUTES, REPEAT_OPTIONS, REMINDER_OPTIONS } from '../../utils/date';
 
@@ -49,7 +49,7 @@ export function TimePicker({
           className="time-select-btn"
           onClick={() => onSetOpenDropdown(openDropdown === 'period' ? null : 'period')}
         >
-          <span>{time ? selectedPeriod : 'AM'}</span>
+          <span>{time ? selectedPeriod : '--'}</span>
           <ChevronDown size={14} />
         </button>
         {openDropdown === 'period' && (
@@ -74,7 +74,7 @@ export function TimePicker({
           className="time-select-btn"
           onClick={() => onSetOpenDropdown(openDropdown === 'hour' ? null : 'hour')}
         >
-          <span>{time ? selectedHour : 12}</span>
+          <span>{time ? selectedHour : '--'}</span>
           <ChevronDown size={14} />
         </button>
         {openDropdown === 'hour' && (
@@ -99,7 +99,7 @@ export function TimePicker({
           className="time-select-btn"
           onClick={() => onSetOpenDropdown(openDropdown === 'minute' ? null : 'minute')}
         >
-          <span>{time ? String(selectedMinute).padStart(2, '0') : '00'}</span>
+          <span>{time ? String(selectedMinute).padStart(2, '0') : '--'}</span>
           <ChevronDown size={14} />
         </button>
         {openDropdown === 'minute' && (
@@ -237,7 +237,8 @@ export function GoogleSyncIconButton({ syncToGoogle, onToggle, disabled }: Googl
       title={disabled ? 'Google Calendar not connected' : 'Sync to Google Calendar'}
       disabled={disabled}
     >
-      <span className="google-icon">G</span>
+      <Calendar size={16} />
+      <span className="icon-btn-badge google-badge">G</span>
     </button>
   );
 }
@@ -339,6 +340,26 @@ export function ReminderSelector({
         </div>
       )}
     </div>
+  );
+}
+
+// D-Day 아이콘 버튼
+interface DDayIconButtonProps {
+  isDDay: boolean;
+  onToggle: () => void;
+}
+
+export function DDayIconButton({ isDDay, onToggle }: DDayIconButtonProps) {
+  return (
+    <button
+      type="button"
+      className={`icon-btn ${isDDay ? 'active' : ''}`}
+      onClick={onToggle}
+      title="Show D-Day"
+    >
+      <Target size={16} />
+      <span className="icon-btn-badge dday-badge">D-Day</span>
+    </button>
   );
 }
 

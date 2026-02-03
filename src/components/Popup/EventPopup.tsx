@@ -3,7 +3,7 @@ import { X, Trash2, ChevronRight, Settings } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
 import { getLocalDateString, parseLocalDateString } from '../../utils/date';
 import { useEventForm } from '../../hooks/useEventForm';
-import { TimePicker, RepeatIconButton, GoogleSyncIconButton, ReminderIconButton, DDayToggle } from '../Event/EventFormFields';
+import { TimePicker, RepeatIconButton, GoogleSyncIconButton, ReminderIconButton, DDayIconButton, DDayToggle } from '../Event/EventFormFields';
 import './Popup.css';
 
 export function EventPopup() {
@@ -190,7 +190,7 @@ export function EventPopup() {
           />
         </div>
 
-        {/* 아이콘 버튼 행 - 반복, 구글, 알람 */}
+        {/* 아이콘 버튼 행 - 반복, 구글, 알람, D-Day */}
         <div className="icon-row">
           <RepeatIconButton
             repeatType={state.repeatType}
@@ -213,6 +213,10 @@ export function EventPopup() {
             onSelectMinutes={actions.setReminderMinutes}
             disabled={!state.time}
             pickerRef={refs.reminderPickerRef}
+          />
+          <DDayIconButton
+            isDDay={state.isDDay}
+            onToggle={() => actions.setIsDDay(!state.isDDay)}
           />
         </div>
 
@@ -244,26 +248,28 @@ export function EventPopup() {
           />
         </div>
 
-        {/* More Options 토글 버튼 */}
-        <button
-          type="button"
-          className="more-options-btn"
-          onClick={() => setShowMoreOptions(!showMoreOptions)}
-        >
-          <Settings size={14} />
-          <span>More options</span>
-          <ChevronRight size={14} className={`more-options-chevron ${showMoreOptions ? 'open' : ''}`} />
-        </button>
+        {/* More Options - 현재 숨김 (코드 유지) */}
+        {false && (
+          <>
+            <button
+              type="button"
+              className="more-options-btn"
+              onClick={() => setShowMoreOptions(!showMoreOptions)}
+            >
+              <Settings size={14} />
+              <span>More options</span>
+              <ChevronRight size={14} className={`more-options-chevron ${showMoreOptions ? 'open' : ''}`} />
+            </button>
 
-        {/* 추가 옵션 */}
-        {showMoreOptions && (
-          <div className="more-options-content">
-            {/* D-Day 표시 옵션 */}
-            <DDayToggle
-              isDDay={state.isDDay}
-              onToggle={() => actions.setIsDDay(!state.isDDay)}
-            />
-          </div>
+            {showMoreOptions && (
+              <div className="more-options-content">
+                <DDayToggle
+                  isDDay={state.isDDay}
+                  onToggle={() => actions.setIsDDay(!state.isDDay)}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 
