@@ -4,6 +4,7 @@ import {
   startOfWeek,
   endOfWeek,
   addDays,
+  subDays,
   addMonths,
   subMonths,
   addWeeks,
@@ -95,15 +96,32 @@ export function useCalendar() {
     setCurrentDate(prev => addWeeks(prev, 1));
   }, []);
 
+  // Day 네비게이션
+  const goToPreviousDay = useCallback(() => {
+    setCurrentDate(prev => subDays(prev, 1));
+  }, []);
+
+  const goToNextDay = useCallback(() => {
+    setCurrentDate(prev => addDays(prev, 1));
+  }, []);
+
+  // Day 뷰 헤더 텍스트 (예: "Monday, February 3, 2026")
+  const dayText = useMemo(() => {
+    return format(currentDate, 'EEEE, MMMM d, yyyy');
+  }, [currentDate]);
+
   return {
     currentDate,
     calendarDays,
     weekDays,
     weekRangeText,
+    dayText,
     goToPreviousMonth,
     goToNextMonth,
     goToPreviousWeek,
     goToNextWeek,
+    goToPreviousDay,
+    goToNextDay,
     goToToday,
     goToMonth,
     goToYear,

@@ -2,6 +2,7 @@ import { useState, memo, useCallback } from 'react';
 import { CalendarHeader, type ViewMode } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { WeekView } from './WeekView';
+import { DayView } from './DayView';
 import { useCalendar } from '../../hooks/useCalendar';
 import { isSameDay } from '../../utils/date';
 import type { CalendarEvent } from '../../types';
@@ -37,13 +38,17 @@ function CalendarInner({
   const [viewMode, setViewMode] = useState<ViewMode>('month');
 
   const {
+    currentDate,
     calendarDays,
     weekDays,
     weekRangeText,
+    dayText,
     goToPreviousMonth,
     goToNextMonth,
     goToPreviousWeek,
     goToNextWeek,
+    goToPreviousDay,
+    goToNextDay,
     goToToday,
     goToMonth,
     goToYear,
@@ -61,10 +66,13 @@ function CalendarInner({
         currentMonth={currentMonth}
         currentYear={currentYear}
         weekRangeText={weekRangeText}
+        dayText={dayText}
         onPrevMonth={goToPreviousMonth}
         onNextMonth={goToNextMonth}
         onPrevWeek={goToPreviousWeek}
         onNextWeek={goToNextWeek}
+        onPrevDay={goToPreviousDay}
+        onNextDay={goToNextDay}
         onToday={goToToday}
         onMonthSelect={goToMonth}
         onYearSelect={goToYear}
@@ -87,7 +95,7 @@ function CalendarInner({
           showGridLines={showGridLines}
           hiddenDays={hiddenDays}
         />
-      ) : (
+      ) : viewMode === 'week' ? (
         <WeekView
           weekDays={weekDays}
           events={events}
@@ -97,6 +105,16 @@ function CalendarInner({
           onEventClick={onEventClick}
           showHolidays={showHolidays}
           hiddenDays={hiddenDays}
+        />
+      ) : (
+        <DayView
+          currentDate={currentDate}
+          events={events}
+          selectedDate={selectedDate}
+          onSelectDate={onSelectDate}
+          onOpenDate={onOpenDate}
+          onEventClick={onEventClick}
+          showHolidays={showHolidays}
         />
       )}
     </div>

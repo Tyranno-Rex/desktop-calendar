@@ -1,0 +1,309 @@
+/* Day View */
+.day-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Day Header */
+.day-header {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-cell);
+}
+
+.day-time-gutter {
+  border-right: 1px solid var(--border-color);
+}
+
+.day-date-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+}
+
+.day-date-header.today {
+  background: rgba(59, 130, 246, 0.03);
+}
+
+.day-date-header.weekend .day-date-name {
+  color: var(--weekend-color);
+}
+
+.day-date-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.day-date-number {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-top: 4px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.day-date-number.today-badge {
+  background: var(--accent-color);
+  color: white;
+}
+
+.day-date-header.weekend .day-date-number:not(.today-badge) {
+  color: var(--weekend-color);
+}
+
+/* All-Day Events Section */
+.day-allday-section {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-cell);
+  max-height: 120px;
+  overflow: hidden;
+}
+
+.day-allday-gutter {
+  border-right: 1px solid var(--border-color);
+}
+
+.day-allday-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 8px;
+  overflow: hidden;
+}
+
+.day-allday-cell.today {
+  background: rgba(59, 130, 246, 0.03);
+}
+
+.day-allday-cell.weekend {
+  background: rgba(239, 68, 68, 0.02);
+}
+
+.day-allday-event {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.day-allday-event:hover {
+  filter: brightness(1.1);
+}
+
+.day-allday-event.completed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.day-allday-more {
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.day-allday-more:hover {
+  color: var(--accent-color);
+}
+
+/* Day Body */
+.day-body {
+  flex: 1;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  min-height: 0;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+}
+
+.day-body:active {
+  cursor: grabbing;
+}
+
+.day-body::-webkit-scrollbar {
+  display: none;
+}
+
+.day-body {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.day-grid {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  position: relative;
+  min-height: 1440px;
+}
+
+/* Time Column */
+.day-time-column {
+  border-right: 1px solid var(--border-color);
+  position: relative;
+}
+
+.day-time-slot {
+  height: 60px;
+  position: relative;
+}
+
+.day-time-label {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Events Column */
+.day-events-column {
+  position: relative;
+  cursor: pointer;
+}
+
+.day-events-column.today {
+  background: rgba(59, 130, 246, 0.03);
+}
+
+.day-events-column.weekend {
+  background: rgba(239, 68, 68, 0.02);
+}
+
+.day-hour-cell {
+  height: 60px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.day-hour-cell:last-child {
+  border-bottom: none;
+}
+
+/* Events */
+.day-event {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  z-index: 1;
+  color: white;
+}
+
+.day-event:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.day-event.completed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.day-event-time {
+  font-size: 11px;
+  opacity: 0.9;
+  display: block;
+}
+
+.day-event-title {
+  font-weight: 500;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Current Time Line */
+.day-current-time-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ef4444;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.day-current-time-dot {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+}
+
+/* Scroll Buttons */
+.day-scroll-buttons {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 20;
+}
+
+.day-scroll-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-cell);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  opacity: 0.8;
+}
+
+.day-scroll-btn:hover {
+  background: var(--bg-cell-hover);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  opacity: 1;
+}
+
+.day-scroll-btn:active {
+  transform: scale(0.95);
+}
+
+.day-scroll-btn-now {
+  color: var(--accent-color);
+  font-size: 10px;
+}

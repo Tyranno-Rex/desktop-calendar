@@ -10,16 +10,19 @@ const MONTH_NAMES = [
 // Desktop Mode에서 클릭 중복 방지를 위한 디바운스 시간 (ms)
 const CLICK_DEBOUNCE_MS = 100;
 
-export type ViewMode = 'month' | 'week';
+export type ViewMode = 'month' | 'week' | 'day';
 
 interface CalendarHeaderProps {
   currentMonth: number;
   currentYear: number;
   weekRangeText?: string;
+  dayText?: string;
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onPrevWeek?: () => void;
   onNextWeek?: () => void;
+  onPrevDay?: () => void;
+  onNextDay?: () => void;
   onToday: () => void;
   onMonthSelect: (month: number) => void;
   onYearSelect: (year: number) => void;
@@ -31,10 +34,13 @@ export const CalendarHeader = memo(function CalendarHeader({
   currentMonth,
   currentYear,
   weekRangeText,
+  dayText,
   onPrevMonth,
   onNextMonth,
   onPrevWeek,
   onNextWeek,
+  onPrevDay,
+  onNextDay,
   onToday,
   onMonthSelect,
   onYearSelect,
@@ -129,24 +135,28 @@ export const CalendarHeader = memo(function CalendarHeader({
     if (now - lastNavClickTime.current < CLICK_DEBOUNCE_MS) return;
     lastNavClickTime.current = now;
 
-    if (viewMode === 'week') {
+    if (viewMode === 'day') {
+      onPrevDay?.();
+    } else if (viewMode === 'week') {
       onPrevWeek?.();
     } else {
       onPrevMonth();
     }
-  }, [viewMode, onPrevWeek, onPrevMonth]);
+  }, [viewMode, onPrevDay, onPrevWeek, onPrevMonth]);
 
   const handleNext = useCallback(() => {
     const now = Date.now();
     if (now - lastNavClickTime.current < CLICK_DEBOUNCE_MS) return;
     lastNavClickTime.current = now;
 
-    if (viewMode === 'week') {
+    if (viewMode === 'day') {
+      onNextDay?.();
+    } else if (viewMode === 'week') {
       onNextWeek?.();
     } else {
       onNextMonth();
     }
-  }, [viewMode, onNextWeek, onNextMonth]);
+  }, [viewMode, onNextDay, onNextWeek, onNextMonth]);
 
   return (
     <div className="calendar-header">
@@ -188,7 +198,7 @@ export const CalendarHeader = memo(function CalendarHeader({
                 {currentYear}
               </span>
             </motion.span>
-          ) : (
+          ) : viewMode === 'week' ? (
             <motion.span
               key={weekRangeText}
               initial={{ opacity: 0, y: -10 }}
@@ -197,6 +207,16 @@ export const CalendarHeader = memo(function CalendarHeader({
               className="week-range-text"
             >
               {weekRangeText}
+            </motion.span>
+          ) : (
+            <motion.span
+              key={dayText}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="day-text"
+            >
+              {dayText}
             </motion.span>
           )}
         </div>
@@ -241,6 +261,12 @@ export const CalendarHeader = memo(function CalendarHeader({
               onClick={() => onViewModeChange('week')}
             >
               Week
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'day' ? 'active' : ''}`}
+              onClick={() => onViewModeChange('day')}
+            >
+              Day
             </button>
           </div>
         )}
