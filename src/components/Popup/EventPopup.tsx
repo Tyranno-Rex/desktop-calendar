@@ -12,7 +12,7 @@ export function EventPopup() {
   const [isEdit, setIsEdit] = useState(false);
   const [ready, setReady] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
   const [fontSize, setFontSize] = useState(14);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
@@ -29,12 +29,12 @@ export function EventPopup() {
     const loadSettings = async () => {
       if (window.electronAPI?.getSettings) {
         const settings = await window.electronAPI.getSettings();
-        if (settings?.theme) {
-          setTheme(settings.theme);
-        }
+        setTheme(settings?.theme || 'light');
         if (settings?.fontSize) {
           setFontSize(settings.fontSize);
         }
+      } else {
+        setTheme('light');
       }
     };
     loadSettings();
@@ -49,6 +49,15 @@ export function EventPopup() {
     const handlePopupData = async (data: { type: string; date: string; event?: CalendarEvent }) => {
       actionsRef.current.resetForm();
       setShowMoreOptions(false);
+
+      // 팝업이 열릴 때마다 설정 다시 로드 (테마 변경 반영)
+      if (window.electronAPI?.getSettings) {
+        const settings = await window.electronAPI.getSettings();
+        setTheme(settings?.theme || 'light');
+        if (settings?.fontSize) {
+          setFontSize(settings.fontSize);
+        }
+      }
 
       // 팝업이 열릴 때마다 Google 연결 상태 확인
       if (window.electronAPI?.googleAuthStatus) {
@@ -154,9 +163,9 @@ export function EventPopup() {
     window.addEventListener('mouseup', handleMouseUp);
   }, []);
 
-  // 팝업이 준비되지 않았으면 빈 컨테이너만 표시
-  if (!ready) {
-    return <div className={`popup-container popup-loading ${theme}`} style={{ fontSize }} />;
+  // 테마 로드 전이거나 팝업이 준비되지 않았으면 빈 컨테이너만 표시
+  if (!theme || !ready) {
+    return <div className={`popup-container popup-loading ${theme || ''}`} style={{ fontSize }} />;
   }
 
   return (
