@@ -1,11 +1,14 @@
-import { useMemo, useRef, useCallback } from 'react';
+import { useMemo, useRef, useCallback, memo } from 'react';
 import { format } from 'date-fns';
 import type { CalendarEvent } from '../../types';
-import { isDateInRepeatSchedule, createRepeatInstance, getLocalDateString } from '../../utils/date';
+import { isDateInRepeatSchedule, createRepeatInstance, getLocalDateString, sortEventsByCompletion } from '../../utils/date';
 import './WeekView.css';
 
 // 시간대 (0시 ~ 23시)
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
+
+// 종일 이벤트 최대 표시 줄 수
+const MAX_ALL_DAY_ROWS = 3;
 
 interface WeekViewProps {
   weekDays: Date[];
@@ -18,7 +21,7 @@ interface WeekViewProps {
   hiddenDays?: number[];
 }
 
-export function WeekView({
+export const WeekView = memo(function WeekView({
   weekDays,
   events,
   selectedDate,
@@ -99,14 +102,32 @@ export function WeekView({
     return result;
   }, [events]);
 
-  // 이벤트 위치 및 높이 계산 (시간 기반)
-  const getEventStyle = (event: CalendarEvent) => {
-    if (!event.time) {
-      // 종일 이벤트는 상단에 표시
-      return { top: 0, height: 20, isAllDay: true };
+  // 종일 이벤트 (시간 없는 이벤트) 분리 - 미완료가 먼저 표시
+  const allDayEventsByDate = useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>();
+
+    for (const date of visibleDays) {
+      const dateStr = getLocalDateString(date);
+      const eventsForDate = getEventsForDate(date);
+      const allDayEvents = eventsForDate.filter(e => !e.time);
+      if (allDayEvents.length > 0) {
+        // 미완료 먼저, 완료는 나중에 정렬
+        map.set(dateStr, sortEventsByCompletion(allDayEvents));
+      }
     }
 
-    const [hours, minutes] = event.time.split(':').map(Number);
+    return map;
+  }, [visibleDays, getEventsForDate]);
+
+  // 종일 이벤트가 있는지 확인
+  const hasAllDayEvents = useMemo(() => {
+    return allDayEventsByDate.size > 0;
+  }, [allDayEventsByDate]);
+
+
+  // 이벤트 위치 및 높이 계산 (시간 기반)
+  const getEventStyle = (event: CalendarEvent) => {
+    const [hours, minutes] = (event.time || '00:00').split(':').map(Number);
     const startMinutes = hours * 60 + minutes;
 
     // 기본 1시간 길이
@@ -115,7 +136,7 @@ export function WeekView({
     const top = (startMinutes / 60) * 60; // 시간당 60px
     const height = Math.max(((endMinutes - startMinutes) / 60) * 60, 20);
 
-    return { top, height, isAllDay: false };
+    return { top, height };
   };
 
   // 오늘 날짜인지 확인
@@ -176,6 +197,46 @@ export function WeekView({
         ))}
       </div>
 
+      {/* 종일 이벤트 영역 */}
+      {hasAllDayEvents && (
+        <div
+          className="week-allday-section"
+          style={{ gridTemplateColumns: `50px repeat(${columnCount}, 1fr)` }}
+        >
+          <div className="week-allday-gutter" />
+          {visibleDays.map((date) => {
+            const dateStr = getLocalDateString(date);
+            const allDayEvents = allDayEventsByDate.get(dateStr) || [];
+            const displayEvents = allDayEvents.slice(0, MAX_ALL_DAY_ROWS);
+            const moreCount = allDayEvents.length - MAX_ALL_DAY_ROWS;
+
+            return (
+              <div
+                key={date.toISOString()}
+                className={`week-allday-cell ${isToday(date) ? 'today' : ''} ${showHolidays && isWeekend(date) ? 'weekend' : ''}`}
+              >
+                {displayEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className={`week-allday-event ${event.completed ? 'completed' : ''}`}
+                    style={{ backgroundColor: event.color || 'var(--accent-color)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEventClick?.(event, e);
+                    }}
+                  >
+                    {event.title}
+                  </div>
+                ))}
+                {moreCount > 0 && (
+                  <div className="week-allday-more">+{moreCount}</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* 시간 그리드 */}
       <div
         ref={weekBodyRef}
@@ -214,30 +275,31 @@ export function WeekView({
                 <div key={hour} className="week-hour-cell" />
               ))}
 
-              {/* 이벤트 */}
-              {getEventsForDate(date).map((event) => {
-                const style = getEventStyle(event);
-                if (style.isAllDay) return null; // 종일 이벤트는 별도 처리
+              {/* 시간 있는 이벤트만 표시 */}
+              {getEventsForDate(date)
+                .filter(event => event.time)
+                .map((event) => {
+                  const style = getEventStyle(event);
 
-                return (
-                  <div
-                    key={event.id}
-                    className={`week-event ${event.completed ? 'completed' : ''}`}
-                    style={{
-                      top: `${style.top}px`,
-                      height: `${style.height}px`,
-                      backgroundColor: event.color || 'var(--accent-color)',
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEventClick?.(event, e);
-                    }}
-                  >
-                    <span className="week-event-time">{event.time}</span>
-                    <span className="week-event-title">{event.title}</span>
-                  </div>
-                );
-              })}
+                  return (
+                    <div
+                      key={event.id}
+                      className={`week-event ${event.completed ? 'completed' : ''}`}
+                      style={{
+                        top: `${style.top}px`,
+                        height: `${style.height}px`,
+                        backgroundColor: event.color || 'var(--accent-color)',
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEventClick?.(event, e);
+                      }}
+                    >
+                      <span className="week-event-time">{event.time}</span>
+                      <span className="week-event-title">{event.title}</span>
+                    </div>
+                  );
+                })}
             </div>
           ))}
 
@@ -271,4 +333,4 @@ export function WeekView({
       </div>
     </div>
   );
-}
+});
