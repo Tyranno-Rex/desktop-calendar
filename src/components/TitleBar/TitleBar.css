@@ -15,7 +15,7 @@
 }
 
 .title-text {
-  font-size: 13px;
+  font-size: 0.9em;
   font-weight: 500;
   color: var(--text-secondary);
   display: none; /* 레퍼런스처럼 타이틀 숨김 */
@@ -125,7 +125,7 @@
   position: absolute;
   top: 2px;
   right: 2px;
-  font-size: 9px;
+  font-size: 0.65em;
   font-weight: 600;
   color: var(--text-tertiary);
   background: var(--bg-secondary);
@@ -165,7 +165,7 @@
   border: none;
   background: transparent;
   color: var(--text-color);
-  font-size: 13px;
+  font-size: 0.9em;
   cursor: pointer;
   text-align: left;
   transition: background 0.15s;

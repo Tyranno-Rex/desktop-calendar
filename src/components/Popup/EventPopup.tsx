@@ -13,6 +13,7 @@ export function EventPopup() {
   const [ready, setReady] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [fontSize, setFontSize] = useState(14);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   const { state, actions, refs } = useEventForm();
@@ -23,17 +24,20 @@ export function EventPopup() {
   const actionsRef = useRef(actions);
   actionsRef.current = actions;
 
-  // 테마 설정 로드 (마운트 시 1회)
+  // 설정 로드 (마운트 시 1회)
   useEffect(() => {
-    const loadTheme = async () => {
+    const loadSettings = async () => {
       if (window.electronAPI?.getSettings) {
         const settings = await window.electronAPI.getSettings();
         if (settings?.theme) {
           setTheme(settings.theme);
         }
+        if (settings?.fontSize) {
+          setFontSize(settings.fontSize);
+        }
       }
     };
-    loadTheme();
+    loadSettings();
   }, []);
 
   // IPC 리스너 등록 (마운트 시 1회만)
@@ -152,11 +156,11 @@ export function EventPopup() {
 
   // 팝업이 준비되지 않았으면 빈 컨테이너만 표시
   if (!ready) {
-    return <div className={`popup-container popup-loading ${theme}`} />;
+    return <div className={`popup-container popup-loading ${theme}`} style={{ fontSize }} />;
   }
 
   return (
-    <div className={`popup-container ${theme}`}>
+    <div className={`popup-container ${theme}`} style={{ fontSize }}>
       {/* 리사이즈 핸들 */}
       <div className="resize-handle resize-n" onMouseDown={handleResizeStart('n')} />
       <div className="resize-handle resize-s" onMouseDown={handleResizeStart('s')} />

@@ -729,7 +729,7 @@
 .icon-btn-badge.google-badge {
   font-size: 10px;
   font-weight: 700;
-  font-family: 'Google Sans', Arial, sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
   bottom: 1px;
   right: 2px;
 }
@@ -737,7 +737,7 @@
 .google-icon {
   font-size: 16px;
   font-weight: 700;
-  font-family: 'Google Sans', Arial, sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 .icon-btn-dropdown {
