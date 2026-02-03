@@ -2,6 +2,50 @@ import { memo, useCallback, useRef, useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import './Calendar.css';
 
+// View Toggle 컴포넌트 분리
+interface ViewToggleProps {
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+}
+
+const VIEW_MODES: ViewMode[] = ['month', 'week', 'day'];
+const VIEW_LABELS: Record<ViewMode, string> = {
+  month: 'Month',
+  week: 'Week',
+  day: 'Day',
+};
+const BUTTON_WIDTH = 52; // CSS와 동일
+
+function ViewToggle({ viewMode, onViewModeChange }: ViewToggleProps) {
+  const activeIndex = VIEW_MODES.indexOf(viewMode);
+
+  return (
+    <div className="view-toggle">
+      <motion.div
+        className="view-toggle-indicator"
+        initial={false}
+        animate={{
+          x: activeIndex * BUTTON_WIDTH,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 120,
+          damping: 20,
+        }}
+      />
+      {VIEW_MODES.map((mode) => (
+        <button
+          key={mode}
+          className={`view-toggle-btn ${viewMode === mode ? 'active' : ''}`}
+          onClick={() => onViewModeChange(mode)}
+        >
+          {VIEW_LABELS[mode]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
@@ -249,26 +293,7 @@ export const CalendarHeader = memo(function CalendarHeader({
         </motion.button>
 
         {onViewModeChange && (
-          <div className="view-toggle">
-            <button
-              className={`view-toggle-btn ${viewMode === 'month' ? 'active' : ''}`}
-              onClick={() => onViewModeChange('month')}
-            >
-              Month
-            </button>
-            <button
-              className={`view-toggle-btn ${viewMode === 'week' ? 'active' : ''}`}
-              onClick={() => onViewModeChange('week')}
-            >
-              Week
-            </button>
-            <button
-              className={`view-toggle-btn ${viewMode === 'day' ? 'active' : ''}`}
-              onClick={() => onViewModeChange('day')}
-            >
-              Day
-            </button>
-          </div>
+          <ViewToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
         )}
       </div>
     </div>

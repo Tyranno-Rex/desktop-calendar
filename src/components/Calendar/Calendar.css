@@ -32,10 +32,10 @@
 }
 
 .month-year span {
-  font-size: 1.4em;
+  font-size: 1.15em;
   font-weight: 500;
   color: var(--text-color);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
 }
 
 .month-text,
@@ -53,6 +53,14 @@
 .month-text.dragging,
 .year-text.dragging {
   color: var(--accent-color);
+}
+
+.week-range-text,
+.day-text {
+  font-size: 1.15em;
+  font-weight: 500;
+  color: var(--text-color);
+  letter-spacing: -0.3px;
 }
 
 .nav-btn {
@@ -117,6 +125,17 @@
   border: 1px solid var(--border-color);
   border-radius: 6px;
   overflow: hidden;
+  position: relative;
+}
+
+.view-toggle-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 52px;
+  background: var(--accent-color);
+  z-index: 0;
 }
 
 .view-toggle-btn {
@@ -125,9 +144,13 @@
   color: var(--text-secondary);
   font-size: 0.85em;
   font-weight: 500;
-  padding: 6px 12px;
+  padding: 6px 0;
+  width: 52px;
+  text-align: center;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: color 0.2s;
+  position: relative;
+  z-index: 1;
 }
 
 .view-toggle-btn:hover {
@@ -135,7 +158,6 @@
 }
 
 .view-toggle-btn.active {
-  background: var(--accent-color);
   color: white;
 }
 
