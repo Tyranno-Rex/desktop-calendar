@@ -137,7 +137,7 @@ function App() {
 
   if (eventsLoading || settingsLoading) {
     return (
-      <div className={`app ${settings.theme}`} style={{ fontSize: settings.fontSize }}>
+      <div className={`app ${settings.theme} ${settings.accentColor}`} style={{ fontSize: settings.fontSize }}>
         <TitleBar onSettings={openSettings} />
         <div className="app-content loading">Loading...</div>
       </div>
@@ -145,7 +145,7 @@ function App() {
   }
 
   return (
-    <div className={`app ${settings.theme}`} style={{ fontSize: settings.fontSize }}>
+    <div className={`app ${settings.theme} ${settings.accentColor}`} style={{ fontSize: settings.fontSize }}>
       <TitleBar
         onSettings={openSettings}
         resizeMode={settings.resizeMode}

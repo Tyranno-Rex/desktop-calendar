@@ -26,14 +26,6 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Mood theme - Glassmorphism title bar */
-.app.orange .title-bar {
-  background: rgba(44, 44, 46, 0.5);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
 .title-bar-drag {
   flex: 1;
   display: flex;
@@ -65,10 +57,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  color: #3d3d3d;
   border-radius: 8px;
   transition: all 0.15s;
   -webkit-app-region: no-drag;
+}
+
+/* Light theme buttons */
+.app.light .window-btn {
+  color: #3d3d3d;
+}
+
+/* Dark theme buttons */
+.app.dark .window-btn {
+  color: #ebebf5;
 }
 
 .window-btn:hover,
@@ -84,7 +86,7 @@
 }
 
 .window-btn.panel-toggle {
-  color: var(--text-secondary);
+  color: inherit;
 }
 
 .window-btn.panel-toggle:hover,
@@ -196,15 +198,6 @@
 
 /* Dark theme - Glassmorphism memo dropdown */
 .app.dark .memo-dropdown {
-  background: rgba(44, 44, 46, 0.92);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-/* Orange theme - Glassmorphism memo dropdown */
-.app.orange .memo-dropdown {
   background: rgba(44, 44, 46, 0.92);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);

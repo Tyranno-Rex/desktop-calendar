@@ -1,4 +1,4 @@
-/* Light theme (default) - Apple-inspired Glassmorphism */
+/* ===== Light Theme Base ===== */
 .popup-container {
   --bg-primary: #ffffff;
   --bg-secondary: #f5f5f7;
@@ -7,10 +7,6 @@
   --text-color: #1d1d1f;
   --text-secondary: #6e6e73;
   --text-muted: #86868b;
-  --accent-color: #007aff;
-  --accent-hover: #0056b3;
-  --accent-light: rgba(0, 122, 255, 0.12);
-  --accent-text: #0055cc;
   --border-color: rgba(0, 0, 0, 0.1);
 
   background: rgba(255, 255, 255, 0.85);
@@ -28,7 +24,7 @@
   position: relative;
 }
 
-/* Dark theme - Apple-inspired Glassmorphism */
+/* ===== Dark Theme Base ===== */
 .popup-container.dark {
   --bg-primary: #1c1c1e;
   --bg-secondary: #2c2c2e;
@@ -37,10 +33,6 @@
   --text-color: #ffffff;
   --text-secondary: #ebebf5;
   --text-muted: #8e8e93;
-  --accent-color: #0a84ff;
-  --accent-hover: #409cff;
-  --accent-light: rgba(10, 132, 255, 0.18);
-  --accent-text: #64d2ff;
   --border-color: rgba(84, 84, 88, 0.65);
 
   background: rgba(28, 28, 30, 0.85);
@@ -52,28 +44,34 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Orange theme - Apple-inspired Glassmorphism */
+/* ===== Blue Accent (Default) ===== */
+.popup-container.blue {
+  --accent-color: #007aff;
+  --accent-hover: #0056b3;
+  --accent-light: rgba(0, 122, 255, 0.12);
+  --accent-text: #0055cc;
+}
+
+.popup-container.dark.blue {
+  --accent-color: #0a84ff;
+  --accent-hover: #409cff;
+  --accent-light: rgba(10, 132, 255, 0.18);
+  --accent-text: #64d2ff;
+}
+
+/* ===== Orange Accent ===== */
 .popup-container.orange {
-  --bg-primary: #1c1c1e;
-  --bg-secondary: #2c2c2e;
-  --bg-cell: #1c1c1e;
-  --bg-cell-hover: #3a3a3c;
-  --text-color: #ffffff;
-  --text-secondary: #ebebf5;
-  --text-muted: #8e8e93;
+  --accent-color: #ff9500;
+  --accent-hover: #e08600;
+  --accent-light: rgba(255, 149, 0, 0.12);
+  --accent-text: #c77700;
+}
+
+.popup-container.dark.orange {
   --accent-color: #ff9f0a;
   --accent-hover: #ffb340;
   --accent-light: rgba(255, 159, 10, 0.18);
   --accent-text: #ffd60a;
-  --border-color: rgba(84, 84, 88, 0.65);
-
-  background: rgba(28, 28, 30, 0.85);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* 리사이즈 핸들 */
@@ -815,24 +813,54 @@
 /* Input fields with subtle glow on focus */
 .popup-container.light .popup-input:focus,
 .popup-container.light .popup-textarea:focus,
-.popup-container:not(.dark):not(.orange) .popup-input:focus,
-.popup-container:not(.dark):not(.orange) .popup-textarea:focus {
+.popup-container:not(.dark) .popup-input:focus,
+.popup-container:not(.dark) .popup-textarea:focus {
   border-color: var(--accent-color);
+}
+
+/* Light theme - Blue accent input glow */
+.popup-container.light.blue .popup-input:focus,
+.popup-container.light.blue .popup-textarea:focus,
+.popup-container:not(.dark).blue .popup-input:focus,
+.popup-container:not(.dark).blue .popup-textarea:focus {
   box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.15);
 }
 
-/* Buttons with depth */
-.popup-container.light .popup-btn-save,
-.popup-container:not(.dark):not(.orange) .popup-btn-save {
+/* Light theme - Orange accent input glow */
+.popup-container.light.orange .popup-input:focus,
+.popup-container.light.orange .popup-textarea:focus,
+.popup-container:not(.dark).orange .popup-input:focus,
+.popup-container:not(.dark).orange .popup-textarea:focus {
+  box-shadow: 0 0 0 2px rgba(255, 149, 0, 0.15);
+}
+
+/* Buttons with depth - Blue accent */
+.popup-container.light.blue .popup-btn-save,
+.popup-container:not(.dark).blue .popup-btn-save {
   box-shadow:
     0 2px 8px rgba(0, 122, 255, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.popup-container.light .popup-btn-save:hover:not(:disabled),
-.popup-container:not(.dark):not(.orange) .popup-btn-save:hover:not(:disabled) {
+.popup-container.light.blue .popup-btn-save:hover:not(:disabled),
+.popup-container:not(.dark).blue .popup-btn-save:hover:not(:disabled) {
   box-shadow:
     0 4px 16px rgba(0, 122, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Buttons with depth - Orange accent */
+.popup-container.light.orange .popup-btn-save,
+.popup-container:not(.dark).orange .popup-btn-save {
+  box-shadow:
+    0 2px 8px rgba(255, 149, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.popup-container.light.orange .popup-btn-save:hover:not(:disabled),
+.popup-container:not(.dark).orange .popup-btn-save:hover:not(:disabled) {
+  box-shadow:
+    0 4px 16px rgba(255, 149, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -848,25 +876,41 @@
   border-color: rgba(0, 0, 0, 0.12);
 }
 
-/* Icon buttons with glow */
+/* Icon buttons base */
 .popup-container.light .icon-btn,
-.popup-container:not(.dark):not(.orange) .icon-btn {
+.popup-container:not(.dark) .icon-btn {
   background: rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.popup-container.light .icon-btn:hover:not(:disabled),
-.popup-container:not(.dark):not(.orange) .icon-btn:hover:not(:disabled) {
+/* Icon buttons - Blue accent */
+.popup-container.light.blue .icon-btn:hover:not(:disabled),
+.popup-container:not(.dark).blue .icon-btn:hover:not(:disabled) {
   background: rgba(0, 122, 255, 0.1);
   border-color: rgba(0, 122, 255, 0.3);
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.15);
 }
 
-.popup-container.light .icon-btn.active,
-.popup-container:not(.dark):not(.orange) .icon-btn.active {
+.popup-container.light.blue .icon-btn.active,
+.popup-container:not(.dark).blue .icon-btn.active {
   background: rgba(0, 122, 255, 0.12);
   border-color: var(--accent-color);
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+}
+
+/* Icon buttons - Orange accent */
+.popup-container.light.orange .icon-btn:hover:not(:disabled),
+.popup-container:not(.dark).orange .icon-btn:hover:not(:disabled) {
+  background: rgba(255, 149, 0, 0.1);
+  border-color: rgba(255, 149, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.15);
+}
+
+.popup-container.light.orange .icon-btn.active,
+.popup-container:not(.dark).orange .icon-btn.active {
+  background: rgba(255, 149, 0, 0.12);
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
 }
 
 /* Dropdowns with glassmorphism */
@@ -899,16 +943,28 @@
   background: rgba(0, 0, 0, 0.06);
 }
 
-/* Selected dropdown items with glow */
-.popup-container.light .time-dropdown-item.selected,
-.popup-container.light .repeat-dropdown-item.selected,
-.popup-container.light .reminder-dropdown-item.selected,
-.popup-container.light .icon-btn-dropdown-item.selected,
-.popup-container:not(.dark):not(.orange) .time-dropdown-item.selected,
-.popup-container:not(.dark):not(.orange) .repeat-dropdown-item.selected,
-.popup-container:not(.dark):not(.orange) .reminder-dropdown-item.selected,
-.popup-container:not(.dark):not(.orange) .icon-btn-dropdown-item.selected {
+/* Selected dropdown items with glow - Blue accent */
+.popup-container.light.blue .time-dropdown-item.selected,
+.popup-container.light.blue .repeat-dropdown-item.selected,
+.popup-container.light.blue .reminder-dropdown-item.selected,
+.popup-container.light.blue .icon-btn-dropdown-item.selected,
+.popup-container:not(.dark).blue .time-dropdown-item.selected,
+.popup-container:not(.dark).blue .repeat-dropdown-item.selected,
+.popup-container:not(.dark).blue .reminder-dropdown-item.selected,
+.popup-container:not(.dark).blue .icon-btn-dropdown-item.selected {
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+}
+
+/* Selected dropdown items with glow - Orange accent */
+.popup-container.light.orange .time-dropdown-item.selected,
+.popup-container.light.orange .repeat-dropdown-item.selected,
+.popup-container.light.orange .reminder-dropdown-item.selected,
+.popup-container.light.orange .icon-btn-dropdown-item.selected,
+.popup-container:not(.dark).orange .time-dropdown-item.selected,
+.popup-container:not(.dark).orange .repeat-dropdown-item.selected,
+.popup-container:not(.dark).orange .reminder-dropdown-item.selected,
+.popup-container:not(.dark).orange .icon-btn-dropdown-item.selected {
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.2);
 }
 
 /* Time select buttons */
@@ -924,10 +980,16 @@
   border-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Toggle switch with glow when active */
-.popup-container.light .toggle-switch.active,
-.popup-container:not(.dark):not(.orange) .toggle-switch.active {
+/* Toggle switch with glow when active - Blue accent */
+.popup-container.light.blue .toggle-switch.active,
+.popup-container:not(.dark).blue .toggle-switch.active {
   box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+/* Toggle switch with glow when active - Orange accent */
+.popup-container.light.orange .toggle-switch.active,
+.popup-container:not(.dark).orange .toggle-switch.active {
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
 }
 
 /* More options button */
@@ -968,19 +1030,43 @@
 .popup-container.dark .popup-input:focus,
 .popup-container.dark .popup-textarea:focus {
   border-color: var(--accent-color);
+}
+
+/* Dark theme - Blue accent input glow */
+.popup-container.dark.blue .popup-input:focus,
+.popup-container.dark.blue .popup-textarea:focus {
   box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.2);
 }
 
-/* Buttons with depth */
-.popup-container.dark .popup-btn-save {
+/* Dark theme - Orange accent input glow */
+.popup-container.dark.orange .popup-input:focus,
+.popup-container.dark.orange .popup-textarea:focus {
+  box-shadow: 0 0 0 2px rgba(255, 159, 10, 0.2);
+}
+
+/* Buttons with depth - Blue accent */
+.popup-container.dark.blue .popup-btn-save {
   box-shadow:
     0 2px 8px rgba(10, 132, 255, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-.popup-container.dark .popup-btn-save:hover:not(:disabled) {
+.popup-container.dark.blue .popup-btn-save:hover:not(:disabled) {
   box-shadow:
     0 4px 16px rgba(10, 132, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Buttons with depth - Orange accent */
+.popup-container.dark.orange .popup-btn-save {
+  box-shadow:
+    0 2px 8px rgba(255, 159, 10, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.popup-container.dark.orange .popup-btn-save:hover:not(:disabled) {
+  box-shadow:
+    0 4px 16px rgba(255, 159, 10, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
@@ -994,22 +1080,36 @@
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* Icon buttons with glow */
+/* Icon buttons base */
 .popup-container.dark .icon-btn {
   background: rgba(58, 58, 60, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.popup-container.dark .icon-btn:hover:not(:disabled) {
+/* Icon buttons - Blue accent */
+.popup-container.dark.blue .icon-btn:hover:not(:disabled) {
   background: rgba(10, 132, 255, 0.15);
   border-color: rgba(10, 132, 255, 0.5);
   box-shadow: 0 2px 8px rgba(10, 132, 255, 0.2);
 }
 
-.popup-container.dark .icon-btn.active {
+.popup-container.dark.blue .icon-btn.active {
   background: rgba(10, 132, 255, 0.2);
   border-color: var(--accent-color);
   box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+}
+
+/* Icon buttons - Orange accent */
+.popup-container.dark.orange .icon-btn:hover:not(:disabled) {
+  background: rgba(255, 159, 10, 0.15);
+  border-color: rgba(255, 159, 10, 0.5);
+  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.2);
+}
+
+.popup-container.dark.orange .icon-btn.active {
+  background: rgba(255, 159, 10, 0.2);
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.3);
 }
 
 /* Dropdowns with glassmorphism */
@@ -1034,12 +1134,20 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Selected dropdown items with glow */
-.popup-container.dark .time-dropdown-item.selected,
-.popup-container.dark .repeat-dropdown-item.selected,
-.popup-container.dark .reminder-dropdown-item.selected,
-.popup-container.dark .icon-btn-dropdown-item.selected {
+/* Selected dropdown items with glow - Blue accent */
+.popup-container.dark.blue .time-dropdown-item.selected,
+.popup-container.dark.blue .repeat-dropdown-item.selected,
+.popup-container.dark.blue .reminder-dropdown-item.selected,
+.popup-container.dark.blue .icon-btn-dropdown-item.selected {
   box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
+}
+
+/* Selected dropdown items with glow - Orange accent */
+.popup-container.dark.orange .time-dropdown-item.selected,
+.popup-container.dark.orange .repeat-dropdown-item.selected,
+.popup-container.dark.orange .reminder-dropdown-item.selected,
+.popup-container.dark.orange .icon-btn-dropdown-item.selected {
+  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.3);
 }
 
 /* Time select buttons */
@@ -1053,9 +1161,14 @@
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* Toggle switch with glow when active */
-.popup-container.dark .toggle-switch.active {
+/* Toggle switch with glow when active - Blue accent */
+.popup-container.dark.blue .toggle-switch.active {
   box-shadow: 0 2px 8px rgba(10, 132, 255, 0.4);
+}
+
+/* Toggle switch with glow when active - Orange accent */
+.popup-container.dark.orange .toggle-switch.active {
+  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.4);
 }
 
 /* More options button */
@@ -1080,126 +1193,3 @@
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* ========== Orange Theme Specific Styles ========== */
-
-/* Header with glassmorphism */
-.popup-container.orange .popup-header {
-  background: rgba(44, 44, 46, 0.6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* Input fields with subtle glow on focus */
-.popup-container.orange .popup-input:focus,
-.popup-container.orange .popup-textarea:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(255, 159, 10, 0.2);
-}
-
-/* Buttons with depth */
-.popup-container.orange .popup-btn-save {
-  box-shadow:
-    0 2px 8px rgba(255, 159, 10, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.popup-container.orange .popup-btn-save:hover:not(:disabled) {
-  box-shadow:
-    0 4px 16px rgba(255, 159, 10, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.popup-container.orange .popup-btn-cancel {
-  background: rgba(58, 58, 60, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.popup-container.orange .popup-btn-cancel:hover {
-  background: rgba(58, 58, 60, 0.8);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-/* Icon buttons with glow */
-.popup-container.orange .icon-btn {
-  background: rgba(58, 58, 60, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.popup-container.orange .icon-btn:hover:not(:disabled) {
-  background: rgba(255, 159, 10, 0.15);
-  border-color: rgba(255, 159, 10, 0.5);
-  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.2);
-}
-
-.popup-container.orange .icon-btn.active {
-  background: rgba(255, 159, 10, 0.2);
-  border-color: var(--accent-color);
-  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.3);
-}
-
-/* Dropdowns with glassmorphism */
-.popup-container.orange .time-dropdown,
-.popup-container.orange .repeat-dropdown,
-.popup-container.orange .reminder-dropdown,
-.popup-container.orange .icon-btn-dropdown {
-  background: rgba(44, 44, 46, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-/* Dropdown items hover */
-.popup-container.orange .time-dropdown-item:hover,
-.popup-container.orange .repeat-dropdown-item:hover,
-.popup-container.orange .reminder-dropdown-item:hover,
-.popup-container.orange .icon-btn-dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Selected dropdown items with glow */
-.popup-container.orange .time-dropdown-item.selected,
-.popup-container.orange .repeat-dropdown-item.selected,
-.popup-container.orange .reminder-dropdown-item.selected,
-.popup-container.orange .icon-btn-dropdown-item.selected {
-  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.3);
-}
-
-/* Time select buttons */
-.popup-container.orange .time-select-btn {
-  background: rgba(58, 58, 60, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.popup-container.orange .time-select-btn:hover {
-  background: rgba(58, 58, 60, 0.8);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-/* Toggle switch with glow when active */
-.popup-container.orange .toggle-switch.active {
-  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.4);
-}
-
-/* More options button */
-.popup-container.orange .more-options-btn {
-  background: rgba(58, 58, 60, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.popup-container.orange .more-options-btn:hover {
-  background: rgba(58, 58, 60, 0.8);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-/* More options content */
-.popup-container.orange .more-options-content {
-  background: rgba(44, 44, 46, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Footer with subtle border */
-.popup-container.orange .popup-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}

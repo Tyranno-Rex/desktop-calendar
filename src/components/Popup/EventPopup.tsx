@@ -12,7 +12,8 @@ export function EventPopup() {
   const [isEdit, setIsEdit] = useState(false);
   const [ready, setReady] = useState(false);
   const [googleConnected, setGoogleConnected] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark' | 'orange' | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
+  const [accentColor, setAccentColor] = useState<'blue' | 'orange'>('blue');
   const [fontSize, setFontSize] = useState(14);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
@@ -29,7 +30,14 @@ export function EventPopup() {
     const loadSettings = async () => {
       if (window.electronAPI?.getSettings) {
         const settings = await window.electronAPI.getSettings();
-        setTheme((settings?.theme as 'light' | 'dark' | 'orange') || 'light');
+        // 기존 orange 테마 마이그레이션 처리
+        if (settings?.theme === 'orange') {
+          setTheme('dark');
+          setAccentColor('orange');
+        } else {
+          setTheme((settings?.theme as 'light' | 'dark') || 'light');
+          setAccentColor(settings?.accentColor || 'blue');
+        }
         if (settings?.fontSize) {
           setFontSize(settings.fontSize);
         }
@@ -53,7 +61,14 @@ export function EventPopup() {
       // 팝업이 열릴 때마다 설정 다시 로드 (테마 변경 반영)
       if (window.electronAPI?.getSettings) {
         const settings = await window.electronAPI.getSettings();
-        setTheme((settings?.theme as 'light' | 'dark' | 'orange') || 'light');
+        // 기존 orange 테마 마이그레이션 처리
+        if (settings?.theme === 'orange') {
+          setTheme('dark');
+          setAccentColor('orange');
+        } else {
+          setTheme((settings?.theme as 'light' | 'dark') || 'light');
+          setAccentColor(settings?.accentColor || 'blue');
+        }
         if (settings?.fontSize) {
           setFontSize(settings.fontSize);
         }
@@ -165,11 +180,11 @@ export function EventPopup() {
 
   // 테마 로드 전이거나 팝업이 준비되지 않았으면 빈 컨테이너만 표시
   if (!theme || !ready) {
-    return <div className={`popup-container popup-loading ${theme || ''}`} style={{ fontSize }} />;
+    return <div className={`popup-container popup-loading ${theme || ''} ${accentColor}`} style={{ fontSize }} />;
   }
 
   return (
-    <div className={`popup-container ${theme}`} style={{ fontSize }}>
+    <div className={`popup-container ${theme} ${accentColor}`} style={{ fontSize }}>
       {/* 리사이즈 핸들 */}
       <div className="resize-handle resize-n" onMouseDown={handleResizeStart('n')} />
       <div className="resize-handle resize-s" onMouseDown={handleResizeStart('s')} />

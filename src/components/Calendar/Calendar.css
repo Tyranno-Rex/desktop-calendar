@@ -34,14 +34,6 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Mood theme - Glassmorphism header */
-.app.orange .calendar-header {
-  background: rgba(44, 44, 46, 0.72);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
 .nav-center {
   display: flex;
   align-items: center;
@@ -128,16 +120,12 @@
 }
 
 .app.dark .nav-btn:hover,
-.app.orange .nav-btn:hover,
-.app.dark .nav-btn.desktop-hover,
-.app.orange .nav-btn.desktop-hover {
+.app.dark .nav-btn.desktop-hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
 .app.dark .nav-btn:active,
-.app.orange .nav-btn:active,
-.app.dark .nav-btn.desktop-active,
-.app.orange .nav-btn.desktop-active {
+.app.dark .nav-btn.desktop-active {
   background: rgba(255, 255, 255, 0.15);
 }
 
@@ -174,8 +162,7 @@
   transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
-.app.dark .today-btn,
-.app.orange .today-btn {
+.app.dark .today-btn {
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -193,13 +180,6 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-/* Mood theme - button with subtle shadow */
-.app.orange .today-btn {
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
 .today-btn:hover,
 .today-btn.desktop-hover {
   background: rgba(118, 118, 128, 0.2);
@@ -208,9 +188,7 @@
 }
 
 .app.dark .today-btn:hover,
-.app.orange .today-btn:hover,
-.app.dark .today-btn.desktop-hover,
-.app.orange .today-btn.desktop-hover {
+.app.dark .today-btn.desktop-hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
@@ -228,13 +206,6 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.app.orange .today-btn:hover,
-.app.orange .today-btn.desktop-hover {
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
 .today-btn:active,
 .today-btn.desktop-active {
   transform: scale(0.92);
@@ -242,22 +213,9 @@
   color: var(--accent-color);
 }
 
-.app.dark .today-btn:active,
-.app.orange .today-btn:active {
+.app.dark .today-btn:active {
   background: var(--accent-light);
   color: var(--accent-color);
-}
-
-.app.light .today-btn:active {
-  box-shadow: 0 2px 6px rgba(0, 122, 255, 0.2);
-}
-
-.app.dark .today-btn:active {
-  box-shadow: 0 2px 6px rgba(10, 132, 255, 0.3);
-}
-
-.app.orange .today-btn:active {
-  box-shadow: 0 2px 6px rgba(255, 159, 10, 0.3);
 }
 
 /* View Toggle - Apple Segmented Control */
@@ -271,10 +229,6 @@
 
 .app.dark .view-toggle {
   background: rgba(118, 118, 128, 0.32);
-}
-
-.app.orange .view-toggle {
-  background: rgba(118, 118, 128, 0.24);
 }
 
 .view-toggle-indicator {
@@ -296,13 +250,6 @@
   box-shadow:
     0 3px 8px rgba(0, 0, 0, 0.3),
     0 1px 1px rgba(0, 0, 0, 0.1);
-}
-
-.app.orange .view-toggle-indicator {
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow:
-    0 3px 8px rgba(0, 0, 0, 0.24),
-    0 1px 1px rgba(0, 0, 0, 0.08);
 }
 
 .view-toggle-btn {
@@ -328,10 +275,6 @@
 .view-toggle-btn.active {
   color: var(--text-color);
   font-weight: 600;
-}
-
-.app.orange .view-toggle-btn.active {
-  color: #ffffff;
 }
 
 /* Calendar Grid - Reference style */
@@ -428,19 +371,6 @@
     0 4px 16px -4px rgba(10, 132, 255, 0.3);
 }
 
-/* Mood theme - day cell hover with depth */
-.app.orange .day-cell:hover,
-.app.orange .day-cell.desktop-hover {
-  background: rgba(58, 58, 60, 0.6);
-  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.4);
-  z-index: 1;
-}
-
-.app.orange .day-cell.selected {
-  box-shadow:
-    inset 0 0 0 2px var(--accent-color),
-    0 4px 16px -4px rgba(255, 159, 10, 0.3);
-}
 
 .day-cell.other-month {
   background: var(--bg-primary);
@@ -494,22 +424,15 @@
   font-weight: 500;
 }
 
-/* Light theme - today badge with glow */
-.app.light .day-number.today-badge,
-.app.light .day-cell.today .day-number:not(.today-badge) {
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+/* Today badge glow based on accent color */
+.app.blue .day-number.today-badge,
+.app.blue .day-cell.today .day-number:not(.today-badge) {
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.35);
 }
 
-/* Dark theme - today badge with glow */
-.app.dark .day-number.today-badge,
-.app.dark .day-cell.today .day-number:not(.today-badge) {
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.4);
-}
-
-/* Mood theme - today badge with glow */
 .app.orange .day-number.today-badge,
 .app.orange .day-cell.today .day-number:not(.today-badge) {
-  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.4);
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.4);
 }
 
 /* 점 표시 (패널 열림 상태) - Reference style */
@@ -568,22 +491,15 @@
   color: white;
 }
 
-/* Light theme - event item with glow */
-.app.light .day-event-item:hover,
-.app.light .day-event-item.desktop-hover {
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+/* Event item glow based on accent color */
+.app.blue .day-event-item:hover,
+.app.blue .day-event-item.desktop-hover {
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
 }
 
-/* Dark theme - event item with glow */
-.app.dark .day-event-item:hover,
-.app.dark .day-event-item.desktop-hover {
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.3);
-}
-
-/* Mood theme - event item with glow */
 .app.orange .day-event-item:hover,
 .app.orange .day-event-item.desktop-hover {
-  box-shadow: 0 2px 8px rgba(255, 159, 10, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
 }
 
 .day-event-time {

@@ -112,15 +112,6 @@ export function SettingsPanel({
             <label>Theme</label>
             <div className="theme-options">
               <motion.button
-                className={`theme-btn ${settings.theme === 'dark' ? 'active' : ''}`}
-                onClick={() => onUpdateSettings({ theme: 'dark' })}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-              >
-                Dark
-              </motion.button>
-              <motion.button
                 className={`theme-btn ${settings.theme === 'light' ? 'active' : ''}`}
                 onClick={() => onUpdateSettings({ theme: 'light' })}
                 whileHover={{ scale: 1.03 }}
@@ -130,13 +121,39 @@ export function SettingsPanel({
                 Light
               </motion.button>
               <motion.button
-                className={`theme-btn ${settings.theme === 'orange' ? 'active' : ''}`}
-                onClick={() => onUpdateSettings({ theme: 'orange' })}
+                className={`theme-btn ${settings.theme === 'dark' ? 'active' : ''}`}
+                onClick={() => onUpdateSettings({ theme: 'dark' })}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               >
-                Orange
+                Dark
+              </motion.button>
+            </div>
+          </div>
+
+          <div className="setting-item">
+            <label>Accent Color</label>
+            <div className="accent-options">
+              <motion.button
+                className={`accent-btn blue ${settings.accentColor === 'blue' ? 'active' : ''}`}
+                onClick={() => onUpdateSettings({ accentColor: 'blue' })}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                title="Blue"
+              >
+                <span className="accent-dot" />
+              </motion.button>
+              <motion.button
+                className={`accent-btn orange ${settings.accentColor === 'orange' ? 'active' : ''}`}
+                onClick={() => onUpdateSettings({ accentColor: 'orange' })}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                title="Orange"
+              >
+                <span className="accent-dot" />
               </motion.button>
             </div>
           </div>

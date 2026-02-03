@@ -166,17 +166,6 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Mood theme - Glassmorphism settings panel */
-.app.orange .settings-panel {
-  background: rgba(44, 44, 46, 0.75);
-  backdrop-filter: blur(40px) saturate(180%);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
 .settings-header {
   display: flex;
   justify-content: space-between;
@@ -337,6 +326,67 @@
   border-color: var(--accent-color);
 }
 
+/* Accent Color Options */
+.accent-options {
+  display: flex;
+  gap: 12px;
+}
+
+.accent-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  background: transparent;
+  padding: 0;
+}
+
+.accent-btn .accent-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.accent-btn.blue .accent-dot {
+  background: linear-gradient(135deg, #007aff, #0a84ff);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+}
+
+.accent-btn.orange .accent-dot {
+  background: linear-gradient(135deg, #ff9500, #ff9f0a);
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.4);
+}
+
+.accent-btn:hover .accent-dot,
+.accent-btn.desktop-hover .accent-dot {
+  transform: scale(1.1);
+}
+
+.accent-btn.active {
+  border-color: var(--text-color);
+}
+
+.accent-btn.active .accent-dot {
+  transform: scale(1.05);
+}
+
+/* Light theme accent buttons */
+.app.light .accent-btn.active {
+  border-color: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Dark theme accent buttons */
+.app.dark .accent-btn.active {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+}
 
 .slider {
   width: 100%;
@@ -467,19 +517,13 @@
   background: white;
 }
 
-/* Light theme - toggle with glow when active */
-.app.light .toggle-btn.active .toggle-slider {
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+/* Toggle glow based on accent color */
+.app.blue .toggle-btn.active .toggle-slider {
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.35);
 }
 
-/* Dark theme - toggle with glow when active */
-.app.dark .toggle-btn.active .toggle-slider {
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.4);
-}
-
-/* Mood theme - toggle with glow when active */
 .app.orange .toggle-btn.active .toggle-slider {
-  box-shadow: 0 2px 6px rgba(255, 159, 10, 0.25);
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.35);
 }
 
 .toggle-btn.disabled {

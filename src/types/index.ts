@@ -57,7 +57,8 @@ export interface Settings {
   opacity: number;
   alwaysOnTop: boolean;
   desktopMode: boolean;
-  theme: 'dark' | 'light' | 'orange';
+  theme: 'dark' | 'light';
+  accentColor: 'blue' | 'orange';
   fontSize: number;
   resizeMode: boolean;
   showHolidays: boolean;

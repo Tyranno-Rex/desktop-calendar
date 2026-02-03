@@ -8,6 +8,7 @@ export function MemoPopup() {
   const [content, setContent] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [accentColor, setAccentColor] = useState<'blue' | 'orange'>('blue');
   const [memoId, setMemoId] = useState<string | null>(null);
   const [isPinned, setIsPinned] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -27,8 +28,13 @@ export function MemoPopup() {
       // 테마 로드
       if (window.electronAPI?.getSettings) {
         const settings = await window.electronAPI.getSettings();
-        if (settings?.theme) {
-          setTheme(settings.theme);
+        // 기존 orange 테마 마이그레이션 처리
+        if (settings?.theme === 'orange') {
+          setTheme('dark');
+          setAccentColor('orange');
+        } else if (settings?.theme) {
+          setTheme(settings.theme as 'light' | 'dark');
+          setAccentColor(settings.accentColor || 'blue');
         }
       }
 
@@ -128,7 +134,7 @@ export function MemoPopup() {
   };
 
   return (
-    <div className={`memo-popup-container ${theme} ${isPinned ? 'pinned' : ''}`}>
+    <div className={`memo-popup-container ${theme} ${accentColor} ${isPinned ? 'pinned' : ''}`}>
       {/* 리사이즈 핸들 - 핀 고정 시 비활성화 */}
       {!isPinned && (
         <>

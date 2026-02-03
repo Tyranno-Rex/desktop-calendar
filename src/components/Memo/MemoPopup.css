@@ -9,24 +9,42 @@
   overflow: hidden;
 }
 
+/* ===== Dark Theme Base ===== */
 .memo-popup-container.dark {
   --bg-primary: #111827;
   --bg-secondary: #1f2937;
   --text-primary: #f9fafb;
   --text-secondary: #9ca3af;
   --border-color: rgba(75, 85, 99, 0.5);
-  --accent-color: #3b82f6;
   --bg-hover: rgba(55, 65, 81, 0.5);
 }
 
+/* ===== Light Theme Base ===== */
 .memo-popup-container.light {
   --bg-primary: #ffffff;
   --bg-secondary: #f3f4f6;
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --border-color: #e5e7eb;
-  --accent-color: #3b82f6;
   --bg-hover: rgba(243, 244, 246, 0.8);
+}
+
+/* ===== Blue Accent ===== */
+.memo-popup-container.blue {
+  --accent-color: #007aff;
+}
+
+.memo-popup-container.dark.blue {
+  --accent-color: #0a84ff;
+}
+
+/* ===== Orange Accent ===== */
+.memo-popup-container.orange {
+  --accent-color: #ff9500;
+}
+
+.memo-popup-container.dark.orange {
+  --accent-color: #ff9f0a;
 }
 
 /* 리사이즈 핸들 */
