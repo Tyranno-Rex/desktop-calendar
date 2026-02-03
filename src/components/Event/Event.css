@@ -31,6 +31,15 @@
   align-items: center;
   padding: 24px 28px;
   border-bottom: 1px solid var(--border-color);
+  user-select: none;
+}
+
+.event-modal-popup .popup-header-draggable {
+  cursor: grab;
+}
+
+.event-modal-popup .popup-header-draggable:active {
+  cursor: grabbing;
 }
 
 .event-modal-popup .popup-title {
@@ -464,6 +473,119 @@
 }
 
 .event-modal-popup .repeat-dropdown-item.selected {
+  background: var(--accent-color);
+  color: white;
+  font-weight: 500;
+}
+
+/* Icon Row - 아이콘 버튼들을 한 줄로 배치 */
+.event-modal-popup .icon-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Icon Button 스타일 */
+.event-modal-popup .icon-btn-wrapper {
+  position: relative;
+}
+
+.event-modal-popup .icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.event-modal-popup .icon-btn svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.event-modal-popup .icon-btn:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background: var(--accent-light);
+}
+
+.event-modal-popup .icon-btn.active {
+  background: var(--accent-light);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.event-modal-popup .icon-btn:disabled,
+.event-modal-popup .icon-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.event-modal-popup .icon-btn-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 12px;
+  text-align: center;
+}
+
+.event-modal-popup .icon-btn.active .icon-btn-badge {
+  color: var(--accent-color);
+}
+
+.event-modal-popup .icon-btn-badge.dday-badge {
+  font-size: 7px;
+  bottom: 1px;
+  right: 1px;
+}
+
+.event-modal-popup .icon-btn-badge.google-badge {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  bottom: 1px;
+  right: 2px;
+}
+
+.event-modal-popup .icon-btn-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 140px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.event-modal-popup .icon-btn-dropdown-item {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.event-modal-popup .icon-btn-dropdown-item:hover {
+  background: var(--bg-cell-hover);
+}
+
+.event-modal-popup .icon-btn-dropdown-item.selected {
   background: var(--accent-color);
   color: white;
   font-weight: 500;

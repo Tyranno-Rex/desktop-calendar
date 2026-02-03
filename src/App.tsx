@@ -60,11 +60,11 @@ function App() {
     }
   }, [selectedDate, showSchedulePanel]);
 
-  // 더블 클릭: 팝업/모달 열기
+  // 더블 클릭: 팝업 열기 (항상 Electron 팝업 사용)
   const handleOpenDate = useCallback((date: Date, clickEvent: React.MouseEvent) => {
     setSelectedDate(date);
 
-    if (settings.desktopMode && window.electronAPI?.openPopup) {
+    if (window.electronAPI?.openPopup) {
       window.electronAPI.openPopup({
         type: 'add-event',
         date: getLocalDateString(date),
@@ -72,14 +72,15 @@ function App() {
         y: clickEvent.screenY,
       });
     } else {
+      // Fallback: 웹 환경에서만 모달 사용
       setEditingEvent(undefined);
       setShowEventModal(true);
     }
-  }, [settings.desktopMode]);
+  }, []);
 
-  // 이벤트 편집
+  // 이벤트 편집 (항상 Electron 팝업 사용)
   const handleEditEvent = useCallback((event: CalendarEvent) => {
-    if (settings.desktopMode && window.electronAPI?.openPopup) {
+    if (window.electronAPI?.openPopup) {
       window.electronAPI.openPopup({
         type: 'edit-event',
         date: event.date,
@@ -88,14 +89,15 @@ function App() {
         y: 100,
       });
     } else {
+      // Fallback: 웹 환경에서만 모달 사용
       setEditingEvent(event);
       setShowEventModal(true);
     }
-  }, [settings.desktopMode]);
+  }, []);
 
-  // 캘린더에서 이벤트 클릭
+  // 캘린더에서 이벤트 클릭 (항상 Electron 팝업 사용)
   const handleEventClick = useCallback((event: CalendarEvent, clickEvent: React.MouseEvent) => {
-    if (settings.desktopMode && window.electronAPI?.openPopup) {
+    if (window.electronAPI?.openPopup) {
       window.electronAPI.openPopup({
         type: 'edit-event',
         date: event.date,
@@ -104,10 +106,11 @@ function App() {
         y: clickEvent.screenY,
       });
     } else {
+      // Fallback: 웹 환경에서만 모달 사용
       setEditingEvent(event);
       setShowEventModal(true);
     }
-  }, [settings.desktopMode]);
+  }, []);
 
   // 완료 토글
   const handleToggleComplete = useCallback((id: string) => {

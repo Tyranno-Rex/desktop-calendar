@@ -1,8 +1,9 @@
+import { useState, useRef, useCallback } from 'react';
 import { X, Trash2 } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
 import { getLocalDateString } from '../../utils/date';
 import { useEventForm } from '../../hooks/useEventForm';
-import { TimePicker, RepeatSelector, ReminderSelector, DDayToggle, GoogleSyncToggle } from './EventFormFields';
+import { TimePicker, RepeatIconButton, ReminderIconButton, GoogleSyncIconButton, DDayIconButton } from './EventFormFields';
 import './Event.css';
 
 interface EventModalProps {
@@ -26,6 +27,11 @@ export function EventModal({
 }: EventModalProps) {
   const { state, actions, refs } = useEventForm({ initialEvent: event });
   const isEditing = !!event;
+
+  // 드래그 이동 상태
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef({ startX: 0, startY: 0, initialX: 0, initialY: 0 });
 
   // 반복 인스턴스인 경우 원본 ID 사용
   const originalEventId = event?.isRepeatInstance && event?.repeatGroupId
@@ -76,11 +82,51 @@ export function EventModal({
     }
   };
 
+  // 드래그 시작
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialX: position.x,
+      initialY: position.y,
+    };
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - dragRef.current.startX;
+      const deltaY = moveEvent.clientY - dragRef.current.startY;
+      setPosition({
+        x: dragRef.current.initialX + deltaX,
+        y: dragRef.current.initialY + deltaY,
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [position]);
+
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>
-      <div className="event-modal-popup">
-        {/* Header */}
-        <div className="popup-header">
+      <div
+        className="event-modal-popup"
+        style={{
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          cursor: isDragging ? 'grabbing' : undefined,
+        }}
+      >
+        {/* Header - 드래그 가능 */}
+        <div
+          className="popup-header popup-header-draggable"
+          onMouseDown={handleDragStart}
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        >
           <h2 className="popup-title">Schedule Details</h2>
           <button className="popup-close" onClick={onClose}>
             <X size={20} />
@@ -89,33 +135,47 @@ export function EventModal({
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="popup-content">
+          {/* Title 필드 - 독립적인 한 줄 */}
           <div className="popup-field">
             <label className="popup-label">Title</label>
-            <div className="title-repeat-row">
-              <input
-                type="text"
-                placeholder="Enter title"
-                value={state.title}
-                onChange={(e) => actions.setTitle(e.target.value)}
-                className="popup-input"
-                autoFocus
+            <input
+              type="text"
+              placeholder="Enter title"
+              value={state.title}
+              onChange={(e) => actions.setTitle(e.target.value)}
+              className="popup-input"
+              autoFocus
+            />
+          </div>
+
+          {/* 아이콘 버튼 행 - 반복, 구글, 알람, D-Day */}
+          <div className="icon-row">
+            <RepeatIconButton
+              repeatType={state.repeatType}
+              showDropdown={state.showRepeatDropdown}
+              onSetShowDropdown={actions.setShowRepeatDropdown}
+              onSelectType={actions.setRepeatType}
+              pickerRef={refs.repeatPickerRef}
+            />
+            {!isEditing && (
+              <GoogleSyncIconButton
+                syncToGoogle={state.syncToGoogle}
+                onToggle={() => actions.setSyncToGoogle(!state.syncToGoogle)}
+                disabled={!googleConnected}
               />
-              <RepeatSelector
-                repeatType={state.repeatType}
-                showDropdown={state.showRepeatDropdown}
-                onSetShowDropdown={actions.setShowRepeatDropdown}
-                onSelectType={actions.setRepeatType}
-                pickerRef={refs.repeatPickerRef}
-              />
-              <ReminderSelector
-                reminderMinutes={state.reminderMinutes}
-                showDropdown={state.showReminderDropdown}
-                onSetShowDropdown={actions.setShowReminderDropdown}
-                onSelectMinutes={actions.setReminderMinutes}
-                disabled={!state.time}
-                pickerRef={refs.reminderPickerRef}
-              />
-            </div>
+            )}
+            <ReminderIconButton
+              reminderMinutes={state.reminderMinutes}
+              showDropdown={state.showReminderDropdown}
+              onSetShowDropdown={actions.setShowReminderDropdown}
+              onSelectMinutes={actions.setReminderMinutes}
+              disabled={!state.time}
+              pickerRef={refs.reminderPickerRef}
+            />
+            <DDayIconButton
+              isDDay={state.isDDay}
+              onToggle={() => actions.setIsDDay(!state.isDDay)}
+            />
           </div>
 
           <div className="popup-field">
@@ -145,20 +205,6 @@ export function EventModal({
               rows={4}
             />
           </div>
-
-          {/* D-Day 표시 옵션 */}
-          <DDayToggle
-            isDDay={state.isDDay}
-            onToggle={() => actions.setIsDDay(!state.isDDay)}
-          />
-
-          {/* Google Calendar 동기화 토글 - 새 일정 추가 시에만 표시 */}
-          {!isEditing && googleConnected && (
-            <GoogleSyncToggle
-              syncToGoogle={state.syncToGoogle}
-              onToggle={() => actions.setSyncToGoogle(!state.syncToGoogle)}
-            />
-          )}
         </form>
 
         {/* Footer */}

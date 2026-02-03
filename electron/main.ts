@@ -30,6 +30,7 @@ function initWindowsAPI() {
   if (process.platform !== 'win32') return;
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     koffi = require('koffi');
     if (!koffi) return;
     user32 = koffi.load('user32.dll');
