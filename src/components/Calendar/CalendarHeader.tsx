@@ -93,8 +93,11 @@ export const CalendarHeader = memo(function CalendarHeader({
 }: CalendarHeaderProps) {
   const [isDraggingMonth, setIsDraggingMonth] = useState(false);
   const [isDraggingYear, setIsDraggingYear] = useState(false);
+  const [isDraggingWeek, setIsDraggingWeek] = useState(false);
+  const [isDraggingDay, setIsDraggingDay] = useState(false);
   const dragStartY = useRef(0);
   const dragStartValue = useRef(0);
+  const dragAccumulator = useRef(0); // Week/Day 드래그용 누적값
   const threshold = 30; // 드래그 임계값 (픽셀)
 
   // 월 드래그
@@ -133,9 +136,45 @@ export const CalendarHeader = memo(function CalendarHeader({
     }
   }, [currentYear, onYearSelect]);
 
+  // Week 드래그
+  const handleWeekMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingWeek(true);
+    dragStartY.current = e.clientY;
+    dragAccumulator.current = 0;
+  }, []);
+
+  // Week 휠
+  const handleWeekWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 0) {
+      onNextWeek?.();
+    } else {
+      onPrevWeek?.();
+    }
+  }, [onNextWeek, onPrevWeek]);
+
+  // Day 드래그
+  const handleDayMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingDay(true);
+    dragStartY.current = e.clientY;
+    dragAccumulator.current = 0;
+  }, []);
+
+  // Day 휠
+  const handleDayWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 0) {
+      onNextDay?.();
+    } else {
+      onPrevDay?.();
+    }
+  }, [onNextDay, onPrevDay]);
+
   // 드래그 처리
   useEffect(() => {
-    if (!isDraggingMonth && !isDraggingYear) return;
+    if (!isDraggingMonth && !isDraggingYear && !isDraggingWeek && !isDraggingDay) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       const deltaY = dragStartY.current - e.clientY;
@@ -154,12 +193,35 @@ export const CalendarHeader = memo(function CalendarHeader({
         if (newYear !== currentYear && newYear > 1900 && newYear < 2100) {
           onYearSelect(newYear);
         }
+      } else if (isDraggingWeek || isDraggingDay) {
+        // Week/Day: 실시간으로 이동 (threshold마다 한 번씩)
+        const newSteps = Math.floor(deltaY / threshold);
+        const stepDiff = newSteps - dragAccumulator.current;
+
+        if (stepDiff !== 0) {
+          dragAccumulator.current = newSteps;
+          if (isDraggingWeek) {
+            if (stepDiff > 0) {
+              for (let i = 0; i < stepDiff; i++) onNextWeek?.();
+            } else {
+              for (let i = 0; i < -stepDiff; i++) onPrevWeek?.();
+            }
+          } else {
+            if (stepDiff > 0) {
+              for (let i = 0; i < stepDiff; i++) onNextDay?.();
+            } else {
+              for (let i = 0; i < -stepDiff; i++) onPrevDay?.();
+            }
+          }
+        }
       }
     };
 
     const handleMouseUp = () => {
       setIsDraggingMonth(false);
       setIsDraggingYear(false);
+      setIsDraggingWeek(false);
+      setIsDraggingDay(false);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -169,7 +231,7 @@ export const CalendarHeader = memo(function CalendarHeader({
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDraggingMonth, isDraggingYear, currentMonth, currentYear, onMonthSelect, onYearSelect]);
+  }, [isDraggingMonth, isDraggingYear, isDraggingWeek, isDraggingDay, currentMonth, currentYear, onMonthSelect, onYearSelect, onPrevWeek, onNextWeek, onPrevDay, onNextDay]);
 
   // Desktop Mode 클릭 중복 방지
   const lastNavClickTime = useRef(0);
@@ -248,7 +310,10 @@ export const CalendarHeader = memo(function CalendarHeader({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
-              className="week-range-text"
+              className={`week-range-text ${isDraggingWeek ? 'dragging' : ''}`}
+              onMouseDown={handleWeekMouseDown}
+              onWheel={handleWeekWheel}
+              title="Drag or scroll to change week"
             >
               {weekRangeText}
             </motion.span>
@@ -258,7 +323,10 @@ export const CalendarHeader = memo(function CalendarHeader({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2 }}
-              className="day-text"
+              className={`day-text ${isDraggingDay ? 'dragging' : ''}`}
+              onMouseDown={handleDayMouseDown}
+              onWheel={handleDayWheel}
+              title="Drag or scroll to change day"
             >
               {dayText}
             </motion.span>

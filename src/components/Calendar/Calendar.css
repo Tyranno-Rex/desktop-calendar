@@ -61,6 +61,19 @@
   font-weight: 500;
   color: var(--text-color);
   letter-spacing: -0.3px;
+  cursor: ns-resize;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.week-range-text:hover,
+.day-text:hover {
+  color: var(--accent-color);
+}
+
+.week-range-text.dragging,
+.day-text.dragging {
+  color: var(--accent-color);
 }
 
 .nav-btn {
