@@ -52,6 +52,12 @@ interface Memo {
   updatedAt: string;
 }
 
+interface RepeatInstanceState {
+  eventId: string;
+  instanceDate: string;
+  completed: boolean;
+}
+
 contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: (): Promise<Settings> => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings: Settings): Promise<boolean> => ipcRenderer.invoke('save-settings', settings),
@@ -133,4 +139,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('export-data'),
   importData: (): Promise<{ success: boolean; error?: string }> =>
     ipcRenderer.invoke('import-data'),
+
+  // 반복 인스턴스 완료 상태
+  getRepeatInstanceStates: (): Promise<RepeatInstanceState[]> =>
+    ipcRenderer.invoke('get-repeat-instance-states'),
+  setRepeatInstanceState: (state: RepeatInstanceState): Promise<boolean> =>
+    ipcRenderer.invoke('set-repeat-instance-state', state),
+  deleteRepeatInstanceStates: (eventId: string): Promise<boolean> =>
+    ipcRenderer.invoke('delete-repeat-instance-states', eventId),
 });

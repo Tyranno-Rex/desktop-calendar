@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { CalendarEvent } from '../types';
+import type { CalendarEvent, RepeatInstanceState } from '../types';
 import { getLocalDateString, isDateInRepeatSchedule, createRepeatInstance } from '../utils/date';
 
 // 이벤트 저장 헬퍼 (외부로 분리하여 의존성 제거)
@@ -20,6 +20,8 @@ export function useEvents() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [googleConnected, setGoogleConnected] = useState(false);
+  // 반복 인스턴스별 완료 상태
+  const [repeatInstanceStates, setRepeatInstanceStates] = useState<RepeatInstanceState[]>([]);
 
   // 중복 방지 refs
   const syncInProgressRef = useRef(false);
@@ -48,10 +50,20 @@ export function useEvents() {
       if (window.electronAPI) {
         const savedEvents = await window.electronAPI.getEvents();
         setEvents(savedEvents);
+        // 반복 인스턴스 상태 로드
+        if (window.electronAPI.getRepeatInstanceStates) {
+          const states = await window.electronAPI.getRepeatInstanceStates();
+          setRepeatInstanceStates(states);
+        }
       } else {
         const savedEvents = localStorage.getItem('calendar-events');
         if (savedEvents) {
           setEvents(JSON.parse(savedEvents));
+        }
+        // localStorage에서 인스턴스 상태 로드
+        const savedStates = localStorage.getItem('repeat-instance-states');
+        if (savedStates) {
+          setRepeatInstanceStates(JSON.parse(savedStates));
         }
       }
     } catch (error) {
@@ -209,6 +221,45 @@ export function useEvents() {
     }
   }, []);
 
+  // 반복 인스턴스 완료 상태 토글
+  const toggleRepeatInstanceComplete = useCallback(async (eventId: string, instanceDate: string, completed: boolean) => {
+    const newState: RepeatInstanceState = { eventId, instanceDate, completed };
+
+    // 상태 업데이트
+    setRepeatInstanceStates(prev => {
+      const key = `${eventId}_${instanceDate}`;
+      const existingIndex = prev.findIndex(s => `${s.eventId}_${s.instanceDate}` === key);
+
+      let newStates: RepeatInstanceState[];
+      if (existingIndex >= 0) {
+        newStates = [...prev];
+        newStates[existingIndex] = newState;
+      } else {
+        newStates = [...prev, newState];
+      }
+
+      // localStorage에도 저장 (electron 없을 때)
+      if (!window.electronAPI) {
+        localStorage.setItem('repeat-instance-states', JSON.stringify(newStates));
+      }
+
+      return newStates;
+    });
+
+    // Electron API로 저장
+    if (window.electronAPI?.setRepeatInstanceState) {
+      await window.electronAPI.setRepeatInstanceState(newState);
+    }
+  }, []);
+
+  // 반복 인스턴스 완료 상태 조회
+  const getRepeatInstanceCompleted = useCallback((eventId: string, instanceDate: string): boolean | undefined => {
+    const state = repeatInstanceStates.find(
+      s => s.eventId === eventId && s.instanceDate === instanceDate
+    );
+    return state?.completed;
+  }, [repeatInstanceStates]);
+
   // 이벤트 삭제 (함수형 업데이트로 events 의존성 제거)
   const deleteEvent = useCallback(async (id: string) => {
     // 반복 인스턴스 ID 처리 (단, 구글 이벤트 ID는 제외)
@@ -238,6 +289,12 @@ export function useEvents() {
         persistEvents(newEvents);
         return newEvents;
       });
+
+      // 반복 인스턴스 상태도 삭제
+      if (window.electronAPI?.deleteRepeatInstanceStates) {
+        await window.electronAPI.deleteRepeatInstanceStates(actualId);
+      }
+      setRepeatInstanceStates(prev => prev.filter(s => s.eventId !== actualId));
     } finally {
       deletingEventsRef.current.delete(actualId);
     }
@@ -256,16 +313,32 @@ export function useEvents() {
       } else {
         if (isDateInRepeatSchedule(dateStr, event)) {
           if (event.date === dateStr) {
-            result.push(event);
+            // 반복 원본의 시작일 - 인스턴스 상태 적용
+            const instanceState = repeatInstanceStates.find(
+              s => s.eventId === event.id && s.instanceDate === dateStr
+            );
+            if (instanceState !== undefined) {
+              result.push({ ...event, completed: instanceState.completed });
+            } else {
+              result.push(event);
+            }
           } else {
-            result.push(createRepeatInstance(event, dateStr));
+            // 반복 인스턴스 생성 후 상태 적용
+            const instance = createRepeatInstance(event, dateStr);
+            const instanceState = repeatInstanceStates.find(
+              s => s.eventId === event.id && s.instanceDate === dateStr
+            );
+            if (instanceState !== undefined) {
+              instance.completed = instanceState.completed;
+            }
+            result.push(instance);
           }
         }
       }
     }
 
     return result;
-  }, [events]);
+  }, [events, repeatInstanceStates]);
 
   return {
     events,
@@ -278,5 +351,8 @@ export function useEvents() {
     syncWithGoogle,
     googleConnected,
     setGoogleConnected,
+    // 반복 인스턴스 완료 상태 관리
+    toggleRepeatInstanceComplete,
+    getRepeatInstanceCompleted,
   };
 }

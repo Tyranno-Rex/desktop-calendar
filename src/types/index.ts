@@ -15,6 +15,13 @@ export interface ReminderConfig {
   minutesBefore: number; // 몇 분 전에 알림
 }
 
+// 반복 인스턴스별 완료 상태 저장
+export interface RepeatInstanceState {
+  eventId: string;      // 반복 원본 이벤트 ID
+  instanceDate: string; // 인스턴스 날짜 (YYYY-MM-DD)
+  completed: boolean;
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -92,6 +99,7 @@ export interface GoogleCalendarEventInput {
   date: string;
   time?: string;
   description?: string;
+  repeat?: RepeatConfig;
 }
 
 export interface GoogleCalendarEventResponse {
@@ -158,6 +166,10 @@ export interface ElectronAPI {
   // 데이터 내보내기/가져오기
   exportData: () => Promise<{ success: boolean; path?: string; error?: string }>;
   importData: () => Promise<{ success: boolean; error?: string }>;
+  // 반복 인스턴스 완료 상태
+  getRepeatInstanceStates: () => Promise<RepeatInstanceState[]>;
+  setRepeatInstanceState: (state: RepeatInstanceState) => Promise<boolean>;
+  deleteRepeatInstanceStates: (eventId: string) => Promise<boolean>;
 }
 
 declare global {

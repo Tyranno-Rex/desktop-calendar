@@ -66,7 +66,9 @@ export function getEnv(key: string, defaultValue = ''): string {
  * Auth 서버 URL 가져오기
  */
 export function getAuthServerUrl(): string {
-  return getEnv('AUTH_SERVER_URL', 'http://localhost:3001');
+  const url = getEnv('AUTH_SERVER_URL', 'http://localhost:3001');
+  console.log('[envLoader] AUTH_SERVER_URL:', url);
+  return url;
 }
 
 /**

@@ -30,7 +30,8 @@ function App() {
     syncWithGoogle,
     googleConnected,
     setGoogleConnected,
-    loading: eventsLoading
+    loading: eventsLoading,
+    toggleRepeatInstanceComplete,
   } = useEvents();
 
   const { settings, updateSettings, loading: settingsLoading } = useSettings();
@@ -113,12 +114,39 @@ function App() {
   }, []);
 
   // 완료 토글
-  const handleToggleComplete = useCallback((id: string) => {
+  const handleToggleComplete = useCallback((id: string, instanceDate?: string) => {
+    // 반복 인스턴스인 경우 (id에 _가 포함되어 있고 google_로 시작하지 않음)
+    if (id.includes('_') && !id.startsWith('google_')) {
+      const [originalId, date] = id.split('_');
+      const originalEvent = events.find(e => e.id === originalId);
+      if (originalEvent) {
+        // 현재 완료 상태를 getEventsForDate로 확인 (인스턴스 상태 반영됨)
+        const dateObj = new Date(date + 'T12:00:00');
+        const eventsForDate = getEventsForDate(dateObj);
+        const instanceEvent = eventsForDate.find(e =>
+          e.id === id || (e.repeatGroupId === originalId && e.date === date)
+        );
+        const currentCompleted = instanceEvent?.completed ?? originalEvent.completed ?? false;
+        toggleRepeatInstanceComplete(originalId, date, !currentCompleted);
+      }
+      return;
+    }
+
+    // 일반 이벤트 또는 반복 원본
     const event = events.find(e => e.id === id);
     if (event) {
-      updateEvent(id, { completed: !event.completed });
+      // 반복 일정의 원본인 경우에도 해당 날짜의 인스턴스 상태만 변경
+      if (event.repeat && event.repeat.type !== 'none' && instanceDate) {
+        const dateObj = new Date(instanceDate + 'T12:00:00');
+        const eventsForDate = getEventsForDate(dateObj);
+        const instanceEvent = eventsForDate.find(e => e.id === id || e.repeatGroupId === id);
+        const currentCompleted = instanceEvent?.completed ?? event.completed ?? false;
+        toggleRepeatInstanceComplete(id, instanceDate, !currentCompleted);
+      } else {
+        updateEvent(id, { completed: !event.completed });
+      }
     }
-  }, [events, updateEvent]);
+  }, [events, updateEvent, toggleRepeatInstanceComplete, getEventsForDate]);
 
   // 모달 닫기
   const closeEventModal = useCallback(() => {

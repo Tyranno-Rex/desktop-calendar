@@ -1,7 +1,7 @@
 // IPC Handlers for main process
 import { ipcMain, BrowserWindow, screen, dialog } from 'electron';
 import fs from 'fs';
-import type { SimpleStore, Settings, CalendarEvent, Memo } from './store';
+import type { SimpleStore, Settings, CalendarEvent, Memo, RepeatInstanceState } from './store';
 import { DEFAULT_SETTINGS } from './store';
 import { enableDesktopMode, disableDesktopMode, setMemoPinnedState } from './desktopMode';
 
@@ -26,6 +26,20 @@ let createMemoWindowCallback: ((id?: string) => void) | null = null;
 let createPopupWindowCallback: ((data: { type: string; date: string; event?: CalendarEvent; x: number; y: number }) => void) | null = null;
 let hidePopupCallback: (() => void) | null = null;
 let closeMemoWindowCallback: (() => void) | null = null;
+
+// Google Calendar 모듈 참조 (main.ts에서 설정)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let googleAuthRef: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let googleCalendarRef: any = null;
+
+export function setGoogleModules(
+  googleAuth: unknown,
+  googleCalendar: unknown
+): void {
+  googleAuthRef = googleAuth;
+  googleCalendarRef = googleCalendar;
+}
 
 export function initIpcHandlers(
   store: SimpleStore,
@@ -112,6 +126,33 @@ export function registerIpcHandlers(): void {
     return true;
   });
 
+  // Repeat Instance States (반복 인스턴스별 완료 상태)
+  ipcMain.handle('get-repeat-instance-states', () => {
+    return store.get('repeatInstanceStates') || [];
+  });
+
+  ipcMain.handle('set-repeat-instance-state', (_, state: RepeatInstanceState) => {
+    const states: RepeatInstanceState[] = store.get('repeatInstanceStates') || [];
+    const key = `${state.eventId}_${state.instanceDate}`;
+    const existingIndex = states.findIndex(s => `${s.eventId}_${s.instanceDate}` === key);
+
+    if (existingIndex >= 0) {
+      states[existingIndex] = state;
+    } else {
+      states.push(state);
+    }
+
+    store.set('repeatInstanceStates', states);
+    return true;
+  });
+
+  ipcMain.handle('delete-repeat-instance-states', (_, eventId: string) => {
+    const states: RepeatInstanceState[] = store.get('repeatInstanceStates') || [];
+    const filtered = states.filter(s => s.eventId !== eventId);
+    store.set('repeatInstanceStates', filtered);
+    return true;
+  });
+
   // Export/Import
   ipcMain.handle('export-data', async () => {
     try {
@@ -131,6 +172,7 @@ export function registerIpcHandlers(): void {
         events: store.get('events') || [],
         memos: store.get('memos') || [],
         settings: store.get('settings') || {},
+        repeatInstanceStates: store.get('repeatInstanceStates') || [],
       };
 
       fs.writeFileSync(result.filePath, JSON.stringify(exportData, null, 2), 'utf-8');
@@ -161,6 +203,7 @@ export function registerIpcHandlers(): void {
 
       if (importData.events) store.set('events', importData.events);
       if (importData.memos) store.set('memos', importData.memos);
+      if (importData.repeatInstanceStates) store.set('repeatInstanceStates', importData.repeatInstanceStates);
       if (importData.settings) {
         store.set('settings', importData.settings);
         if (mainWindowRef) {
@@ -202,10 +245,33 @@ export function registerIpcHandlers(): void {
 
   // Popup event operations
   ipcMain.handle('popup-save-event', async (_, event: CalendarEvent, syncToGoogle?: boolean) => {
+    console.log('[popup-save-event] called, syncToGoogle:', syncToGoogle);
     const events = store.get('events') || [];
     const existingIndex = events.findIndex(e => e.id === event.id);
 
-    // Google sync handled in main.ts for now (due to googleAuth dependency)
+    // 새 이벤트이고 Google 동기화가 요청된 경우
+    if (syncToGoogle && existingIndex < 0 && googleAuthRef && googleCalendarRef) {
+      console.log('[popup-save-event] syncing to Google Calendar...');
+      try {
+        const accessToken = await googleAuthRef.getAccessToken();
+        console.log('[popup-save-event] accessToken:', accessToken ? 'exists' : 'null');
+        if (accessToken) {
+          const created = await googleCalendarRef.createEvent(accessToken, {
+            title: event.title,
+            date: event.date,
+            time: event.time,
+            description: event.description,
+            repeat: event.repeat,
+          });
+          console.log('[popup-save-event] Google event created:', created);
+          event.googleEventId = created.googleEventId;
+          event.isGoogleEvent = true;
+        }
+      } catch (error) {
+        console.error('[popup-save-event] Google sync error:', error);
+      }
+    }
+
     if (existingIndex >= 0) {
       events[existingIndex] = event;
     } else {
@@ -216,7 +282,7 @@ export function registerIpcHandlers(): void {
     if (mainWindowRef) {
       mainWindowRef.webContents.send('events-updated', events);
     }
-    return { syncToGoogle }; // Return for main.ts to handle Google sync
+    return true;
   });
 
   ipcMain.handle('popup-delete-event', (_, eventId: string) => {

@@ -7,7 +7,7 @@ import { SimpleStore, type CalendarEvent } from './store';
 import { initDesktopMode, enableDesktopMode, setWindowRefs as setDesktopWindowRefs } from './desktopMode';
 import { initNotificationScheduler, startNotificationScheduler, stopNotificationScheduler, setMainWindowRef } from './notificationScheduler';
 import { performAutoBackup } from './autoBackup';
-import { initIpcHandlers, registerIpcHandlers, registerMoveHandlers, registerResizeHandlers, setWindowRefs as setIpcWindowRefs } from './ipcHandlers';
+import { initIpcHandlers, registerIpcHandlers, registerMoveHandlers, registerResizeHandlers, setWindowRefs as setIpcWindowRefs, setGoogleModules } from './ipcHandlers';
 
 // Google Calendar modules (dynamic import)
 let googleAuth: typeof import('./googleAuth') | null = null;
@@ -303,8 +303,13 @@ function registerGoogleIpcHandlers(): void {
   if (!googleAuth || !googleCalendar) return;
 
   ipcMain.handle('google-auth-status', async () => {
-    if (!googleAuth!.isAuthenticated()) return false;
-    return await googleAuth!.validateToken();
+    console.log('[Google Auth] Checking auth status...');
+    const isAuth = googleAuth!.isAuthenticated();
+    console.log('[Google Auth] isAuthenticated:', isAuth);
+    if (!isAuth) return false;
+    const isValid = await googleAuth!.validateToken();
+    console.log('[Google Auth] validateToken:', isValid);
+    return isValid;
   });
 
   ipcMain.handle('google-auth-login', async () => {
@@ -323,8 +328,10 @@ function registerGoogleIpcHandlers(): void {
   });
 
   ipcMain.handle('google-calendar-get-events', async (_, timeMin?: string, timeMax?: string) => {
+    console.log('[Google Calendar] getEvents called, timeMin:', timeMin, 'timeMax:', timeMax);
     try {
       const accessToken = await googleAuth!.getAccessToken();
+      console.log('[Google Calendar] accessToken:', accessToken ? 'exists' : 'null');
       if (!accessToken) return { success: false, error: 'Not authenticated' };
 
       const events = await googleCalendar!.getEvents(
@@ -332,20 +339,26 @@ function registerGoogleIpcHandlers(): void {
         timeMin ? new Date(timeMin) : undefined,
         timeMax ? new Date(timeMax) : undefined
       );
+      console.log('[Google Calendar] getEvents success, count:', events.length);
       return { success: true, events };
     } catch (error) {
+      console.error('[Google Calendar] getEvents error:', error);
       return { success: false, error: String(error) };
     }
   });
 
   ipcMain.handle('google-calendar-create-event', async (_, event) => {
+    console.log('[Google Calendar] createEvent called, event:', JSON.stringify(event));
     try {
       const accessToken = await googleAuth!.getAccessToken();
+      console.log('[Google Calendar] accessToken:', accessToken ? 'exists' : 'null');
       if (!accessToken) return { success: false, error: 'Not authenticated' };
 
       const created = await googleCalendar!.createEvent(accessToken, event);
+      console.log('[Google Calendar] createEvent success, created:', JSON.stringify(created));
       return { success: true, event: created };
     } catch (error) {
+      console.error('[Google Calendar] createEvent error:', error);
       return { success: false, error: String(error) };
     }
   });
@@ -416,6 +429,9 @@ app.whenReady().then(async () => {
   });
 
   registerGoogleIpcHandlers();
+
+  // ipcHandlers에 Google 모듈 참조 전달 (popup-save-event에서 사용)
+  setGoogleModules(googleAuth, googleCalendar);
 
   createWindow();
   createTray();

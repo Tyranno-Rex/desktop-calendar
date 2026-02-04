@@ -74,7 +74,7 @@ export function useSettings() {
     try {
       if (window.electronAPI) {
         const savedSettings = await window.electronAPI.getSettings();
-        const migrated = migrateSettings(savedSettings as Record<string, unknown>);
+        const migrated = migrateSettings(savedSettings as unknown as Record<string, unknown>);
         setSettings(migrated);
         // 마이그레이션된 설정 저장
         if (JSON.stringify(savedSettings) !== JSON.stringify(migrated)) {

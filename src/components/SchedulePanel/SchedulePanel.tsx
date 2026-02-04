@@ -11,7 +11,7 @@ interface ScheduleItemProps {
   event: CalendarEvent;
   onEdit: (event: CalendarEvent) => void;
   onDelete: (id: string) => void;
-  onToggleComplete?: (id: string) => void;
+  onToggleComplete?: (id: string, instanceDate?: string) => void;
   isOverdue?: boolean;
 }
 
@@ -29,8 +29,13 @@ const ScheduleItem = memo(function ScheduleItem({
   const handleClick = useCallback(() => onEdit(event), [onEdit, event]);
   const handleToggle = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    onToggleComplete?.(originalId);
-  }, [onToggleComplete, originalId]);
+    // 반복 인스턴스인 경우 인스턴스 ID와 날짜를 전달
+    if (event.isRepeatInstance || (event.repeat && event.repeat.type !== 'none')) {
+      onToggleComplete?.(event.id, event.date);
+    } else {
+      onToggleComplete?.(originalId);
+    }
+  }, [onToggleComplete, event.id, event.date, event.isRepeatInstance, event.repeat, originalId]);
   const handleDelete = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onDelete(isOverdue ? event.id : originalId);
@@ -105,7 +110,7 @@ interface SchedulePanelProps {
   onAddEvent: (event: Omit<CalendarEvent, 'id'>) => void;
   onEditEvent: (event: CalendarEvent) => void;
   onDeleteEvent: (id: string) => void;
-  onToggleComplete?: (id: string) => void;
+  onToggleComplete?: (id: string, instanceDate?: string) => void;
   onClose?: () => void;
   position?: 'left' | 'right';
   showOverdueTasks?: boolean;

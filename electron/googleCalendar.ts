@@ -3,6 +3,16 @@
 
 import { getAuthServerUrl } from './utils/envLoader';
 
+// 반복 타입 (types/index.ts와 동일)
+type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+interface RepeatConfig {
+  type: RepeatType;
+  interval: number;
+  endDate?: string;
+  count?: number;
+}
+
 export interface GoogleCalendarEvent {
   id: string;
   title: string;
@@ -10,6 +20,7 @@ export interface GoogleCalendarEvent {
   time?: string;
   description?: string;
   googleEventId?: string;
+  repeat?: RepeatConfig;
 }
 
 // Google Calendar API 응답 타입
@@ -41,6 +52,7 @@ interface GoogleCalendarApiRequest {
     dateTime?: string;
     timeZone?: string;
   };
+  recurrence?: string[];
 }
 
 // 날짜 유틸리티
@@ -59,6 +71,40 @@ function subtractOneDay(dateStr: string): string {
 function addOneDay(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number);
   return getLocalDateString(new Date(year, month - 1, day + 1));
+}
+
+// RepeatConfig를 Google Calendar RRULE 형식으로 변환
+function convertToRRule(repeat: RepeatConfig): string | null {
+  if (!repeat || repeat.type === 'none') return null;
+
+  // FREQ 매핑
+  const freqMap: Record<string, string> = {
+    daily: 'DAILY',
+    weekly: 'WEEKLY',
+    monthly: 'MONTHLY',
+    yearly: 'YEARLY',
+  };
+
+  const freq = freqMap[repeat.type];
+  if (!freq) return null;
+
+  let rrule = `RRULE:FREQ=${freq}`;
+
+  // 반복 간격
+  if (repeat.interval && repeat.interval > 1) {
+    rrule += `;INTERVAL=${repeat.interval}`;
+  }
+
+  // 종료 조건
+  if (repeat.endDate) {
+    // UNTIL은 UTC 형식으로 (YYYYMMDDTHHMMSSZ)
+    const endDate = repeat.endDate.replace(/-/g, '');
+    rrule += `;UNTIL=${endDate}T235959Z`;
+  } else if (repeat.count) {
+    rrule += `;COUNT=${repeat.count}`;
+  }
+
+  return rrule;
 }
 
 // Google Calendar API 이벤트를 앱 이벤트로 변환 (멀티데이 이벤트는 여러 개로 분리)
@@ -122,6 +168,15 @@ function convertToGoogleEvent(event: GoogleCalendarEvent): GoogleCalendarApiRequ
     googleEvent.end = { date: nextDay.toISOString().split('T')[0] };
   }
 
+  // 반복 설정 추가
+  if (event.repeat && event.repeat.type !== 'none') {
+    const rrule = convertToRRule(event.repeat);
+    if (rrule) {
+      googleEvent.recurrence = [rrule];
+      console.log('[googleCalendar] convertToGoogleEvent recurrence:', rrule);
+    }
+  }
+
   return googleEvent;
 }
 
@@ -141,16 +196,23 @@ export async function getEvents(
     maxResults: '500',
   });
 
-  const response = await fetch(`${getAuthServerUrl()}/calendar/events?${params}`, {
+  const url = `${getAuthServerUrl()}/calendar/events?${params}`;
+  console.log('[googleCalendar] getEvents URL:', url);
+
+  const response = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 
+  console.log('[googleCalendar] getEvents response status:', response.status, response.statusText);
+
   if (!response.ok) {
     const errorBody = await response.text();
+    console.error('[googleCalendar] getEvents error body:', errorBody);
     throw new Error(`API error: ${response.status} ${response.statusText} - ${errorBody}`);
   }
 
   const data = await response.json() as { items?: GoogleCalendarApiEvent[] };
+  console.log('[googleCalendar] getEvents items count:', data.items?.length || 0);
   return (data.items || []).flatMap(convertGoogleEvent);
 }
 
@@ -159,20 +221,30 @@ export async function createEvent(
   accessToken: string,
   event: GoogleCalendarEvent
 ): Promise<GoogleCalendarEvent> {
-  const response = await fetch(`${getAuthServerUrl()}/calendar/events`, {
+  const url = `${getAuthServerUrl()}/calendar/events`;
+  const body = convertToGoogleEvent(event);
+  console.log('[googleCalendar] createEvent URL:', url);
+  console.log('[googleCalendar] createEvent body:', JSON.stringify(body));
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(convertToGoogleEvent(event)),
+    body: JSON.stringify(body),
   });
 
+  console.log('[googleCalendar] createEvent response status:', response.status, response.statusText);
+
   if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
+    const errorBody = await response.text();
+    console.error('[googleCalendar] createEvent error body:', errorBody);
+    throw new Error(`API error: ${response.status} ${response.statusText} - ${errorBody}`);
   }
 
   const data = await response.json() as GoogleCalendarApiEvent;
+  console.log('[googleCalendar] createEvent response data:', JSON.stringify(data));
   const created = convertGoogleEvent(data);
   if (!created.length) throw new Error('Failed to convert created event');
   return created[0];

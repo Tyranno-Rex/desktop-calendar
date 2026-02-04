@@ -60,12 +60,20 @@ export interface Memo {
   updatedAt: string;
 }
 
+// 반복 인스턴스별 완료 상태
+export interface RepeatInstanceState {
+  eventId: string;      // 반복 원본 이벤트 ID
+  instanceDate: string; // 인스턴스 날짜 (YYYY-MM-DD)
+  completed: boolean;
+}
+
 export interface StoreData {
   windowBounds?: WindowBounds;
   settings?: Settings;
   events?: CalendarEvent[];
   memo?: Memo; // Legacy (single memo) - for migration
   memos?: Memo[];
+  repeatInstanceStates?: RepeatInstanceState[]; // 반복 인스턴스 완료 상태
 }
 
 export const DEFAULT_SETTINGS: Settings = {
