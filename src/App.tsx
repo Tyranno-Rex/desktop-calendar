@@ -188,6 +188,7 @@ function App() {
             showAdjacentMonths={settings.showAdjacentMonths}
             showGridLines={settings.showGridLines}
             hiddenDays={settings.hiddenDays}
+            weekStartDay={settings.weekStartDay}
           />
         </div>
 

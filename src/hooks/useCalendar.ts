@@ -14,12 +14,12 @@ import {
   format,
 } from 'date-fns';
 
-export function useCalendar() {
+export function useCalendar(weekStartDay: 0 | 1 | 2 | 3 | 4 | 5 | 6 = 0) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
-    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const calendarStart = startOfWeek(monthStart, { weekStartsOn: weekStartDay });
 
     // 항상 42일(6주) 표시
     const days: Date[] = [];
@@ -30,7 +30,7 @@ export function useCalendar() {
       days.push(day);
     }
     return days;
-  }, [currentDate]);
+  }, [currentDate, weekStartDay]);
 
   const goToPreviousMonth = useCallback(() => {
     setCurrentDate(prev => subMonths(prev, 1));
@@ -64,7 +64,7 @@ export function useCalendar() {
 
   // 주간 뷰를 위한 날짜 계산
   const weekDays = useMemo(() => {
-    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: weekStartDay });
     const days: Date[] = [];
     for (let i = 0; i < 7; i++) {
       const tempDay = addDays(weekStart, i);
@@ -72,12 +72,12 @@ export function useCalendar() {
       days.push(day);
     }
     return days;
-  }, [currentDate]);
+  }, [currentDate, weekStartDay]);
 
   // 주간 뷰 헤더 텍스트 (예: "Jan 19 - 25, 2025")
   const weekRangeText = useMemo(() => {
-    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
-    const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: weekStartDay });
+    const weekEnd = endOfWeek(currentDate, { weekStartsOn: weekStartDay });
 
     if (weekStart.getMonth() === weekEnd.getMonth()) {
       return `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'd, yyyy')}`;
@@ -86,7 +86,7 @@ export function useCalendar() {
     } else {
       return `${format(weekStart, 'MMM d, yyyy')} - ${format(weekEnd, 'MMM d, yyyy')}`;
     }
-  }, [currentDate]);
+  }, [currentDate, weekStartDay]);
 
   const goToPreviousWeek = useCallback(() => {
     setCurrentDate(prev => subWeeks(prev, 1));

@@ -50,7 +50,7 @@ export function useDesktopMouseEvents() {
 
     // Click 이벤트 핸들러
     const handleClick = (data: MouseEventData) => {
-      if (document.hasFocus()) return;
+      // Desktop 모드에서는 항상 클릭 처리 (포커스 여부 무관)
       const element = document.elementFromPoint(data.x, data.y);
       if (element) {
         element.dispatchEvent(new MouseEvent('click', {

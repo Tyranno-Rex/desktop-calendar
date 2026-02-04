@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from 'react';
 import type { Settings } from '../../types';
 import { useDraggableModal } from '../../hooks/useDraggableModal';
 import './Settings.css';
@@ -25,6 +26,24 @@ export function AdvancedSettings({
 }: AdvancedSettingsProps) {
   const { position, isDragging, handleDragStart } = useDraggableModal();
   const hiddenDays = settings.hiddenDays || [];
+
+  // Week Start Day 드롭다운 상태
+  const [weekStartDropdownOpen, setWeekStartDropdownOpen] = useState(false);
+  const weekStartDropdownRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (weekStartDropdownRef.current && !weekStartDropdownRef.current.contains(e.target as Node)) {
+        setWeekStartDropdownOpen(false);
+      }
+    };
+
+    if (weekStartDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [weekStartDropdownOpen]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -173,6 +192,39 @@ export function AdvancedSettings({
           </div>
 
           <div className="setting-divider" />
+
+          {/* 한 주의 시작 요일 */}
+          <div className="setting-item setting-item-row">
+            <label>
+              Week Starts On
+              <span className="setting-hint">First day of the week</span>
+            </label>
+            <div className={`custom-dropdown ${weekStartDropdownOpen ? 'open' : ''}`} ref={weekStartDropdownRef}>
+              <button
+                className="dropdown-trigger"
+                onClick={() => setWeekStartDropdownOpen(!weekStartDropdownOpen)}
+              >
+                <span>{WEEKDAYS.find(d => d.id === (settings.weekStartDay ?? 0))?.full || 'Sunday'}</span>
+                <span className="dropdown-arrow">›</span>
+              </button>
+              {weekStartDropdownOpen && (
+                <div className="dropdown-menu">
+                  {WEEKDAYS.map(day => (
+                    <button
+                      key={day.id}
+                      className={`dropdown-item ${(settings.weekStartDay ?? 0) === day.id ? 'active' : ''}`}
+                      onClick={() => {
+                        onUpdateSettings({ weekStartDay: day.id as 0 | 1 | 2 | 3 | 4 | 5 | 6 });
+                        setWeekStartDropdownOpen(false);
+                      }}
+                    >
+                      {day.full}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* 요일 표시 설정 */}
           <div className="setting-item">

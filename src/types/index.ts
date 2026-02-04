@@ -74,6 +74,8 @@ export interface Settings {
   autoBackup: boolean;
   // 미완료 과거 일정 표시 (사이드 패널 하단)
   showOverdueTasks: boolean;
+  // 한 주의 시작 요일 (0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토)
+  weekStartDay: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 export interface PopupData {

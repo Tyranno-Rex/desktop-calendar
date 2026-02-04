@@ -17,6 +17,7 @@ const defaultSettings: Settings = {
   showEventDots: false,
   autoBackup: true,
   showOverdueTasks: true,
+  weekStartDay: 0,
 };
 
 // 기존 orange 테마를 새 시스템으로 마이그레이션

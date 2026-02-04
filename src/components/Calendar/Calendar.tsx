@@ -20,6 +20,7 @@ interface CalendarProps {
   showAdjacentMonths?: boolean;
   showGridLines?: boolean;
   hiddenDays?: number[];
+  weekStartDay?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 function CalendarInner({
@@ -34,6 +35,7 @@ function CalendarInner({
   showAdjacentMonths = true,
   showGridLines = true,
   hiddenDays = [],
+  weekStartDay = 0,
 }: CalendarProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
 
@@ -56,7 +58,7 @@ function CalendarInner({
     currentYear,
     isCurrentMonth,
     isTodayDate,
-  } = useCalendar();
+  } = useCalendar(weekStartDay);
 
   const isSelected = useCallback((date: Date) => isSameDay(date, selectedDate), [selectedDate]);
 
@@ -94,6 +96,7 @@ function CalendarInner({
           showAdjacentMonths={showAdjacentMonths}
           showGridLines={showGridLines}
           hiddenDays={hiddenDays}
+          weekStartDay={weekStartDay}
         />
       ) : viewMode === 'week' ? (
         <WeekView

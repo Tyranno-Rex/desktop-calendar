@@ -27,6 +27,7 @@ interface CalendarGridProps {
   showAdjacentMonths?: boolean;
   showGridLines?: boolean;
   hiddenDays?: number[];
+  weekStartDay?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 export const CalendarGrid = memo(function CalendarGrid({
@@ -43,11 +44,22 @@ export const CalendarGrid = memo(function CalendarGrid({
   showAdjacentMonths = true,
   showGridLines = true,
   hiddenDays = [],
+  weekStartDay = 0,
 }: CalendarGridProps) {
+  // weekStartDay에 따라 요일 순서 재정렬
+  const orderedWeekdays = useMemo(() => {
+    const reordered = [];
+    for (let i = 0; i < 7; i++) {
+      const dayIndex = (weekStartDay + i) % 7;
+      reordered.push(WEEKDAYS[dayIndex]);
+    }
+    return reordered;
+  }, [weekStartDay]);
+
   // 표시할 요일 필터링
   const visibleWeekdays = useMemo(() => {
-    return WEEKDAYS.filter(day => !hiddenDays.includes(day.index));
-  }, [hiddenDays]);
+    return orderedWeekdays.filter(day => !hiddenDays.includes(day.index));
+  }, [orderedWeekdays, hiddenDays]);
 
   // 표시할 날짜 필터링 (숨긴 요일 제외)
   const visibleDays = useMemo(() => {
