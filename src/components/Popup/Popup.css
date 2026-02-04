@@ -1,14 +1,8 @@
-/* ===== Light Theme Base ===== */
-.popup-container {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f7;
-  --bg-cell: #ffffff;
-  --bg-cell-hover: rgba(0, 0, 0, 0.04);
-  --text-color: #1d1d1f;
-  --text-secondary: #6e6e73;
-  --text-muted: #86868b;
-  --border-color: rgba(0, 0, 0, 0.1);
+/* Theme variables - imported from shared file */
+@import '../../styles/theme.css';
 
+/* ===== Popup Container - Light Theme ===== */
+.popup-container {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
@@ -24,17 +18,8 @@
   position: relative;
 }
 
-/* ===== Dark Theme Base ===== */
+/* ===== Popup Container - Dark Theme ===== */
 .popup-container.dark {
-  --bg-primary: #1c1c1e;
-  --bg-secondary: #2c2c2e;
-  --bg-cell: #1c1c1e;
-  --bg-cell-hover: rgba(255, 255, 255, 0.08);
-  --text-color: #ffffff;
-  --text-secondary: #ebebf5;
-  --text-muted: #8e8e93;
-  --border-color: rgba(84, 84, 88, 0.65);
-
   background: rgba(28, 28, 30, 0.85);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
@@ -42,36 +27,6 @@
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-/* ===== Blue Accent (Default) ===== */
-.popup-container.blue {
-  --accent-color: #007aff;
-  --accent-hover: #0056b3;
-  --accent-light: rgba(0, 122, 255, 0.12);
-  --accent-text: #0055cc;
-}
-
-.popup-container.dark.blue {
-  --accent-color: #0a84ff;
-  --accent-hover: #409cff;
-  --accent-light: rgba(10, 132, 255, 0.18);
-  --accent-text: #64d2ff;
-}
-
-/* ===== Orange Accent ===== */
-.popup-container.orange {
-  --accent-color: #ff9500;
-  --accent-hover: #e08600;
-  --accent-light: rgba(255, 149, 0, 0.12);
-  --accent-text: #c77700;
-}
-
-.popup-container.dark.orange {
-  --accent-color: #ff9f0a;
-  --accent-hover: #ffb340;
-  --accent-light: rgba(255, 159, 10, 0.18);
-  --accent-text: #ffd60a;
 }
 
 /* 리사이즈 핸들 */
@@ -149,7 +104,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 16px 24px;
   -webkit-app-region: drag;
 }
 
@@ -424,7 +379,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 18px;
+  padding: 16px 24px;
 }
 
 .popup-footer-right {
