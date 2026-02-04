@@ -165,7 +165,7 @@ backdrop-filter: blur(20px) saturate(180%);
 ### 🟢 낮음 (리팩토링)
 6. [ ] Popup/Event CSS 공통 스타일 추출
 7. [ ] WeekView/DayView 공통 스타일 추출
-8. [ ] border-radius 스케일 정리
+8. [x] border-radius 스케일 정리 ✅
 9. [ ] Glassmorphism 유틸리티 클래스
 10. [ ] 테마 변수 파일 분리
 
@@ -181,3 +181,4 @@ backdrop-filter: blur(20px) saturate(180%);
 | 2026-02-04 | 스크롤 버튼 크기 통일 | WeekView, DayView 스크롤 버튼 28x28px로 통일 + 트리플클릭 위치 토글 기능 추가 |
 | 2026-02-04 | 주말 배경색 CSS 변수 | `--weekend-bg` 변수 추가, WeekView/DayView에서 사용 |
 | 2026-02-04 | Shadow 변수 사용 | Memo, TitleBar, Settings, Event, Popup에서 `--shadow-md`, `--shadow-lg`, `--shadow-float` 사용 |
+| 2026-02-04 | border-radius 정리 | 4px/8px/12px/16px 스케일로 통일: `5px`→`4px`, `10px`→`8px`, `13px`→`12px`, `20px`→`16px` |

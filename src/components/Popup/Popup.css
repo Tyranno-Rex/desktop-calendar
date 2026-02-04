@@ -294,7 +294,7 @@
   padding: 12px 16px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text-color);
   font-size: 14px;
   cursor: pointer;
@@ -702,7 +702,7 @@
   height: 40px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s;
