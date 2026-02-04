@@ -1,14 +1,7 @@
-/* Day View */
-.day-view {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  position: relative;
-}
+/* DayView - imports shared styles and adds view-specific overrides */
+@import '../shared/time-grid.css';
 
-/* Day Header */
+/* ===== Day Header ===== */
 .day-header {
   display: grid;
   grid-template-columns: 50px 1fr;
@@ -69,97 +62,30 @@
   color: var(--weekend-color);
 }
 
-/* All-Day Events Section */
+/* ===== Day All-Day Section (view-specific) ===== */
 .day-allday-section {
-  display: grid;
   grid-template-columns: 50px 1fr;
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-cell);
   max-height: 120px;
   overflow: hidden;
 }
 
-.day-allday-gutter {
-  border-right: 1px solid var(--border-color);
-}
-
 .day-allday-cell {
-  display: flex;
-  flex-direction: column;
   gap: 2px;
   padding: 4px 8px;
-  overflow: hidden;
-}
-
-.day-allday-cell.today {
-  background: var(--accent-light);
-  opacity: 0.5;
-}
-
-.day-allday-cell.weekend {
-  background: var(--weekend-bg);
 }
 
 .day-allday-event {
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
-  font-weight: 500;
-  color: white;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.day-allday-event:hover,
-.day-allday-event.desktop-hover {
-  filter: brightness(1.1);
-}
-
-.day-allday-event.completed {
-  opacity: 0.5;
-  text-decoration: line-through;
 }
 
 .day-allday-more {
   font-size: 11px;
-  color: var(--text-secondary);
   padding: 2px 4px;
-  cursor: pointer;
 }
 
-.day-allday-more:hover,
-.day-allday-more.desktop-hover {
-  color: var(--accent-color);
-}
-
-/* Day Body */
-.day-body {
-  flex: 1;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  min-height: 0;
-  position: relative;
-  cursor: grab;
-  user-select: none;
-}
-
-.day-body:active {
-  cursor: grabbing;
-}
-
-.day-body::-webkit-scrollbar {
-  display: none;
-}
-
-.day-body {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
+/* ===== Day Grid ===== */
 .day-grid {
   display: grid;
   grid-template-columns: 50px 1fr;
@@ -167,159 +93,20 @@
   min-height: 1440px;
 }
 
-/* Time Column */
-.day-time-column {
-  border-right: 1px solid var(--border-color);
-  position: relative;
-}
-
-.day-time-slot {
-  height: 60px;
-  position: relative;
-}
-
-.day-time-label {
-  position: absolute;
-  top: -8px;
-  right: 8px;
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-/* Events Column */
-.day-events-column {
-  position: relative;
-  cursor: pointer;
-}
-
-.day-events-column.today {
-  background: var(--accent-light);
-  opacity: 0.5;
-}
-
-.day-events-column.weekend {
-  background: var(--weekend-bg);
-}
-
-.day-hour-cell {
-  height: 60px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.day-hour-cell:last-child {
-  border-bottom: none;
-}
-
-/* Events */
+/* ===== Day Events (view-specific sizing) ===== */
 .day-event {
-  position: absolute;
   left: 8px;
   right: 8px;
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 12px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
-  z-index: 1;
-  color: white;
-}
-
-.day-event:hover,
-.day-event.desktop-hover {
-  transform: scale(1.02);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-}
-
-.day-event.completed {
-  opacity: 0.5;
-  text-decoration: line-through;
 }
 
 .day-event-time {
   font-size: 11px;
-  opacity: 0.9;
-  display: block;
 }
 
-.day-event-title {
-  font-weight: 500;
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Current Time Line */
-.day-current-time-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #ef4444;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.day-current-time-dot {
-  position: absolute;
-  left: -4px;
-  top: -4px;
-  width: 10px;
-  height: 10px;
-  background: #ef4444;
-  border-radius: 50%;
-}
-
-/* Scroll Buttons */
-.day-scroll-buttons {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  z-index: 20;
-}
-
-.day-scroll-btn {
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-cell);
-  color: var(--text-secondary);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-  opacity: 0.8;
-}
-
-.day-scroll-btn:hover,
-.day-scroll-btn.desktop-hover {
-  background: var(--bg-cell-hover);
-  color: var(--accent-color);
-  border-color: var(--accent-color);
-  opacity: 1;
-}
-
-.day-scroll-btn:active,
-.day-scroll-btn.desktop-active {
-  transform: scale(0.95);
-}
-
+/* ===== Scroll Button (view-specific) ===== */
 .day-scroll-btn-now {
-  color: var(--accent-color);
   font-size: 11px;
-}
-
-/* 스크롤 버튼 왼쪽 위치 */
-.day-scroll-buttons.left {
-  right: auto;
-  left: 58px;
 }

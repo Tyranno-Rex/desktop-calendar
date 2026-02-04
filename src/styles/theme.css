@@ -150,3 +150,68 @@
   --accent-light: rgba(255, 159, 10, 0.18);
   --accent-text: #ffd60a;
 }
+
+/* =============================================
+   Glassmorphism Utility Classes
+   =============================================
+   Usage: Combine with theme-specific background colors
+
+   Blur levels:
+   - glass-blur-sm (10px): Cards, items
+   - glass-blur-md (20px): Headers, panels
+   - glass-blur-lg (40px): Modals, popups
+   ============================================= */
+
+/* Blur only - combine with background color */
+.glass-blur-sm {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-blur-md {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.glass-blur-lg {
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+
+/* Complete glass effects - Light theme */
+.app.light .glass-panel {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.app.light .glass-modal {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+
+.app.light .glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Complete glass effects - Dark theme */
+.app.dark .glass-panel {
+  background: rgba(44, 44, 46, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.app.dark .glass-modal {
+  background: rgba(28, 28, 30, 0.85);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+}
+
+.app.dark .glass-card {
+  background: rgba(58, 58, 60, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}

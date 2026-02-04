@@ -1,0 +1,293 @@
+/* =============================================
+   Time Grid Shared Styles
+   =============================================
+   Shared styles for WeekView and DayView.
+   Uses existing class names with comma-separated selectors.
+
+   Usage in WeekView.css / DayView.css:
+   @import '../shared/time-grid.css';
+   ============================================= */
+
+/* ===== View Container ===== */
+.week-view,
+.day-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ===== Scrollable Body ===== */
+.week-body,
+.day-body {
+  flex: 1;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  min-height: 0;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.week-body:active,
+.day-body:active {
+  cursor: grabbing;
+}
+
+.week-body::-webkit-scrollbar,
+.day-body::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== Time Column ===== */
+.week-time-column,
+.day-time-column {
+  border-right: 1px solid var(--border-color);
+  position: relative;
+}
+
+.week-time-slot,
+.day-time-slot {
+  height: 60px;
+  position: relative;
+}
+
+.week-time-label,
+.day-time-label {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* ===== Hour Cells ===== */
+.week-hour-cell,
+.day-hour-cell {
+  height: 60px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.week-hour-cell:last-child,
+.day-hour-cell:last-child {
+  border-bottom: none;
+}
+
+/* ===== Timed Events ===== */
+.week-event,
+.day-event {
+  position: absolute;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  z-index: 1;
+  color: white;
+}
+
+.week-event:hover,
+.week-event.desktop-hover,
+.day-event:hover,
+.day-event.desktop-hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.week-event.completed,
+.day-event.completed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.week-event-time,
+.day-event-time {
+  opacity: 0.9;
+  display: block;
+}
+
+.week-event-title,
+.day-event-title {
+  font-weight: 500;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== All-Day Section ===== */
+.week-allday-section,
+.day-allday-section {
+  display: grid;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-cell);
+}
+
+.week-allday-gutter,
+.day-allday-gutter {
+  border-right: 1px solid var(--border-color);
+}
+
+.week-allday-cell,
+.day-allday-cell {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.week-allday-cell.today,
+.day-allday-cell.today {
+  background: var(--accent-light);
+  opacity: 0.5;
+}
+
+.week-allday-cell.weekend,
+.day-allday-cell.weekend {
+  background: var(--weekend-bg);
+}
+
+.week-allday-event,
+.day-allday-event {
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.week-allday-event:hover,
+.week-allday-event.desktop-hover,
+.day-allday-event:hover,
+.day-allday-event.desktop-hover {
+  filter: brightness(1.1);
+}
+
+.week-allday-event.completed,
+.day-allday-event.completed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.week-allday-more,
+.day-allday-more {
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.week-allday-more:hover,
+.week-allday-more.desktop-hover,
+.day-allday-more:hover,
+.day-allday-more.desktop-hover {
+  color: var(--accent-color);
+}
+
+/* ===== Current Time Line ===== */
+.week-current-time-line,
+.day-current-time-line {
+  position: absolute;
+  height: 2px;
+  background: #ef4444;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.week-current-time-dot,
+.day-current-time-dot {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+}
+
+/* ===== Scroll Buttons ===== */
+.week-scroll-buttons,
+.day-scroll-buttons {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 20;
+}
+
+.week-scroll-buttons.left,
+.day-scroll-buttons.left {
+  right: auto;
+  left: 58px;
+}
+
+.week-scroll-btn,
+.day-scroll-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-cell);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  opacity: 0.8;
+}
+
+.week-scroll-btn:hover,
+.week-scroll-btn.desktop-hover,
+.day-scroll-btn:hover,
+.day-scroll-btn.desktop-hover {
+  background: var(--bg-cell-hover);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  opacity: 1;
+}
+
+.week-scroll-btn:active,
+.week-scroll-btn.desktop-active,
+.day-scroll-btn:active,
+.day-scroll-btn.desktop-active {
+  transform: scale(0.95);
+}
+
+.week-scroll-btn-now,
+.day-scroll-btn-now {
+  color: var(--accent-color);
+}
+
+/* ===== Day Column (Week view multi-column) ===== */
+.week-day-column,
+.day-events-column {
+  position: relative;
+  cursor: pointer;
+}
+
+.week-day-column {
+  border-right: 1px solid var(--border-color);
+}
+
+.week-day-column:last-child {
+  border-right: none;
+}
+
+.week-day-column.today,
+.day-events-column.today {
+  background: var(--accent-light);
+  opacity: 0.5;
+}
+
+.week-day-column.weekend,
+.day-events-column.weekend {
+  background: var(--weekend-bg);
+}

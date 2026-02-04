@@ -123,31 +123,37 @@ Desktop Mode에서는 `:hover`, `:active`가 동작하지 않으므로 별도 �
 
 ## 4. Glassmorphism 패턴
 
-### 4-1. Light Theme
-```css
-.app.light .element {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
+### 4-1. 유틸리티 클래스 (권장)
+
+`src/styles/theme.css`에 정의된 유틸리티 클래스 사용:
+
+| 클래스 | blur | 용도 |
+|--------|------|------|
+| `.glass-card` | 10px | 카드, 아이템 |
+| `.glass-panel` | 20px | 헤더, 패널 |
+| `.glass-modal` | 40px | 모달, 팝업 |
+
+```tsx
+// 사용 예시
+<div className="glass-panel">Header</div>
+<div className="glass-modal">Modal Content</div>
 ```
 
-### 4-2. Dark Theme
+### 4-2. Blur만 필요한 경우
+
 ```css
-.app.dark .element {
-  background: rgba(44, 44, 46, 0.72);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
+.glass-blur-sm  /* blur(10px) */
+.glass-blur-md  /* blur(20px) saturate(180%) */
+.glass-blur-lg  /* blur(40px) saturate(180%) */
 ```
 
-### 4-3. 강도 변형
+### 4-3. 강도 변형 참고
 
 | 강도 | 배경 투명도 | blur | 용도 |
 |------|------------|------|------|
-| Soft | 0.5 | 20px | Title Bar |
+| Soft | 0.5 | 10px | 카드, 아이템 |
 | Normal | 0.72 | 20px | Header, Panel |
-| Strong | 0.88 | 40px | Modal, Settings |
+| Strong | 0.85 | 40px | Modal, Settings |
 
 ---
 
@@ -177,10 +183,8 @@ src/
 │   ├── ComponentName/
 │   │   ├── ComponentName.tsx
 │   │   └── ComponentName.css // 컴포넌트별 CSS
-│   └── shared/               // 공통 스타일 (향후)
-│       ├── form.css
-│       ├── dropdown.css
-│       └── glass.css
+│   └── shared/               // 공통 스타일
+│       └── time-grid.css     // WeekView/DayView 공통 (준비됨)
 ```
 
 ### 6-2. CSS 변수 정의 위치
@@ -211,6 +215,7 @@ src/
 - [ ] border-radius가 4/8/12/16px 중 하나인가?
 - [ ] `.desktop-hover`, `.desktop-active` 클래스 추가했는가?
 - [ ] 헤더/푸터 padding이 `16px 24px`인가?
+- [ ] Glassmorphism에 `.glass-*` 유틸리티 클래스 사용했는가?
 - [ ] UI 텍스트가 영어인가?
 
 ---
@@ -225,3 +230,5 @@ src/
 | 2026-02-04 | Desktop Mode hover/active 규칙 추가 |
 | 2026-02-04 | Shadow 변수 사용 규칙 추가 |
 | 2026-02-04 | 테마 변수 파일 분리 (`src/styles/theme.css`) |
+| 2026-02-04 | Glassmorphism 유틸리티 클래스 추가 (`.glass-card/panel/modal`) |
+| 2026-02-04 | time-grid.css 공통 스타일 준비 (WeekView/DayView용) |
