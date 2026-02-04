@@ -61,7 +61,8 @@
   transition: all 0.15s ease;
 }
 
-.memo-close:hover {
+.memo-close:hover,
+.memo-close.desktop-hover {
   background: var(--bg-cell-hover);
   color: var(--text-color);
 }
