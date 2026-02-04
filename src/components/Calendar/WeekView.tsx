@@ -1,7 +1,7 @@
 import { useMemo, useRef, useCallback, memo, useState } from 'react';
 import { format } from 'date-fns';
 import type { CalendarEvent } from '../../types';
-import { isDateInRepeatSchedule, createRepeatInstance, getLocalDateString, sortEventsByCompletion } from '../../utils/date';
+import { getLocalDateString, getEventsForDateString, sortEventsByCompletion } from '../../utils/date';
 import './WeekView.css';
 
 // 시간대 (0시 ~ 23시)
@@ -112,21 +112,7 @@ export const WeekView = memo(function WeekView({
 
   // 해당 날짜의 이벤트 가져오기 (반복 일정 포함)
   const getEventsForDate = useCallback((date: Date): CalendarEvent[] => {
-    const dateStr = getLocalDateString(date);
-    const result: CalendarEvent[] = [];
-
-    for (const event of events) {
-      if (isDateInRepeatSchedule(dateStr, event)) {
-        // 반복 일정의 경우 해당 날짜에 대한 인스턴스 생성
-        if (event.repeat && event.repeat.type !== 'none' && event.date !== dateStr) {
-          result.push(createRepeatInstance(event, dateStr));
-        } else {
-          result.push(event);
-        }
-      }
-    }
-
-    return result;
+    return getEventsForDateString(getLocalDateString(date), events);
   }, [events]);
 
   // 종일 이벤트 (시간 없는 이벤트) 분리 - 미완료가 먼저 표시

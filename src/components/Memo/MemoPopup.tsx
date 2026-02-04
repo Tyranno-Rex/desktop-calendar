@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, StickyNote, Pin, PinOff } from 'lucide-react';
 import type { Memo } from '../../types';
+import { loadPopupSettings } from '../../hooks/useSettings';
 import './MemoPopup.css';
 
 export function MemoPopup() {
@@ -25,18 +26,10 @@ export function MemoPopup() {
   // 테마 및 메모 불러오기
   useEffect(() => {
     const loadData = async () => {
-      // 테마 로드
-      if (window.electronAPI?.getSettings) {
-        const settings = await window.electronAPI.getSettings();
-        // 기존 orange 테마 마이그레이션 처리
-        if (settings?.theme === 'orange') {
-          setTheme('dark');
-          setAccentColor('orange');
-        } else if (settings?.theme) {
-          setTheme(settings.theme as 'light' | 'dark');
-          setAccentColor(settings.accentColor || 'blue');
-        }
-      }
+      // 테마 로드 (공통 헬퍼 사용)
+      const settings = await loadPopupSettings();
+      setTheme(settings.theme);
+      setAccentColor(settings.accentColor);
 
       // 메모 로드 (id가 있으면 해당 메모, 없으면 새 메모)
       if (memoId && window.electronAPI?.getMemo) {

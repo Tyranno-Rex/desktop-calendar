@@ -21,7 +21,7 @@ const defaultSettings: Settings = {
 };
 
 // 기존 orange 테마를 새 시스템으로 마이그레이션
-function migrateSettings(saved: Record<string, unknown>): Settings {
+export function migrateSettings(saved: Record<string, unknown>): Settings {
   const migrated = { ...defaultSettings, ...saved };
 
   // 기존 theme: 'orange'를 theme: 'dark' + accentColor: 'orange'로 변환
@@ -36,6 +36,24 @@ function migrateSettings(saved: Record<string, unknown>): Settings {
   }
 
   return migrated as Settings;
+}
+
+// 팝업 윈도우에서 설정 로드 (마이그레이션 포함)
+export async function loadPopupSettings(): Promise<{
+  theme: 'light' | 'dark';
+  accentColor: 'blue' | 'orange';
+  fontSize: number;
+}> {
+  if (window.electronAPI?.getSettings) {
+    const settings = await window.electronAPI.getSettings();
+    const migrated = migrateSettings(settings as unknown as Record<string, unknown>);
+    return {
+      theme: migrated.theme as 'light' | 'dark',
+      accentColor: migrated.accentColor as 'blue' | 'orange',
+      fontSize: migrated.fontSize,
+    };
+  }
+  return { theme: 'light', accentColor: 'blue', fontSize: 14 };
 }
 
 export function useSettings() {

@@ -3,6 +3,7 @@ import { X, Trash2, ChevronRight, Settings } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
 import { getLocalDateString, parseLocalDateString } from '../../utils/date';
 import { useEventForm } from '../../hooks/useEventForm';
+import { loadPopupSettings } from '../../hooks/useSettings';
 import { TimePicker, RepeatIconButton, GoogleSyncIconButton, ReminderIconButton, DDayIconButton, DDayToggle } from '../Event/EventFormFields';
 import './Popup.css';
 
@@ -25,27 +26,17 @@ export function EventPopup() {
   const actionsRef = useRef(actions);
   actionsRef.current = actions;
 
+  // 설정 로드 헬퍼
+  const applySettings = async () => {
+    const settings = await loadPopupSettings();
+    setTheme(settings.theme);
+    setAccentColor(settings.accentColor);
+    setFontSize(settings.fontSize);
+  };
+
   // 설정 로드 (마운트 시 1회)
   useEffect(() => {
-    const loadSettings = async () => {
-      if (window.electronAPI?.getSettings) {
-        const settings = await window.electronAPI.getSettings();
-        // 기존 orange 테마 마이그레이션 처리
-        if (settings?.theme === 'orange') {
-          setTheme('dark');
-          setAccentColor('orange');
-        } else {
-          setTheme((settings?.theme as 'light' | 'dark') || 'light');
-          setAccentColor(settings?.accentColor || 'blue');
-        }
-        if (settings?.fontSize) {
-          setFontSize(settings.fontSize);
-        }
-      } else {
-        setTheme('light');
-      }
-    };
-    loadSettings();
+    applySettings();
   }, []);
 
   // IPC 리스너 등록 (마운트 시 1회만)
@@ -59,20 +50,10 @@ export function EventPopup() {
       setShowMoreOptions(false);
 
       // 팝업이 열릴 때마다 설정 다시 로드 (테마 변경 반영)
-      if (window.electronAPI?.getSettings) {
-        const settings = await window.electronAPI.getSettings();
-        // 기존 orange 테마 마이그레이션 처리
-        if (settings?.theme === 'orange') {
-          setTheme('dark');
-          setAccentColor('orange');
-        } else {
-          setTheme((settings?.theme as 'light' | 'dark') || 'light');
-          setAccentColor(settings?.accentColor || 'blue');
-        }
-        if (settings?.fontSize) {
-          setFontSize(settings.fontSize);
-        }
-      }
+      const settings = await loadPopupSettings();
+      setTheme(settings.theme);
+      setAccentColor(settings.accentColor);
+      setFontSize(settings.fontSize);
 
       // 팝업이 열릴 때마다 Google 연결 상태 확인
       if (window.electronAPI?.googleAuthStatus) {
