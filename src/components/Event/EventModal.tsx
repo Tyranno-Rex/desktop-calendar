@@ -15,6 +15,7 @@ interface EventModalProps {
   onDelete: (id: string) => void;
   onClose: () => void;
   googleConnected?: boolean;
+  accentColor?: 'blue' | 'orange';
 }
 
 export function EventModal({
@@ -25,6 +26,7 @@ export function EventModal({
   onDelete,
   onClose,
   googleConnected = false,
+  accentColor = 'blue',
 }: EventModalProps) {
   const { state, actions, refs } = useEventForm({ initialEvent: event });
   const isEditing = !!event;
@@ -56,12 +58,14 @@ export function EventModal({
         isDDay: state.isDDay || undefined,
       });
     } else {
+      // accentColor에 따라 이벤트 색상 결정
+      const eventColor = accentColor === 'orange' ? '#ff9500' : '#007aff';
       onSave({
         title: state.title.trim(),
         date: getLocalDateString(date),
         time: state.time || undefined,
         description: state.description.trim() || undefined,
-        color: '#3b82f6',
+        color: eventColor,
         repeat,
         reminder,
         isDDay: state.isDDay || undefined,

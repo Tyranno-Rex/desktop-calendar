@@ -40,11 +40,12 @@
 }
 
 .week-day-header.selected {
-  background: rgba(59, 130, 246, 0.1);
+  background: var(--accent-light);
 }
 
 .week-day-header.today {
-  background: rgba(59, 130, 246, 0.03);
+  background: var(--accent-light);
+  opacity: 0.5;
 }
 
 .week-day-header.weekend .week-day-name {
@@ -109,7 +110,8 @@
 }
 
 .week-allday-cell.today {
-  background: rgba(59, 130, 246, 0.03);
+  background: var(--accent-light);
+  opacity: 0.5;
 }
 
 .week-allday-cell.weekend {
@@ -216,7 +218,8 @@
 }
 
 .week-day-column.today {
-  background: rgba(59, 130, 246, 0.03);
+  background: var(--accent-light);
+  opacity: 0.5;
 }
 
 .week-day-column.weekend {

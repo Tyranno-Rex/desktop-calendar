@@ -139,13 +139,16 @@ export function EventPopup() {
     const repeat = actions.buildRepeatConfig();
     const reminder = actions.buildReminderConfig();
 
+    // accentColor에 따라 이벤트 색상 결정
+    const eventColor = accentColor === 'orange' ? '#ff9500' : '#007aff';
+
     const event: CalendarEvent = {
       id: eventId || crypto.randomUUID(),
       title: state.title.trim(),
       date: getLocalDateString(date),
       time: state.time || undefined,
       description: state.description.trim() || undefined,
-      color: '#3b82f6',
+      color: eventColor,
       repeat,
       reminder,
       isDDay: state.isDDay || undefined,

@@ -29,7 +29,8 @@
 }
 
 .day-date-header.today {
-  background: rgba(59, 130, 246, 0.03);
+  background: var(--accent-light);
+  opacity: 0.5;
 }
 
 .day-date-header.weekend .day-date-name {
@@ -90,7 +91,8 @@
 }
 
 .day-allday-cell.today {
-  background: rgba(59, 130, 246, 0.03);
+  background: var(--accent-light);
+  opacity: 0.5;
 }
 
 .day-allday-cell.weekend {
@@ -187,7 +189,8 @@
 }
 
 .day-events-column.today {
-  background: rgba(59, 130, 246, 0.03);
+  background: var(--accent-light);
+  opacity: 0.5;
 }
 
 .day-events-column.weekend {

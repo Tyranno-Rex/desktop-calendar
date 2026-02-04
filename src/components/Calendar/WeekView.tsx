@@ -219,7 +219,7 @@ export const WeekView = memo(function WeekView({
                   <div
                     key={event.id}
                     className={`week-allday-event ${event.completed ? 'completed' : ''}`}
-                    style={{ backgroundColor: event.color || 'var(--accent-color)' }}
+                    style={{ backgroundColor: 'var(--accent-color)' }}
                     onClick={(e) => {
                       e.stopPropagation();
                       onEventClick?.(event, e);
@@ -288,7 +288,7 @@ export const WeekView = memo(function WeekView({
                       style={{
                         top: `${style.top}px`,
                         height: `${style.height}px`,
-                        backgroundColor: event.color || 'var(--accent-color)',
+                        backgroundColor: 'var(--accent-color)',
                       }}
                       onClick={(e) => {
                         e.stopPropagation();

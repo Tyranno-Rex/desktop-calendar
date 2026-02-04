@@ -230,6 +230,7 @@ function App() {
           onDelete={deleteEvent}
           onClose={closeEventModal}
           googleConnected={googleConnected}
+          accentColor={settings.accentColor}
         />
       )}
 
