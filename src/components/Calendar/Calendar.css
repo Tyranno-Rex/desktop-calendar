@@ -80,6 +80,8 @@
   cursor: ns-resize;
   user-select: none;
   transition: color 0.15s;
+  min-width: 220px;
+  text-align: center;
 }
 
 .week-range-text:hover,

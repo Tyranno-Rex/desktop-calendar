@@ -158,9 +158,9 @@ backdrop-filter: blur(20px) saturate(180%);
 2. [x] Memo.css 잘못된 변수 수정 ✅
 
 ### 🟡 중간 (일관성)
-3. [ ] 하드코딩된 색상 → CSS 변수
-4. [ ] 스크롤 버튼 크기 통일 (24px vs 28px)
-5. [ ] Shadow 변수 사용
+3. [x] 하드코딩된 색상 → CSS 변수 ✅
+4. [x] 스크롤 버튼 크기 통일 (28px로 통일) ✅
+5. [x] Shadow 변수 사용 ✅
 
 ### 🟢 낮음 (리팩토링)
 6. [ ] Popup/Event CSS 공통 스타일 추출
@@ -178,3 +178,6 @@ backdrop-filter: blur(20px) saturate(180%);
 | 2026-02-04 | Memo.css 변수 수정 | `--text-primary` → `--text-color`, `--bg-hover` → `--bg-cell-hover` |
 | 2026-02-04 | Desktop 모드 hover/active | SchedulePanel, WeekView, DayView에 `.desktop-hover`/`.desktop-active` 추가 |
 | 2026-02-04 | 한글 → 영어 | TitleBar: "새 메모장" → "New Memo", "삭제" → "Delete" |
+| 2026-02-04 | 스크롤 버튼 크기 통일 | WeekView, DayView 스크롤 버튼 28x28px로 통일 + 트리플클릭 위치 토글 기능 추가 |
+| 2026-02-04 | 주말 배경색 CSS 변수 | `--weekend-bg` 변수 추가, WeekView/DayView에서 사용 |
+| 2026-02-04 | Shadow 변수 사용 | Memo, TitleBar, Settings, Event, Popup에서 `--shadow-md`, `--shadow-lg`, `--shadow-float` 사용 |

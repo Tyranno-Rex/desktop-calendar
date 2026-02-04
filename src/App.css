@@ -11,6 +11,7 @@
   --text-tertiary: #666666;
   --border-color: rgba(0, 0, 0, 0.15);
   --weekend-color: #ff3b30;
+  --weekend-bg: rgba(239, 68, 68, 0.02);
   /* Apple-style layered shadows for light theme */
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.12);
@@ -31,6 +32,7 @@
   --text-tertiary: #666666;
   --border-color: rgba(0, 0, 0, 0.15);
   --weekend-color: #ff3b30;
+  --weekend-bg: rgba(239, 68, 68, 0.02);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.12);
   --shadow-lg: 0 10px 40px -10px rgb(0 0 0 / 0.15), 0 4px 16px -4px rgb(0 0 0 / 0.08);
@@ -51,6 +53,7 @@
   --text-tertiary: #636366;
   --border-color: rgba(84, 84, 88, 0.65);
   --weekend-color: #ff453a;
+  --weekend-bg: rgba(255, 69, 58, 0.04);
   /* Apple-style layered shadows for dark theme */
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.5);

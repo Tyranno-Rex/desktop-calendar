@@ -43,6 +43,8 @@
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  min-width: 90px;
+  text-align: center;
 }
 
 .day-date-number {
@@ -96,7 +98,7 @@
 }
 
 .day-allday-cell.weekend {
-  background: rgba(239, 68, 68, 0.02);
+  background: var(--weekend-bg);
 }
 
 .day-allday-event {
@@ -196,7 +198,7 @@
 }
 
 .day-events-column.weekend {
-  background: rgba(239, 68, 68, 0.02);
+  background: var(--weekend-bg);
 }
 
 .day-hour-cell {

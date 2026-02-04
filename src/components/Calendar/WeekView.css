@@ -116,7 +116,7 @@
 }
 
 .week-allday-cell.weekend {
-  background: rgba(239, 68, 68, 0.02);
+  background: var(--weekend-bg);
 }
 
 .week-allday-event {
@@ -226,7 +226,7 @@
 }
 
 .week-day-column.weekend {
-  background: rgba(239, 68, 68, 0.02);
+  background: var(--weekend-bg);
 }
 
 .week-hour-cell {
