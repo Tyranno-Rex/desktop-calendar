@@ -35,7 +35,8 @@
   border-right: none;
 }
 
-.week-day-header:hover {
+.week-day-header:hover,
+.week-day-header.desktop-hover {
   background: var(--bg-cell-hover);
 }
 
@@ -133,7 +134,8 @@
   flex-shrink: 0;
 }
 
-.week-allday-event:hover {
+.week-allday-event:hover,
+.week-allday-event.desktop-hover {
   filter: brightness(1.1);
 }
 
@@ -151,7 +153,8 @@
   line-height: 14px;
 }
 
-.week-allday-more:hover {
+.week-allday-more:hover,
+.week-allday-more.desktop-hover {
   color: var(--accent-color);
 }
 
@@ -250,7 +253,8 @@
   color: white;
 }
 
-.week-event:hover {
+.week-event:hover,
+.week-event.desktop-hover {
   transform: scale(1.02);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 2;
@@ -307,14 +311,14 @@
 }
 
 .week-scroll-btn {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border: 1px solid var(--border-color);
   background: var(--bg-cell);
   color: var(--text-secondary);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -322,18 +326,26 @@
   opacity: 0.8;
 }
 
-.week-scroll-btn:hover {
+.week-scroll-btn:hover,
+.week-scroll-btn.desktop-hover {
   background: var(--bg-cell-hover);
   color: var(--accent-color);
   border-color: var(--accent-color);
   opacity: 1;
 }
 
-.week-scroll-btn:active {
+.week-scroll-btn:active,
+.week-scroll-btn.desktop-active {
   transform: scale(0.95);
 }
 
 .week-scroll-btn-now {
   color: var(--accent-color);
-  font-size: 8px;
+  font-size: 9px;
+}
+
+/* 스크롤 버튼 왼쪽 위치 */
+.week-scroll-buttons.left {
+  right: auto;
+  left: 58px;
 }

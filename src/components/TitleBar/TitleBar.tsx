@@ -150,7 +150,7 @@ export const TitleBar = memo(function TitleBar({
               <div className="memo-dropdown">
                 <button className="memo-dropdown-item new" onClick={handleNewMemo}>
                   <Plus size={14} />
-                  <span>새 메모장</span>
+                  <span>New Memo</span>
                 </button>
                 {memos.length > 0 && <div className="memo-dropdown-divider" />}
                 {memos.map(memo => (
@@ -167,7 +167,7 @@ export const TitleBar = memo(function TitleBar({
                     <button
                       className="memo-delete-btn"
                       onClick={(e) => handleDeleteMemo(e, memo.id)}
-                      title="삭제"
+                      title="Delete"
                     >
                       <Trash2 size={12} />
                     </button>

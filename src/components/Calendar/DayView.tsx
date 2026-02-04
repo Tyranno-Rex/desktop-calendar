@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback, memo } from 'react';
+import { useMemo, useRef, useCallback, memo, useState } from 'react';
 import { format } from 'date-fns';
 import type { CalendarEvent } from '../../types';
 import { isDateInRepeatSchedule, createRepeatInstance, getLocalDateString, sortEventsByCompletion } from '../../utils/date';
@@ -27,6 +27,11 @@ export const DayView = memo(function DayView({
   const dayBodyRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const lastYRef = useRef(0);
+
+  // 스크롤 버튼 위치 상태 (트리플 클릭 시 왼쪽으로 이동)
+  const [scrollButtonsLeft, setScrollButtonsLeft] = useState(false);
+  const clickCountRef = useRef(0);
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 드래그 스크롤
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -61,8 +66,31 @@ export const DayView = memo(function DayView({
     dayBodyRef.current.scrollBy({ top: 200, behavior: 'smooth' });
   }, []);
 
+  // 현재 시간으로 스크롤 (트리플 클릭 시 위치 토글)
   const scrollToNow = useCallback(() => {
     if (!dayBodyRef.current) return;
+
+    // 클릭 카운트 증가
+    clickCountRef.current += 1;
+
+    // 타이머 리셋
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+    }
+
+    // 500ms 내에 3번 클릭하면 위치 토글
+    if (clickCountRef.current >= 3) {
+      setScrollButtonsLeft(prev => !prev);
+      clickCountRef.current = 0;
+      return;
+    }
+
+    // 500ms 후 카운트 리셋
+    clickTimerRef.current = setTimeout(() => {
+      clickCountRef.current = 0;
+    }, 500);
+
+    // 현재 시간으로 스크롤
     const now = new Date();
     const minutes = now.getHours() * 60 + now.getMinutes();
     const targetScroll = (minutes / 60) * 60 - dayBodyRef.current.clientHeight / 2;
@@ -246,8 +274,8 @@ export const DayView = memo(function DayView({
         </div>
       </div>
 
-      {/* 스크롤 버튼 */}
-      <div className="day-scroll-buttons">
+      {/* 스크롤 버튼 - 트리플 클릭 시 왼쪽/오른쪽 토글 */}
+      <div className={`day-scroll-buttons ${scrollButtonsLeft ? 'left' : ''}`}>
         <button className="day-scroll-btn" onClick={scrollUp} title="Scroll up">
           ▲
         </button>

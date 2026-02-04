@@ -112,7 +112,8 @@
   flex-shrink: 0;
 }
 
-.day-allday-event:hover {
+.day-allday-event:hover,
+.day-allday-event.desktop-hover {
   filter: brightness(1.1);
 }
 
@@ -128,7 +129,8 @@
   cursor: pointer;
 }
 
-.day-allday-more:hover {
+.day-allday-more:hover,
+.day-allday-more.desktop-hover {
   color: var(--accent-color);
 }
 
@@ -221,7 +223,8 @@
   color: white;
 }
 
-.day-event:hover {
+.day-event:hover,
+.day-event.desktop-hover {
   transform: scale(1.02);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 2;
@@ -287,7 +290,7 @@
   color: var(--text-secondary);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -295,18 +298,26 @@
   opacity: 0.8;
 }
 
-.day-scroll-btn:hover {
+.day-scroll-btn:hover,
+.day-scroll-btn.desktop-hover {
   background: var(--bg-cell-hover);
   color: var(--accent-color);
   border-color: var(--accent-color);
   opacity: 1;
 }
 
-.day-scroll-btn:active {
+.day-scroll-btn:active,
+.day-scroll-btn.desktop-active {
   transform: scale(0.95);
 }
 
 .day-scroll-btn-now {
   color: var(--accent-color);
-  font-size: 10px;
+  font-size: 11px;
+}
+
+/* 스크롤 버튼 왼쪽 위치 */
+.day-scroll-buttons.left {
+  right: auto;
+  left: 58px;
 }

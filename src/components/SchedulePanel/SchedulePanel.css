@@ -90,7 +90,8 @@
   transition: all 0.15s;
 }
 
-.schedule-close:hover {
+.schedule-close:hover,
+.schedule-close.desktop-hover {
   background: var(--bg-cell-hover);
   color: var(--text-color);
 }

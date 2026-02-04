@@ -41,7 +41,7 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-color);
 }
 
 .memo-title svg {
@@ -62,8 +62,8 @@
 }
 
 .memo-close:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: var(--bg-cell-hover);
+  color: var(--text-color);
 }
 
 .memo-content {
@@ -81,7 +81,7 @@
   padding: 12px;
   font-size: 13px;
   line-height: 1.6;
-  color: var(--text-primary);
+  color: var(--text-color);
   resize: none;
   outline: none;
   font-family: inherit;
