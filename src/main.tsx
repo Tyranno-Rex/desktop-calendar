@@ -5,6 +5,7 @@ import App from './App.tsx'
 import { EventPopup } from './components/Popup'
 import { MemoPopup } from './components/Memo'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { AuthProvider } from './contexts/AuthContext'
 
 // 팝업 창인지 확인
 const isPopup = window.location.hash.includes('/popup');
@@ -19,7 +20,9 @@ const RootComponent = () => {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <RootComponent />
+      <AuthProvider>
+        <RootComponent />
+      </AuthProvider>
     </ErrorBoundary>
   </StrictMode>,
 )

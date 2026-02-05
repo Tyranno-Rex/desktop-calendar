@@ -938,3 +938,141 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Account Section Styles */
+.account-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.premium-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: linear-gradient(135deg, #ff9500, #ff6b00);
+  color: white;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.login-btn,
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.login-btn:hover:not(:disabled),
+.login-btn.desktop-hover:not(:disabled) {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+  transform: scale(1.03);
+}
+
+.logout-btn:hover:not(:disabled),
+.logout-btn.desktop-hover:not(:disabled) {
+  background: rgba(234, 67, 53, 0.1);
+  border-color: #ea4335;
+  color: #ea4335;
+  transform: scale(1.03);
+}
+
+.login-btn:active:not(:disabled),
+.login-btn.desktop-active:not(:disabled),
+.logout-btn:active:not(:disabled),
+.logout-btn.desktop-active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.login-btn:disabled,
+.logout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.upgrade-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  background: linear-gradient(135deg, #ff9500, #ff6b00);
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
+}
+
+.upgrade-btn:hover:not(:disabled),
+.upgrade-btn.desktop-hover:not(:disabled) {
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
+}
+
+.upgrade-btn:active:not(:disabled),
+.upgrade-btn.desktop-active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.upgrade-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sync-status {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.sync-status.active {
+  background: rgba(52, 199, 89, 0.15);
+  color: #34c759;
+}
+
+.setting-error {
+  font-size: 11px;
+  color: #ea4335;
+  padding: 4px 8px;
+  background: rgba(234, 67, 53, 0.1);
+  border-radius: 4px;
+  margin-top: -4px;
+}
+
+/* Light theme account styles */
+.app.light .login-btn,
+.app.light .logout-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.app.light .login-btn:hover:not(:disabled),
+.app.light .login-btn.desktop-hover:not(:disabled) {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.app.light .logout-btn:hover:not(:disabled),
+.app.light .logout-btn.desktop-hover:not(:disabled) {
+  background: rgba(234, 67, 53, 0.08);
+}

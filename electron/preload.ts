@@ -147,4 +147,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('set-repeat-instance-state', state),
   deleteRepeatInstanceStates: (eventId: string): Promise<boolean> =>
     ipcRenderer.invoke('delete-repeat-instance-states', eventId),
+
+  // 세션 토큰 관리 (계정 시스템)
+  saveSessionToken: (token: string): Promise<boolean> =>
+    ipcRenderer.invoke('save-session-token', token),
+  getSessionToken: (): Promise<string | null> =>
+    ipcRenderer.invoke('get-session-token'),
+  deleteSessionToken: (): Promise<boolean> =>
+    ipcRenderer.invoke('delete-session-token'),
+  // ID 토큰 가져오기 (계정 시스템)
+  getGoogleIdToken: (): Promise<string | null> =>
+    ipcRenderer.invoke('get-google-id-token'),
 });

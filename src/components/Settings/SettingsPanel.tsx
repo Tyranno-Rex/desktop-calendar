@@ -1,9 +1,11 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion } from 'motion/react';
-import { ChevronRight, Download, Upload } from 'lucide-react';
+import { ChevronRight, Download, Upload, User, LogOut, Cloud, Crown } from 'lucide-react';
 import type { Settings } from '../../types';
 import { AdvancedSettings } from './AdvancedSettings';
 import { useDraggableModal } from '../../hooks/useDraggableModal';
+import { useAuth } from '../../contexts/AuthContext';
+import { useSubscription } from '../../hooks/useSubscription';
 import './Settings.css';
 
 interface SettingsPanelProps {
@@ -24,12 +26,43 @@ export function SettingsPanel({
   onGoogleConnectionChange,
 }: SettingsPanelProps) {
   const { position, isDragging, handleDragStart } = useDraggableModal();
+  const { isAuthenticated, isLoading: authLoading, user, login, logout } = useAuth();
+  const { isPremium, upgradeToPremium, isLoading: subscriptionLoading } = useSubscription();
   const [googleConnected, setGoogleConnected] = useState(initialGoogleConnected);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const googleAuthInProgressRef = useRef(false);
+
+  // 계정 로그인
+  const handleLogin = useCallback(async () => {
+    setLoginError(null);
+    try {
+      await login();
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : 'Login failed');
+    }
+  }, [login]);
+
+  // 계정 로그아웃
+  const handleLogout = useCallback(async () => {
+    try {
+      await logout();
+    } catch {
+      // Logout failed silently
+    }
+  }, [logout]);
+
+  // Premium 업그레이드
+  const handleUpgrade = useCallback(async () => {
+    const result = await upgradeToPremium();
+    if (result.success && result.checkoutUrl) {
+      // Stripe Checkout 페이지 열기
+      window.open(result.checkoutUrl, '_blank');
+    }
+  }, [upgradeToPremium]);
 
   // Google 연결/해제
   const handleGoogleConnect = useCallback(async () => {
@@ -249,6 +282,82 @@ export function SettingsPanel({
               <span className="toggle-slider"></span>
             </div>
           </div>
+
+          <div className="setting-divider" />
+
+          {/* Account Section */}
+          <div className="setting-item">
+            <label>
+              <User size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+              Account
+              <span className="setting-hint">
+                {isAuthenticated ? user?.email : 'Sign in to sync'}
+              </span>
+            </label>
+            {isAuthenticated ? (
+              <div className="account-info">
+                {isPremium && (
+                  <span className="premium-badge">
+                    <Crown size={12} />
+                    Premium
+                  </span>
+                )}
+                <motion.button
+                  className="logout-btn"
+                  onClick={handleLogout}
+                  disabled={authLoading}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                >
+                  <LogOut size={14} />
+                  {authLoading ? '...' : 'Sign Out'}
+                </motion.button>
+              </div>
+            ) : (
+              <motion.button
+                className="login-btn"
+                onClick={handleLogin}
+                disabled={authLoading}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              >
+                {authLoading ? '...' : 'Sign In'}
+              </motion.button>
+            )}
+          </div>
+          {loginError && (
+            <div className="setting-error">{loginError}</div>
+          )}
+
+          {/* Cloud Sync (Premium Feature) */}
+          {isAuthenticated && (
+            <div className="setting-item">
+              <label>
+                <Cloud size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                Cloud Sync
+                <span className="setting-hint">
+                  {isPremium ? 'Sync across devices' : 'Premium feature'}
+                </span>
+              </label>
+              {isPremium ? (
+                <span className="sync-status active">Active</span>
+              ) : (
+                <motion.button
+                  className="upgrade-btn"
+                  onClick={handleUpgrade}
+                  disabled={subscriptionLoading}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                >
+                  <Crown size={14} />
+                  {subscriptionLoading ? '...' : 'Upgrade'}
+                </motion.button>
+              )}
+            </div>
+          )}
 
           <div className="setting-divider" />
 

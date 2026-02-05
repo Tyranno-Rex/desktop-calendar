@@ -1,6 +1,44 @@
 // 반복 타입
 export type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
+// ============================================
+// 계정 시스템 관련 타입
+// ============================================
+
+// 유저 정보
+export interface User {
+  id: string;
+  email: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  subscriptionTier: 'free' | 'premium';
+  subscriptionExpiresAt: string | null;
+}
+
+// 인증 상태
+export interface AuthState {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: User | null;
+  sessionToken: string | null;
+}
+
+// 동기화 상태
+export interface SyncState {
+  isSyncing: boolean;
+  lastSyncAt: string | null;
+  syncError: string | null;
+  pendingChanges: number;
+}
+
+// 구독 상태
+export interface SubscriptionState {
+  tier: 'free' | 'premium';
+  expiresAt: string | null;
+  isCanceled: boolean;
+  isLoading: boolean;
+}
+
 // 반복 설정
 export interface RepeatConfig {
   type: RepeatType;
@@ -170,6 +208,12 @@ export interface ElectronAPI {
   getRepeatInstanceStates: () => Promise<RepeatInstanceState[]>;
   setRepeatInstanceState: (state: RepeatInstanceState) => Promise<boolean>;
   deleteRepeatInstanceStates: (eventId: string) => Promise<boolean>;
+  // 세션 토큰 관리 (계정 시스템)
+  saveSessionToken: (token: string) => Promise<boolean>;
+  getSessionToken: () => Promise<string | null>;
+  deleteSessionToken: () => Promise<boolean>;
+  // ID 토큰 가져오기 (계정 시스템)
+  getGoogleIdToken: () => Promise<string | null>;
 }
 
 declare global {

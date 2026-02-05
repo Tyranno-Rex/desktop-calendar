@@ -44,12 +44,18 @@ function generateState(): string {
 }
 
 const REDIRECT_URI = 'http://127.0.0.1:8089/oauth2callback';
-const SCOPES = ['https://www.googleapis.com/auth/calendar.events'];
+const SCOPES = [
+  'openid',  // ID Token을 받기 위해 필요
+  'email',   // 이메일 정보
+  'profile', // 프로필 정보
+  'https://www.googleapis.com/auth/calendar.events'
+];
 
 // 토큰 인터페이스
 export interface TokenData {
   access_token: string;
   refresh_token?: string;
+  id_token?: string;  // Google ID Token (계정 시스템용)
   expires_in: number;
   token_type: string;
   scope: string;
@@ -127,6 +133,11 @@ export function clearValidationCache(): void {
   lastValidationResult = false;
 }
 
+// 인증 진행 상태 리셋 (stuck 상태 해결용)
+export function resetAuthInProgress(): void {
+  authInProgress = false;
+}
+
 // 토큰 유효성 검증
 export async function validateToken(): Promise<boolean> {
   const now = Date.now();
@@ -191,6 +202,25 @@ export async function getAccessToken(): Promise<string | null> {
   return token.access_token;
 }
 
+// ID Token 가져오기 (계정 시스템 인증용)
+export async function getIdToken(): Promise<string | null> {
+  const token = loadToken();
+  if (!token) return null;
+
+  // 토큰 만료되었으면 갱신 시도
+  if (token.expires_at && Date.now() > token.expires_at - 5 * 60 * 1000) {
+    if (token.refresh_token) {
+      const newToken = await refreshAccessToken(token.refresh_token);
+      if (newToken) return newToken.id_token || null;
+    }
+    console.log('Token refresh failed, deleting token');
+    deleteToken();
+    return null;
+  }
+
+  return token.id_token || null;
+}
+
 // Refresh Token으로 Access Token 갱신
 async function refreshAccessToken(refreshToken: string): Promise<TokenData | null> {
   try {
@@ -209,6 +239,7 @@ async function refreshAccessToken(refreshToken: string): Promise<TokenData | nul
     const newToken: TokenData = {
       access_token: data.access_token,
       refresh_token: data.refresh_token || refreshToken,
+      id_token: data.id_token,  // ID Token도 갱신
       expires_in: data.expires_in,
       token_type: data.token_type,
       scope: data.scope,
@@ -271,10 +302,12 @@ export function startAuthFlow(): Promise<TokenData> {
             const token: TokenData = {
               access_token: tokenData.access_token,
               refresh_token: tokenData.refresh_token,
+              id_token: tokenData.id_token,  // ID Token 저장
               expires_in: tokenData.expires_in,
               token_type: tokenData.token_type,
               scope: tokenData.scope,
             };
+            console.log('[googleAuth] Token received - id_token:', tokenData.id_token ? 'present' : 'MISSING');
             saveToken(token);
 
             res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });

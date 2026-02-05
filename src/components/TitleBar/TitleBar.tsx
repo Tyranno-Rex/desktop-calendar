@@ -1,6 +1,8 @@
 import { memo, useCallback, useState, useEffect, useRef } from 'react';
-import { X, Settings, Minus, RefreshCw, StickyNote, Plus, Trash2 } from 'lucide-react';
+import { X, Settings, Minus, RefreshCw, StickyNote, Plus, Trash2, Cloud, CloudOff } from 'lucide-react';
 import type { Memo } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
+import { useSubscription } from '../../hooks/useSubscription';
 import './TitleBar.css';
 
 interface TitleBarProps {
@@ -20,11 +22,16 @@ export const TitleBar = memo(function TitleBar({
   onMemo,
   showMemoButton = true,
 }: TitleBarProps) {
+  const { isAuthenticated } = useAuth();
+  const { isPremium } = useSubscription();
   const [syncCooldown, setSyncCooldown] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
   const [showMemoMenu, setShowMemoMenu] = useState(false);
   const [memos, setMemos] = useState<Memo[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Cloud sync 상태 (Premium 사용자만)
+  const isCloudSyncEnabled = isAuthenticated && isPremium;
 
   // 쿨다운 타이머
   useEffect(() => {
@@ -141,6 +148,15 @@ export const TitleBar = memo(function TitleBar({
 
       {/* 윈도우 스타일 버튼 */}
       <div className="window-controls">
+        {/* Cloud Sync Status Indicator */}
+        {isAuthenticated && (
+          <div
+            className={`cloud-sync-indicator ${isCloudSyncEnabled ? 'active' : 'inactive'}`}
+            title={isCloudSyncEnabled ? 'Cloud sync active' : 'Cloud sync (Premium required)'}
+          >
+            {isCloudSyncEnabled ? <Cloud size={14} /> : <CloudOff size={14} />}
+          </div>
+        )}
         {showMemoButton && onMemo && (
           <div className="memo-btn-container" ref={menuRef}>
             <button className="window-btn memo" onClick={handleMemoClick} title="Memo">

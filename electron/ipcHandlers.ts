@@ -1,6 +1,7 @@
 // IPC Handlers for main process
-import { ipcMain, BrowserWindow, screen, dialog } from 'electron';
+import { ipcMain, BrowserWindow, screen, dialog, safeStorage, app } from 'electron';
 import fs from 'fs';
+import path from 'path';
 import type { SimpleStore, Settings, CalendarEvent, Memo, RepeatInstanceState } from './store';
 import { DEFAULT_SETTINGS } from './store';
 import { enableDesktopMode, disableDesktopMode, setMemoPinnedState } from './desktopMode';
@@ -71,9 +72,84 @@ export function setWindowRefs(
   memoWindowRef = memo;
 }
 
+// Session token file path
+const SESSION_TOKEN_FILE = 'session_token.enc';
+
+function getSessionTokenPath(): string {
+  const userDataPath = app.getPath('userData');
+  return path.join(userDataPath, SESSION_TOKEN_FILE);
+}
+
 export function registerIpcHandlers(): void {
   if (!storeRef) return;
   const store = storeRef;
+
+  // Session Token Management (Account System)
+  ipcMain.handle('save-session-token', async (_, token: string) => {
+    try {
+      if (!safeStorage.isEncryptionAvailable()) {
+        console.error('[save-session-token] Encryption not available');
+        return false;
+      }
+      const encrypted = safeStorage.encryptString(token);
+      const tokenPath = getSessionTokenPath();
+      fs.writeFileSync(tokenPath, encrypted);
+      console.log('[save-session-token] Token saved successfully');
+      return true;
+    } catch (error) {
+      console.error('[save-session-token] Error:', error);
+      return false;
+    }
+  });
+
+  ipcMain.handle('get-session-token', async () => {
+    try {
+      const tokenPath = getSessionTokenPath();
+      if (!fs.existsSync(tokenPath)) {
+        return null;
+      }
+      if (!safeStorage.isEncryptionAvailable()) {
+        console.error('[get-session-token] Encryption not available');
+        return null;
+      }
+      const encrypted = fs.readFileSync(tokenPath);
+      const token = safeStorage.decryptString(encrypted);
+      return token;
+    } catch (error) {
+      console.error('[get-session-token] Error:', error);
+      return null;
+    }
+  });
+
+  ipcMain.handle('delete-session-token', async () => {
+    try {
+      const tokenPath = getSessionTokenPath();
+      if (fs.existsSync(tokenPath)) {
+        fs.unlinkSync(tokenPath);
+        console.log('[delete-session-token] Token deleted successfully');
+      }
+      return true;
+    } catch (error) {
+      console.error('[delete-session-token] Error:', error);
+      return false;
+    }
+  });
+
+  ipcMain.handle('get-google-id-token', async () => {
+    try {
+      if (!googleAuthRef) {
+        console.error('[get-google-id-token] googleAuthRef not set');
+        return null;
+      }
+      console.log('[get-google-id-token] Calling getIdToken...');
+      const idToken = await googleAuthRef.getIdToken();
+      console.log('[get-google-id-token] Result:', idToken ? `${idToken.substring(0, 20)}...` : 'null');
+      return idToken;
+    } catch (error) {
+      console.error('[get-google-id-token] Error:', error);
+      return null;
+    }
+  });
 
   // Settings
   ipcMain.handle('get-settings', () => {

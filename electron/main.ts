@@ -314,6 +314,13 @@ function registerGoogleIpcHandlers(): void {
 
   ipcMain.handle('google-auth-login', async () => {
     try {
+      // 이미 유효한 토큰이 있으면 바로 성공 반환
+      const existingToken = googleAuth!.loadToken();
+      if (existingToken) {
+        console.log('[Google Auth Login] Token already exists, skipping auth flow');
+        return { success: true };
+      }
+
       await googleAuth!.startAuthFlow();
       return { success: true };
     } catch (error) {

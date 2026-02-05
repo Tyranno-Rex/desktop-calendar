@@ -1197,41 +1197,957 @@ function MigrationModal({ onConfirm, onSkip }) {
 
 ---
 
-## 12. 작업 일정
+## 12. 작업 일정 (세부 단계)
 
-### Phase 1: Supabase 설정 (1일)
-- [ ] Supabase 프로젝트 생성
-- [ ] DB 스키마 생성 (SQL 실행)
-- [ ] RLS 정책 설정
-- [ ] Google OAuth Provider 설정
+---
 
-### Phase 2: Auth Server 수정 (2-3일)
-- [ ] Supabase 클라이언트 연동
-- [ ] /auth/session 엔드포인트
-- [ ] /user/* 엔드포인트
-- [ ] /sync/* 엔드포인트
-- [ ] 미들웨어 (인증, Premium 체크)
+### Phase 1: Supabase 설정
 
-### Phase 3: 클라이언트 수정 (2-3일)
-- [ ] useAuth Hook
-- [ ] useCloudSync Hook
-- [ ] useSubscription Hook
-- [ ] useEvents 수정
-- [ ] 로그인/로그아웃 UI
-- [ ] 동기화 상태 UI
+#### Step 1.1: Supabase 프로젝트 생성
+- [x] https://supabase.com 접속 및 로그인
+- [x] New Project 생성 (이름: `desktop-calendar`)
+- [x] Region 선택: Northeast Asia (Seoul) - ap-northeast-2
+- [x] Database Password 설정 및 안전한 곳에 저장
+- [x] 프로젝트 생성 완료 대기 (약 2분)
 
-### Phase 4: Stripe 연동 (1-2일)
-- [ ] Stripe 계정 설정
-- [ ] Product/Price 생성
-- [ ] Checkout 구현
-- [ ] Webhook 구현
-- [ ] 구독 관리 UI
+**확인 사항:**
+- Project URL: `https://xxxxx.supabase.co`
+- API Key (anon/public): 대시보드 → Settings → API
+- API Key (service_role): 서버에서만 사용, 절대 클라이언트에 노출 금지
 
-### Phase 5: 테스트 및 버그 수정 (2일)
-- [ ] 통합 테스트
-- [ ] E2E 테스트
-- [ ] 버그 수정
-- [ ] 성능 최적화
+#### Step 1.2: DB 스키마 생성
+- [x] SQL Editor 접속 (대시보드 → SQL Editor)
+- [x] Step 1.2.1: `update_updated_at` 트리거 함수 생성
+- [x] Step 1.2.2: `users` 테이블 생성
+- [x] Step 1.2.3: `events` 테이블 생성
+- [x] Step 1.2.4: `memos` 테이블 생성
+- [x] Step 1.2.5: `user_settings` 테이블 생성
+- [x] Step 1.2.6: 인덱스 생성
+- [x] Step 1.2.7: 각 테이블에 updated_at 트리거 연결
+
+**SQL 실행 순서:**
+```sql
+-- 1.2.1: 트리거 함수
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 1.2.2: users 테이블
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  display_name TEXT,
+  avatar_url TEXT,
+  subscription_tier TEXT NOT NULL DEFAULT 'free'
+    CHECK (subscription_tier IN ('free', 'premium')),
+  subscription_started_at TIMESTAMPTZ,
+  subscription_expires_at TIMESTAMPTZ,
+  subscription_canceled_at TIMESTAMPTZ,
+  stripe_customer_id TEXT UNIQUE,
+  stripe_subscription_id TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_login_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_stripe_customer ON users(stripe_customer_id);
+
+CREATE TRIGGER users_updated_at
+  BEFORE UPDATE ON users
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- 1.2.3: events 테이블
+CREATE TABLE events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  local_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  date DATE NOT NULL,
+  time TIME,
+  description TEXT,
+  color TEXT DEFAULT '#3b82f6',
+  completed BOOLEAN NOT NULL DEFAULT FALSE,
+  google_event_id TEXT,
+  is_google_event BOOLEAN NOT NULL DEFAULT FALSE,
+  repeat_type TEXT DEFAULT 'none'
+    CHECK (repeat_type IN ('none', 'daily', 'weekly', 'monthly', 'yearly')),
+  repeat_interval INT DEFAULT 1,
+  repeat_end_date DATE,
+  repeat_group_id TEXT,
+  is_repeat_instance BOOLEAN NOT NULL DEFAULT FALSE,
+  reminder_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  reminder_minutes_before INT DEFAULT 30,
+  is_d_day BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ,
+  CONSTRAINT unique_user_local_id UNIQUE (user_id, local_id)
+);
+
+CREATE INDEX idx_events_user_id ON events(user_id);
+CREATE INDEX idx_events_user_date ON events(user_id, date);
+CREATE INDEX idx_events_user_updated ON events(user_id, updated_at);
+CREATE INDEX idx_events_deleted ON events(deleted_at) WHERE deleted_at IS NULL;
+
+CREATE TRIGGER events_updated_at
+  BEFORE UPDATE ON events
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- 1.2.4: memos 테이블
+CREATE TABLE memos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  local_id TEXT NOT NULL,
+  title TEXT,
+  content TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  deleted_at TIMESTAMPTZ,
+  CONSTRAINT unique_memo_user_local_id UNIQUE (user_id, local_id)
+);
+
+CREATE INDEX idx_memos_user_id ON memos(user_id);
+CREATE INDEX idx_memos_user_updated ON memos(user_id, updated_at);
+
+CREATE TRIGGER memos_updated_at
+  BEFORE UPDATE ON memos
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- 1.2.5: user_settings 테이블
+CREATE TABLE user_settings (
+  user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  settings JSONB NOT NULL DEFAULT '{
+    "opacity": 0.95,
+    "alwaysOnTop": false,
+    "desktopMode": false,
+    "theme": "dark",
+    "accentColor": "blue",
+    "fontSize": 14,
+    "resizeMode": true,
+    "showHolidays": true,
+    "showAdjacentMonths": true,
+    "showGridLines": true,
+    "hiddenDays": [],
+    "schedulePanelPosition": "right",
+    "showEventDots": false,
+    "autoBackup": true,
+    "showOverdueTasks": true,
+    "weekStartDay": 0
+  }'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TRIGGER user_settings_updated_at
+  BEFORE UPDATE ON user_settings
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- 1.2.6: repeat_instance_states 테이블 (반복 인스턴스 완료 상태)
+CREATE TABLE repeat_instance_states (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  event_id TEXT NOT NULL,
+  instance_date DATE NOT NULL,
+  completed BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT unique_instance_state UNIQUE (user_id, event_id, instance_date)
+);
+
+CREATE INDEX idx_repeat_states_user ON repeat_instance_states(user_id);
+CREATE INDEX idx_repeat_states_event ON repeat_instance_states(user_id, event_id);
+
+CREATE TRIGGER repeat_instance_states_updated_at
+  BEFORE UPDATE ON repeat_instance_states
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+```
+
+#### Step 1.3: RLS (Row Level Security) 설정
+- [x] Step 1.3.1: 모든 테이블에 RLS 활성화
+- [x] Step 1.3.2: users 테이블 정책 생성
+- [x] Step 1.3.3: events 테이블 정책 생성
+- [x] Step 1.3.4: memos 테이블 정책 생성
+- [x] Step 1.3.5: user_settings 테이블 정책 생성
+- [x] Step 1.3.6: repeat_instance_states 테이블 정책 생성
+
+**SQL:**
+```sql
+-- RLS 활성화
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE memos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE repeat_instance_states ENABLE ROW LEVEL SECURITY;
+
+-- users 정책 (서버에서 service_role로 접근하므로 기본 허용)
+CREATE POLICY "Allow service role full access to users"
+  ON users FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+-- events 정책
+CREATE POLICY "Allow service role full access to events"
+  ON events FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+-- memos 정책
+CREATE POLICY "Allow service role full access to memos"
+  ON memos FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+-- user_settings 정책
+CREATE POLICY "Allow service role full access to user_settings"
+  ON user_settings FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+-- repeat_instance_states 정책
+CREATE POLICY "Allow service role full access to repeat_instance_states"
+  ON repeat_instance_states FOR ALL
+  USING (true)
+  WITH CHECK (true);
+```
+
+**참고:** 서버에서 `service_role` 키를 사용하므로 RLS를 우회함. 클라이언트 직접 접근 시에는 더 엄격한 정책 필요.
+
+#### Step 1.4: 환경 변수 설정
+- [x] Step 1.4.1: 서버 `.env` 파일에 Supabase 정보 추가
+- [x] Step 1.4.2: 연결 테스트
+
+**서버 `.env` 추가 내용:**
+```env
+# Supabase
+SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_SERVICE_KEY=eyJhbGc...  # service_role key (절대 노출 금지)
+```
+
+#### Step 1.5: 테이블 확인 및 테스트
+- [x] Supabase 대시보드 → Table Editor에서 테이블 확인
+- [x] 테스트 데이터 삽입 시도
+- [x] RLS 동작 확인
+
+**Phase 1 완료 체크리스트:**
+- [x] 5개 테이블 생성 완료 (users, events, memos, user_settings, repeat_instance_states)
+- [x] 모든 인덱스 생성 완료
+- [x] 모든 트리거 연결 완료
+- [x] RLS 활성화 및 정책 설정 완료
+- [x] 환경 변수 설정 완료
+
+---
+
+### Phase 2: Auth Server 수정
+
+#### Step 2.1: Supabase 클라이언트 설정
+- [x] Step 2.1.1: `@supabase/supabase-js` 패키지 설치
+- [x] Step 2.1.2: `src/lib/supabase.ts` 파일 생성 (index.ts에 통합)
+- [x] Step 2.1.3: Supabase 클라이언트 초기화 코드 작성
+- [x] Step 2.1.4: 연결 테스트
+
+**파일: `server/src/lib/supabase.ts`**
+```typescript
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
+```
+
+#### Step 2.2: 유저 관리 함수 작성
+- [x] Step 2.2.1: `src/services/userService.ts` 생성 (index.ts에 통합)
+- [x] Step 2.2.2: `findOrCreateUser(email, displayName, avatarUrl)` 함수
+- [x] Step 2.2.3: `getUserById(id)` 함수
+- [x] Step 2.2.4: `updateUserProfile(id, updates)` 함수
+- [x] Step 2.2.5: `updateLastLogin(id)` 함수
+
+#### Step 2.3: 세션 토큰 시스템 구현
+- [x] Step 2.3.1: JWT 토큰 생성/검증 유틸리티 (`src/lib/jwt.ts`) (index.ts에 통합)
+- [x] Step 2.3.2: `jsonwebtoken` 패키지 설치
+- [x] Step 2.3.3: `generateSessionToken(userId)` 함수
+- [x] Step 2.3.4: `verifySessionToken(token)` 함수
+- [x] Step 2.3.5: 토큰 만료 시간 설정 (7일)
+
+**파일: `server/src/lib/jwt.ts`**
+```typescript
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET!;
+const TOKEN_EXPIRY = '7d';
+
+export interface TokenPayload {
+  userId: string;
+  email: string;
+}
+
+export function generateSessionToken(payload: TokenPayload): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
+}
+
+export function verifySessionToken(token: string): TokenPayload | null {
+  try {
+    return jwt.verify(token, JWT_SECRET) as TokenPayload;
+  } catch {
+    return null;
+  }
+}
+```
+
+#### Step 2.4: 인증 미들웨어 작성
+- [x] Step 2.4.1: `src/middleware/auth.ts` 생성 (index.ts에 통합)
+- [x] Step 2.4.2: `requireAuth` 미들웨어 (세션 토큰 검증)
+- [x] Step 2.4.3: `requirePremium` 미들웨어 (Premium 구독 확인)
+- [x] Step 2.4.4: 미들웨어 테스트
+
+**파일: `server/src/middleware/auth.ts`**
+```typescript
+import { Context, Next } from 'hono';
+import { verifySessionToken } from '../lib/jwt';
+import { getUserById } from '../services/userService';
+
+export async function requireAuth(c: Context, next: Next) {
+  const authHeader = c.req.header('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  const token = authHeader.substring(7);
+  const payload = verifySessionToken(token);
+  if (!payload) {
+    return c.json({ error: 'Invalid or expired token' }, 401);
+  }
+
+  const user = await getUserById(payload.userId);
+  if (!user) {
+    return c.json({ error: 'User not found' }, 401);
+  }
+
+  c.set('user', user);
+  await next();
+}
+
+export async function requirePremium(c: Context, next: Next) {
+  const user = c.get('user');
+  if (user.subscription_tier !== 'premium') {
+    return c.json({
+      error: 'Premium subscription required',
+      code: 'PREMIUM_REQUIRED'
+    }, 403);
+  }
+
+  // 구독 만료 체크
+  if (user.subscription_expires_at) {
+    const expiresAt = new Date(user.subscription_expires_at);
+    if (expiresAt < new Date()) {
+      return c.json({
+        error: 'Subscription expired',
+        code: 'SUBSCRIPTION_EXPIRED'
+      }, 403);
+    }
+  }
+
+  await next();
+}
+```
+
+#### Step 2.5: Auth 엔드포인트 구현
+- [x] Step 2.5.1: `POST /auth/session` - Google 토큰으로 세션 생성
+- [x] Step 2.5.2: `DELETE /auth/session` - 로그아웃
+- [x] Step 2.5.3: `GET /auth/session` - 세션 상태 확인
+
+**파일: `server/src/routes/auth.ts`**
+```typescript
+import { Hono } from 'hono';
+import { findOrCreateUser, updateLastLogin } from '../services/userService';
+import { generateSessionToken } from '../lib/jwt';
+
+const auth = new Hono();
+
+// Google 토큰으로 세션 생성
+auth.post('/session', async (c) => {
+  const { google_access_token, google_id_token } = await c.req.json();
+
+  // Google ID 토큰 검증 및 사용자 정보 추출
+  const googleUser = await verifyGoogleToken(google_id_token);
+  if (!googleUser) {
+    return c.json({ error: 'Invalid Google token' }, 401);
+  }
+
+  // DB에서 유저 찾거나 생성
+  const user = await findOrCreateUser(
+    googleUser.email,
+    googleUser.name,
+    googleUser.picture
+  );
+
+  // 마지막 로그인 시간 업데이트
+  await updateLastLogin(user.id);
+
+  // 세션 토큰 생성
+  const sessionToken = generateSessionToken({
+    userId: user.id,
+    email: user.email,
+  });
+
+  return c.json({
+    session_token: sessionToken,
+    user: {
+      id: user.id,
+      email: user.email,
+      display_name: user.display_name,
+      avatar_url: user.avatar_url,
+      subscription_tier: user.subscription_tier,
+      subscription_expires_at: user.subscription_expires_at,
+    },
+    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+});
+
+export default auth;
+```
+
+#### Step 2.6: User 엔드포인트 구현
+- [x] Step 2.6.1: `GET /user/profile` - 프로필 조회
+- [x] Step 2.6.2: `PATCH /user/profile` - 프로필 수정
+
+#### Step 2.7: Sync 엔드포인트 구현
+- [x] Step 2.7.1: `src/services/syncService.ts` 생성 (index.ts에 통합)
+- [x] Step 2.7.2: `POST /sync/events` - 이벤트 동기화
+- [x] Step 2.7.3: `POST /sync/memos` - 메모 동기화
+- [x] Step 2.7.4: `POST /sync/settings` - 설정 동기화
+- [x] Step 2.7.5: `POST /sync/all` - 전체 동기화
+- [x] Step 2.7.6: `GET /sync/status` - 동기화 상태 조회
+
+**파일: `server/src/routes/sync.ts`**
+```typescript
+import { Hono } from 'hono';
+import { requireAuth, requirePremium } from '../middleware/auth';
+import { syncEvents, syncMemos, syncSettings } from '../services/syncService';
+
+const sync = new Hono();
+
+// 모든 동기화 엔드포인트는 인증 + Premium 필요
+sync.use('/*', requireAuth, requirePremium);
+
+// 이벤트 동기화
+sync.post('/events', async (c) => {
+  const user = c.get('user');
+  const { events, last_sync_at } = await c.req.json();
+
+  const result = await syncEvents(user.id, events, last_sync_at);
+  return c.json(result);
+});
+
+// 메모 동기화
+sync.post('/memos', async (c) => {
+  const user = c.get('user');
+  const { memos, last_sync_at } = await c.req.json();
+
+  const result = await syncMemos(user.id, memos, last_sync_at);
+  return c.json(result);
+});
+
+// 전체 동기화
+sync.post('/all', async (c) => {
+  const user = c.get('user');
+  const { events, memos, settings, repeat_instance_states, last_sync_at } = await c.req.json();
+
+  const eventsResult = await syncEvents(user.id, events, last_sync_at);
+  const memosResult = await syncMemos(user.id, memos, last_sync_at);
+  // ... settings, repeat_instance_states도 동기화
+
+  return c.json({
+    events: eventsResult.events,
+    memos: memosResult.memos,
+    synced_at: new Date().toISOString(),
+  });
+});
+
+export default sync;
+```
+
+#### Step 2.8: 동기화 서비스 구현
+- [x] Step 2.8.1: `syncEvents` 함수 - LWW 방식 충돌 해결
+- [x] Step 2.8.2: `syncMemos` 함수
+- [x] Step 2.8.3: `syncSettings` 함수
+- [x] Step 2.8.4: `syncRepeatInstanceStates` 함수
+
+**파일: `server/src/services/syncService.ts`**
+```typescript
+import { supabase } from '../lib/supabase';
+
+interface SyncEvent {
+  local_id: string;
+  title: string;
+  date: string;
+  time?: string;
+  description?: string;
+  color?: string;
+  completed?: boolean;
+  repeat_type?: string;
+  repeat_interval?: number;
+  repeat_end_date?: string;
+  is_d_day?: boolean;
+  updated_at: string;
+  deleted?: boolean;
+}
+
+export async function syncEvents(
+  userId: string,
+  clientEvents: SyncEvent[],
+  lastSyncAt: string | null
+) {
+  const syncedAt = new Date().toISOString();
+
+  // 1. 클라이언트 이벤트를 DB에 upsert (LWW)
+  for (const event of clientEvents) {
+    if (event.deleted) {
+      // Soft delete
+      await supabase
+        .from('events')
+        .update({ deleted_at: syncedAt, updated_at: syncedAt })
+        .eq('user_id', userId)
+        .eq('local_id', event.local_id);
+    } else {
+      // Upsert with conflict resolution
+      await supabase
+        .from('events')
+        .upsert({
+          user_id: userId,
+          local_id: event.local_id,
+          title: event.title,
+          date: event.date,
+          time: event.time,
+          description: event.description,
+          color: event.color,
+          completed: event.completed,
+          repeat_type: event.repeat_type,
+          repeat_interval: event.repeat_interval,
+          repeat_end_date: event.repeat_end_date,
+          is_d_day: event.is_d_day,
+          updated_at: event.updated_at,
+        }, {
+          onConflict: 'user_id,local_id',
+          ignoreDuplicates: false,
+        });
+    }
+  }
+
+  // 2. lastSyncAt 이후 변경된 서버 이벤트 조회
+  let query = supabase
+    .from('events')
+    .select('*')
+    .eq('user_id', userId);
+
+  if (lastSyncAt) {
+    query = query.gt('updated_at', lastSyncAt);
+  }
+
+  const { data: serverEvents } = await query;
+
+  return {
+    events: serverEvents || [],
+    synced_at: syncedAt,
+  };
+}
+```
+
+#### Step 2.9: 라우터 통합 및 테스트
+- [x] Step 2.9.1: `src/index.ts`에 새 라우터 등록
+- [x] Step 2.9.2: 각 엔드포인트 수동 테스트
+- [x] Step 2.9.3: 에러 핸들링 확인
+
+**Phase 2 완료 체크리스트:**
+- [x] Supabase 클라이언트 연동 완료
+- [x] JWT 세션 토큰 시스템 구현 완료
+- [x] 인증 미들웨어 구현 완료
+- [x] `/auth/*` 엔드포인트 구현 완료
+- [x] `/user/*` 엔드포인트 구현 완료
+- [x] `/sync/*` 엔드포인트 구현 완료
+- [x] 동기화 서비스 (LWW) 구현 완료
+
+---
+
+### Phase 3: 클라이언트 수정
+
+#### Step 3.1: 타입 정의 추가
+- [x] Step 3.1.1: `src/types/index.ts`에 User, AuthState, SyncState 타입 추가
+- [x] Step 3.1.2: ElectronAPI 인터페이스에 세션 관련 메서드 추가
+
+**추가할 타입:**
+```typescript
+// User
+export interface User {
+  id: string;
+  email: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  subscriptionTier: 'free' | 'premium';
+  subscriptionExpiresAt: string | null;
+}
+
+// Auth State
+export interface AuthState {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: User | null;
+  sessionToken: string | null;
+}
+
+// Sync State
+export interface SyncState {
+  isSyncing: boolean;
+  lastSyncAt: string | null;
+  syncError: string | null;
+  pendingChanges: number;
+}
+
+// ElectronAPI 추가
+interface ElectronAPI {
+  // ... 기존 메서드들 ...
+
+  // 세션 토큰 관리
+  saveSessionToken: (token: string) => Promise<boolean>;
+  getSessionToken: () => Promise<string | null>;
+  deleteSessionToken: () => Promise<boolean>;
+}
+```
+
+#### Step 3.2: Electron IPC 핸들러 추가
+- [x] Step 3.2.1: `electron/ipcHandlers.ts`에 세션 토큰 저장/조회/삭제 핸들러 추가
+- [x] Step 3.2.2: `electron/preload.ts`에 API 노출
+- [x] Step 3.2.3: safeStorage를 사용한 암호화 저장
+
+**파일: `electron/ipcHandlers.ts` 추가**
+```typescript
+import { safeStorage } from 'electron';
+import path from 'path';
+import fs from 'fs';
+
+// 세션 토큰 저장 경로
+function getSessionTokenPath(): string {
+  return path.join(app.getPath('userData'), 'session-token.enc');
+}
+
+// 세션 토큰 저장 (암호화)
+ipcMain.handle('save-session-token', async (_, token: string) => {
+  try {
+    if (safeStorage.isEncryptionAvailable()) {
+      const encrypted = safeStorage.encryptString(token);
+      fs.writeFileSync(getSessionTokenPath(), encrypted);
+    } else {
+      // 암호화 불가 시 평문 저장 (개발 환경)
+      fs.writeFileSync(getSessionTokenPath(), token);
+    }
+    return true;
+  } catch (error) {
+    console.error('Failed to save session token:', error);
+    return false;
+  }
+});
+
+// 세션 토큰 조회 (복호화)
+ipcMain.handle('get-session-token', async () => {
+  try {
+    const tokenPath = getSessionTokenPath();
+    if (!fs.existsSync(tokenPath)) return null;
+
+    const data = fs.readFileSync(tokenPath);
+    if (safeStorage.isEncryptionAvailable()) {
+      return safeStorage.decryptString(data);
+    }
+    return data.toString();
+  } catch (error) {
+    console.error('Failed to get session token:', error);
+    return null;
+  }
+});
+
+// 세션 토큰 삭제
+ipcMain.handle('delete-session-token', async () => {
+  try {
+    const tokenPath = getSessionTokenPath();
+    if (fs.existsSync(tokenPath)) {
+      fs.unlinkSync(tokenPath);
+    }
+    return true;
+  } catch (error) {
+    console.error('Failed to delete session token:', error);
+    return false;
+  }
+});
+```
+
+#### Step 3.3: AuthContext 구현
+- [x] Step 3.3.1: `src/contexts/AuthContext.tsx` 생성
+- [x] Step 3.3.2: AuthProvider 컴포넌트 구현
+- [x] Step 3.3.3: useAuth 훅 구현
+- [x] Step 3.3.4: main.tsx에 AuthProvider 래핑
+
+**파일: `src/contexts/AuthContext.tsx`**
+```typescript
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import type { User, AuthState } from '../types';
+
+const AUTH_SERVER_URL = 'http://localhost:3001'; // 환경변수로 대체 예정
+
+interface AuthContextType extends AuthState {
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<AuthState>({
+    isAuthenticated: false,
+    isLoading: true,
+    user: null,
+    sessionToken: null,
+  });
+
+  // 앱 시작 시 저장된 세션 확인
+  useEffect(() => {
+    checkStoredSession();
+  }, []);
+
+  const checkStoredSession = async () => {
+    try {
+      if (!window.electronAPI?.getSessionToken) {
+        setState(prev => ({ ...prev, isLoading: false }));
+        return;
+      }
+
+      const sessionToken = await window.electronAPI.getSessionToken();
+      if (!sessionToken) {
+        setState(prev => ({ ...prev, isLoading: false }));
+        return;
+      }
+
+      // 서버에서 세션 유효성 확인
+      const response = await fetch(`${AUTH_SERVER_URL}/user/profile`, {
+        headers: { Authorization: `Bearer ${sessionToken}` },
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        setState({
+          isAuthenticated: true,
+          isLoading: false,
+          user,
+          sessionToken,
+        });
+      } else {
+        // 세션 만료 - 삭제
+        await window.electronAPI.deleteSessionToken();
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
+    } catch (error) {
+      console.error('Session check failed:', error);
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const login = useCallback(async () => {
+    // 1. 기존 Google 로그인 사용
+    const googleResult = await window.electronAPI?.googleAuthLogin();
+    if (!googleResult?.success) {
+      throw new Error('Google login failed');
+    }
+
+    // 2. 서버에서 세션 토큰 발급
+    // ... (기존 계획서 참조)
+  }, []);
+
+  const logout = useCallback(async () => {
+    await window.electronAPI?.deleteSessionToken();
+    await window.electronAPI?.googleAuthLogout();
+    setState({
+      isAuthenticated: false,
+      isLoading: false,
+      user: null,
+      sessionToken: null,
+    });
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ ...state, login, logout, refreshUser: checkStoredSession }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+}
+```
+
+#### Step 3.4: useCloudSync 훅 구현
+- [x] Step 3.4.1: `src/hooks/useCloudSync.ts` 생성
+- [x] Step 3.4.2: syncAll 함수 구현
+- [x] Step 3.4.3: 동기화 상태 관리 (isSyncing, lastSyncAt, syncError)
+- [ ] Step 3.4.4: 오프라인 감지 및 대기열 관리 (추후 구현)
+
+#### Step 3.5: useSubscription 훅 구현
+- [x] Step 3.5.1: `src/hooks/useSubscription.ts` 생성
+- [x] Step 3.5.2: isPremium 상태 관리
+- [x] Step 3.5.3: upgradeToPremium, cancelSubscription 함수 구현 (Phase 4에서 완성)
+
+#### Step 3.6: useEvents 수정 (추후 구현)
+- [ ] Step 3.6.1: cloudSync 연동 추가
+- [ ] Step 3.6.2: 이벤트 변경 시 pendingChange 마킹
+- [ ] Step 3.6.3: 서버 데이터와 로컬 데이터 머지 로직
+
+#### Step 3.7: 로그인/로그아웃 UI 구현
+- [x] Step 3.7.1: Settings 패널에 Account 섹션 추가 (로그인/로그아웃)
+- [x] Step 3.7.2: Premium 뱃지 표시
+- [x] Step 3.7.3: Cloud Sync 상태 표시 및 Upgrade 버튼
+
+#### Step 3.8: 동기화 상태 UI 구현
+- [x] Step 3.8.1: TitleBar에 클라우드 동기화 상태 아이콘 추가
+- [ ] Step 3.8.2: 동기화 중 스피너 표시 (추후 구현)
+- [ ] Step 3.8.3: 마지막 동기화 시간 표시 (추후 구현)
+- [ ] Step 3.8.4: 동기화 오류 표시 (추후 구현)
+
+**Phase 3 완료 체크리스트:**
+- [x] 타입 정의 추가 완료
+- [x] Electron IPC 핸들러 추가 완료
+- [x] AuthContext 및 useAuth 훅 구현 완료
+- [x] useCloudSync 훅 구현 완료
+- [x] useSubscription 훅 구현 완료
+- [ ] useEvents 클라우드 연동 (추후 구현)
+- [x] 로그인/로그아웃 UI 구현 완료
+- [x] 동기화 상태 UI 기본 구현 완료
+
+---
+
+### Phase 4: Stripe 연동
+
+#### Step 4.1: Stripe 계정 설정
+- [ ] Step 4.1.1: https://stripe.com 계정 생성/로그인
+- [ ] Step 4.1.2: 테스트 모드 활성화 확인
+- [ ] Step 4.1.3: API 키 확인 (Dashboard → Developers → API keys)
+  - Publishable key: `pk_test_...`
+  - Secret key: `sk_test_...`
+
+#### Step 4.2: Product 및 Price 생성
+- [ ] Step 4.2.1: Dashboard → Products → Add product
+- [ ] Step 4.2.2: Product 생성
+  - Name: "Desktop Calendar Premium"
+  - Description: "클라우드 동기화, 다중 기기 지원"
+- [ ] Step 4.2.3: Monthly Price 생성
+  - Price: $4.99/month (또는 ₩4,900)
+  - Billing period: Monthly
+  - Price ID 저장: `price_monthly_xxx`
+- [ ] Step 4.2.4: Yearly Price 생성
+  - Price: $39.99/year (또는 ₩39,900)
+  - Billing period: Yearly
+  - Price ID 저장: `price_yearly_xxx`
+
+#### Step 4.3: 서버 환경 변수 추가
+```env
+# Stripe
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+STRIPE_MONTHLY_PRICE_ID=price_xxx
+STRIPE_YEARLY_PRICE_ID=price_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx  # Step 4.6에서 생성
+```
+
+#### Step 4.4: Stripe 라이브러리 설치 및 설정
+- [ ] Step 4.4.1: `npm install stripe` (서버)
+- [ ] Step 4.4.2: `src/lib/stripe.ts` 생성
+
+**파일: `server/src/lib/stripe.ts`**
+```typescript
+import Stripe from 'stripe';
+
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-12-18.acacia',
+});
+```
+
+#### Step 4.5: Subscription 엔드포인트 구현
+- [x] Step 4.5.1: 엔드포인트 스텁 생성 (index.ts에 추가)
+- [x] Step 4.5.2: `GET /subscription/status` - 구독 상태 조회 (완전 구현 - DB만 사용)
+- [x] Step 4.5.3: `POST /subscription/checkout` - Checkout 세션 스텁 (TODO: Stripe 연동)
+- [x] Step 4.5.4: `POST /subscription/portal` - 고객 포털 스텁 (TODO: Stripe 연동)
+- [x] Step 4.5.5: `POST /subscription/cancel` - 구독 취소 스텁 (TODO: Stripe 연동)
+- [x] Step 4.5.6: `POST /subscription/reactivate` - 구독 재활성화 스텁 (TODO: Stripe 연동)
+- [x] Step 4.5.7: `POST /subscription/webhook` - Stripe 웹훅 스텁 (TODO: Stripe 연동)
+
+#### Step 4.6: Webhook 설정
+- [ ] Step 4.6.1: Stripe Dashboard → Developers → Webhooks
+- [ ] Step 4.6.2: Add endpoint: `https://your-server.com/subscription/webhook`
+- [ ] Step 4.6.3: 이벤트 선택:
+  - `checkout.session.completed`
+  - `customer.subscription.updated`
+  - `customer.subscription.deleted`
+  - `invoice.payment_failed`
+- [ ] Step 4.6.4: Webhook signing secret 저장
+- [ ] Step 4.6.5: `POST /subscription/webhook` 엔드포인트 구현
+
+#### Step 4.7: 클라이언트 구독 UI 구현
+- [ ] Step 4.7.1: `src/components/Subscription/UpgradeModal.tsx` 생성
+- [ ] Step 4.7.2: `src/components/Subscription/PlanBadge.tsx` 생성
+- [ ] Step 4.7.3: `src/components/Subscription/ManageSubscription.tsx` 생성
+- [ ] Step 4.7.4: Settings에 구독 관리 섹션 추가
+
+#### Step 4.8: 결제 테스트
+- [ ] Step 4.8.1: 테스트 카드로 결제 테스트
+  - 성공: `4242 4242 4242 4242`
+  - 실패: `4000 0000 0000 0002`
+- [ ] Step 4.8.2: Webhook 수신 확인
+- [ ] Step 4.8.3: DB 구독 상태 업데이트 확인
+- [ ] Step 4.8.4: 앱에서 Premium 기능 활성화 확인
+
+**Phase 4 완료 체크리스트:**
+- [ ] Stripe 계정 및 Product/Price 설정 완료
+- [ ] Checkout 세션 생성 구현 완료
+- [ ] Webhook 처리 구현 완료
+- [ ] 고객 포털 연동 완료
+- [ ] 클라이언트 구독 UI 구현 완료
+- [ ] 결제 테스트 완료
+
+---
+
+### Phase 5: 통합 테스트 및 배포 준비
+
+#### Step 5.1: 통합 테스트
+- [ ] Step 5.1.1: 신규 가입 플로우 테스트
+- [ ] Step 5.1.2: 로그인/로그아웃 테스트
+- [ ] Step 5.1.3: Free 유저 기능 제한 테스트
+- [ ] Step 5.1.4: Premium 결제 → 기능 활성화 테스트
+- [ ] Step 5.1.5: 클라우드 동기화 테스트 (이벤트, 메모, 설정)
+- [ ] Step 5.1.6: 다중 기기 동기화 테스트
+- [ ] Step 5.1.7: 오프라인 → 온라인 동기화 테스트
+
+#### Step 5.2: 버그 수정 및 최적화
+- [ ] Step 5.2.1: 발견된 버그 수정
+- [ ] Step 5.2.2: 성능 최적화 (대량 데이터 동기화)
+- [ ] Step 5.2.3: 에러 메시지 개선
+- [ ] Step 5.2.4: 로딩 상태 UX 개선
+
+#### Step 5.3: 배포 준비
+- [ ] Step 5.3.1: 환경 변수 프로덕션 값으로 변경
+- [ ] Step 5.3.2: Stripe 라이브 모드 전환
+- [ ] Step 5.3.3: 서버 배포 (Cloudflare Workers 또는 기타)
+- [ ] Step 5.3.4: Supabase 프로덕션 설정 확인
 
 **총 예상: 8-11일**
 

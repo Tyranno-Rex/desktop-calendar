@@ -283,3 +283,42 @@
   background: var(--border-color);
   margin: 4px 0;
 }
+
+/* Cloud Sync Status Indicator */
+.cloud-sync-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  margin-right: 4px;
+  transition: all 0.2s;
+}
+
+.cloud-sync-indicator.active {
+  color: #34c759;
+}
+
+.cloud-sync-indicator.active svg {
+  filter: drop-shadow(0 0 4px rgba(52, 199, 89, 0.4));
+}
+
+.cloud-sync-indicator.inactive {
+  color: var(--text-tertiary);
+  opacity: 0.6;
+}
+
+/* Resize mode에서 클라우드 아이콘 색상 */
+.title-bar-movable .cloud-sync-indicator {
+  color: white;
+  opacity: 0.8;
+}
+
+.title-bar-movable .cloud-sync-indicator.active {
+  opacity: 1;
+}
+
+.title-bar-movable .cloud-sync-indicator.active svg {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+}
