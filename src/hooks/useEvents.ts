@@ -133,6 +133,25 @@ export function useEvents() {
     await loadEvents();
   }, [loadEvents]);
 
+  // 클라우드에서 가져온 이벤트 병합 (서버 데이터 우선)
+  const mergeFromCloud = useCallback(async (cloudEvents: CalendarEvent[]) => {
+    if (!cloudEvents || cloudEvents.length === 0) return;
+
+    setEvents(prev => {
+      // 서버 이벤트 ID 맵
+      const cloudEventMap = new Map(cloudEvents.map(e => [e.id, e]));
+
+      // 로컬에만 있는 이벤트 (서버에 없는 것)
+      const localOnlyEvents = prev.filter(e => !cloudEventMap.has(e.id));
+
+      // 서버 이벤트 + 로컬 전용 이벤트 병합
+      const mergedEvents = [...cloudEvents, ...localOnlyEvents];
+
+      persistEvents(mergedEvents);
+      return mergedEvents;
+    });
+  }, []);
+
   // 이벤트 추가 (함수형 업데이트로 events 의존성 제거)
   const addEvent = useCallback(async (event: Omit<CalendarEvent, 'id'>, syncToGoogle = false) => {
     const newEvent: CalendarEvent = { ...event, id: uuidv4() };
@@ -348,6 +367,7 @@ export function useEvents() {
     deleteEvent,
     getEventsForDate,
     refreshEvents,
+    mergeFromCloud,
     syncWithGoogle,
     googleConnected,
     setGoogleConnected,

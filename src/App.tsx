@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { Calendar } from './components/Calendar';
 import { getLocalDateString } from './utils/date';
@@ -10,6 +10,8 @@ import { ResizeHandle } from './components/ResizeHandle';
 import { useEvents } from './hooks/useEvents';
 import { useSettings } from './hooks/useSettings';
 import { useDesktopMouseEvents } from './hooks/useDesktopMouseEvents';
+import { useCloudSync } from './hooks/useCloudSync';
+import { useAuth } from './contexts/AuthContext';
 import type { CalendarEvent } from './types';
 import './App.css';
 
@@ -27,6 +29,7 @@ function App() {
     deleteEvent,
     getEventsForDate,
     refreshEvents,
+    mergeFromCloud,
     syncWithGoogle,
     googleConnected,
     setGoogleConnected,
@@ -36,8 +39,81 @@ function App() {
 
   const { settings, updateSettings, loading: settingsLoading } = useSettings();
 
+  // Cloud Sync (Premium 전용)
+  const { isAuthenticated } = useAuth();
+  const {
+    syncAll,
+    fetchFromCloud,
+    isSyncing: isCloudSyncing,
+    startAutoSync,
+    stopAutoSync,
+  } = useCloudSync();
+
+  // 이전 events 상태를 추적하여 변경 감지
+  const prevEventsRef = useRef<CalendarEvent[]>([]);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Desktop Mode 마우스 이벤트 핸들링
   useDesktopMouseEvents();
+
+  // Cloud Sync: Premium 유저 로그인 시 서버 데이터 가져오기 + 자동 동기화 시작
+  const initialSyncDoneRef = useRef(false);
+  useEffect(() => {
+    if (isAuthenticated && !eventsLoading) {
+      // 앱 시작 시 서버에서 데이터 가져와서 병합 (최초 1회)
+      if (!initialSyncDoneRef.current) {
+        initialSyncDoneRef.current = true;
+        fetchFromCloud().then(result => {
+          if (result.success && result.events) {
+            mergeFromCloud(result.events);
+          }
+        });
+      }
+      startAutoSync();
+    } else if (!isAuthenticated) {
+      initialSyncDoneRef.current = false;
+      stopAutoSync();
+    }
+    return () => stopAutoSync();
+  }, [isAuthenticated, eventsLoading, fetchFromCloud, mergeFromCloud, startAutoSync, stopAutoSync]);
+
+  // Cloud Sync: 이벤트 변경 시 서버에 동기화 (debounce 3초)
+  useEffect(() => {
+    // 초기 로딩 시에는 스킵
+    if (eventsLoading || events.length === 0 && prevEventsRef.current.length === 0) {
+      prevEventsRef.current = events;
+      return;
+    }
+
+    // 이벤트가 실제로 변경되었는지 확인
+    const eventsChanged = JSON.stringify(events) !== JSON.stringify(prevEventsRef.current);
+    if (!eventsChanged) return;
+
+    prevEventsRef.current = events;
+
+    // 이전 타이머 취소
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+    }
+
+    // 3초 후 동기화 (debounce)
+    syncTimeoutRef.current = setTimeout(async () => {
+      if (!isAuthenticated) return;
+
+      // 메모 가져오기
+      const memos = window.electronAPI?.getMemos
+        ? await window.electronAPI.getMemos()
+        : [];
+
+      await syncAll({ events, memos, settings });
+    }, 3000);
+
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
+  }, [events, eventsLoading, isAuthenticated, syncAll, settings]);
 
   // 메모 팝업 열기
   const handleOpenMemo = useCallback((id?: string) => {
@@ -181,6 +257,7 @@ function App() {
         googleConnected={googleConnected}
         onMemo={handleOpenMemo}
         showMemoButton={true}
+        isCloudSyncing={isCloudSyncing}
       />
 
       <div className={`app-content ${settings.schedulePanelPosition === 'left' ? 'panel-left' : ''}`}>

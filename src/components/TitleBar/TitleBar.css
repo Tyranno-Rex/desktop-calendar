@@ -304,6 +304,21 @@
   filter: drop-shadow(0 0 4px rgba(52, 199, 89, 0.4));
 }
 
+.cloud-sync-indicator.syncing svg.pulse {
+  animation: cloudPulse 1s ease-in-out infinite;
+}
+
+@keyframes cloudPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+}
+
 .cloud-sync-indicator.inactive {
   color: var(--text-tertiary);
   opacity: 0.6;

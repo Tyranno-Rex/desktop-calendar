@@ -12,6 +12,7 @@ interface TitleBarProps {
   googleConnected?: boolean;
   onMemo?: (id?: string) => void;
   showMemoButton?: boolean;
+  isCloudSyncing?: boolean;
 }
 
 export const TitleBar = memo(function TitleBar({
@@ -21,6 +22,7 @@ export const TitleBar = memo(function TitleBar({
   googleConnected = false,
   onMemo,
   showMemoButton = true,
+  isCloudSyncing = false,
 }: TitleBarProps) {
   const { isAuthenticated } = useAuth();
   const { isPremium } = useSubscription();
@@ -151,10 +153,10 @@ export const TitleBar = memo(function TitleBar({
         {/* Cloud Sync Status Indicator */}
         {isAuthenticated && (
           <div
-            className={`cloud-sync-indicator ${isCloudSyncEnabled ? 'active' : 'inactive'}`}
-            title={isCloudSyncEnabled ? 'Cloud sync active' : 'Cloud sync (Premium required)'}
+            className={`cloud-sync-indicator ${isCloudSyncEnabled ? 'active' : 'inactive'} ${isCloudSyncing ? 'syncing' : ''}`}
+            title={isCloudSyncing ? 'Syncing...' : (isCloudSyncEnabled ? 'Cloud sync active' : 'Cloud sync (Premium required)')}
           >
-            {isCloudSyncEnabled ? <Cloud size={14} /> : <CloudOff size={14} />}
+            {isCloudSyncEnabled ? <Cloud size={14} className={isCloudSyncing ? 'pulse' : ''} /> : <CloudOff size={14} />}
           </div>
         )}
         {showMemoButton && onMemo && (

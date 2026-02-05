@@ -953,7 +953,7 @@
   align-items: center;
   gap: 3px;
   padding: 3px 6px;
-  background: linear-gradient(135deg, #ff9500, #ff6b00);
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
   color: white;
   border-radius: 10px;
   font-size: 9px;

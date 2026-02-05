@@ -13,11 +13,20 @@ interface SyncResult {
   error?: string;
 }
 
+interface FetchResult {
+  success: boolean;
+  events?: CalendarEvent[];
+  memos?: Memo[];
+  settings?: Settings;
+  error?: string;
+}
+
 interface UseCloudSyncReturn extends SyncState {
   syncEvents: (events: CalendarEvent[]) => Promise<SyncResult>;
   syncMemos: (memos: Memo[]) => Promise<SyncResult>;
   syncSettings: (settings: Settings) => Promise<SyncResult>;
   syncAll: (data: { events: CalendarEvent[]; memos: Memo[]; settings: Settings }) => Promise<SyncResult>;
+  fetchFromCloud: () => Promise<FetchResult>;
   fetchSyncStatus: () => Promise<void>;
   startAutoSync: () => void;
   stopAutoSync: () => void;
@@ -141,7 +150,7 @@ export function useCloudSync(): UseCloudSyncReturn {
     }
   }, [isAuthenticated, isPremium, apiRequest]);
 
-  // 전체 동기화
+  // 전체 동기화 (로컬 → 서버, 서버 변경분 반환)
   const syncAll = useCallback(async (data: {
     events: CalendarEvent[];
     memos: Memo[];
@@ -160,6 +169,39 @@ export function useCloudSync(): UseCloudSyncReturn {
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Sync failed';
+      setSyncError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isAuthenticated, isPremium, apiRequest]);
+
+  // 서버에서 데이터 가져오기 (앱 시작 시 사용)
+  const fetchFromCloud = useCallback(async (): Promise<FetchResult> => {
+    if (!isAuthenticated || !isPremium) {
+      return { success: false, error: 'Premium subscription required' };
+    }
+
+    setIsSyncing(true);
+    setSyncError(null);
+
+    try {
+      // 빈 데이터로 동기화 요청하면 서버 데이터만 반환됨
+      const result = await apiRequest('/sync/all', 'POST', {
+        events: [],
+        memos: [],
+        settings: null,
+      });
+
+      setLastSyncAt(new Date().toISOString());
+      return {
+        success: true,
+        events: result.events || [],
+        memos: result.memos || [],
+        settings: result.settings || null,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Fetch failed';
       setSyncError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -211,6 +253,7 @@ export function useCloudSync(): UseCloudSyncReturn {
     syncMemos,
     syncSettings,
     syncAll,
+    fetchFromCloud,
     fetchSyncStatus,
     startAutoSync,
     stopAutoSync,
