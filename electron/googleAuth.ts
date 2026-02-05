@@ -15,6 +15,7 @@ let electronFunctions: {
   decryptString: (buf: Buffer) => string;
   isEncryptionAvailable: () => boolean;
   openAuthWindow: (url: string, onClose: () => void) => void;
+  getSessionToken: () => string | null;
 } | null = null;
 
 // 초기화 함수 (main.ts에서 호출)
@@ -153,8 +154,14 @@ export async function validateToken(): Promise<boolean> {
       return false;
     }
 
+    const sessionToken = electronFunctions?.getSessionToken();
+    const headers: Record<string, string> = { Authorization: `Bearer ${accessToken}` };
+    if (sessionToken) {
+      headers['X-Session-Token'] = sessionToken;
+    }
+
     const response = await fetch(`${getAuthServerUrl()}/auth/google/validate`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers,
     });
 
     if (!response.ok) {
@@ -224,9 +231,15 @@ export async function getIdToken(): Promise<string | null> {
 // Refresh Token으로 Access Token 갱신
 async function refreshAccessToken(refreshToken: string): Promise<TokenData | null> {
   try {
+    const sessionToken = electronFunctions?.getSessionToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (sessionToken) {
+      headers['X-Session-Token'] = sessionToken;
+    }
+
     const response = await fetch(`${getAuthServerUrl()}/auth/google/refresh`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ refreshToken }),
     });
 
@@ -286,9 +299,15 @@ export function startAuthFlow(): Promise<TokenData> {
           if (returnedState !== state) throw new Error('State mismatch! Possible CSRF attack');
 
           if (code) {
+            const sessionToken = electronFunctions?.getSessionToken();
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (sessionToken) {
+              headers['X-Session-Token'] = sessionToken;
+            }
+
             const tokenResponse = await fetch(`${getAuthServerUrl()}/auth/google/token`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers,
               body: JSON.stringify({ code, codeVerifier }),
             });
 

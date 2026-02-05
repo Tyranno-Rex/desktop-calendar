@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Tray, Menu, screen, nativeImage, safeStorage, ipcMain } from 'electron';
 import type { NativeImage } from 'electron';
 import path from 'path';
+import fs from 'fs';
 
 // Modularized imports
 import { SimpleStore, type CalendarEvent } from './store';
@@ -432,6 +433,17 @@ app.whenReady().then(async () => {
       });
       authWindow.loadURL(url);
       authWindow.on('closed', onClose);
+    },
+    getSessionToken: () => {
+      try {
+        const tokenPath = path.join(app.getPath('userData'), 'session_token.enc');
+        if (!fs.existsSync(tokenPath)) return null;
+        if (!safeStorage.isEncryptionAvailable()) return null;
+        const encrypted = fs.readFileSync(tokenPath);
+        return safeStorage.decryptString(encrypted);
+      } catch {
+        return null;
+      }
     },
   });
 

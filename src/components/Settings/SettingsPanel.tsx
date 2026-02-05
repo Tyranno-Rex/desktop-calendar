@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ChevronRight, Download, Upload, User, LogOut, Cloud, Crown } from 'lucide-react';
 import type { Settings } from '../../types';
 import { AdvancedSettings } from './AdvancedSettings';
+import { PremiumModal } from './PremiumModal';
 import { useDraggableModal } from '../../hooks/useDraggableModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSubscription } from '../../hooks/useSubscription';
@@ -34,6 +35,7 @@ export function SettingsPanel({
   const [exportLoading, setExportLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const googleAuthInProgressRef = useRef(false);
 
   // 계정 로그인
@@ -55,13 +57,23 @@ export function SettingsPanel({
     }
   }, [logout]);
 
-  // Premium 업그레이드
-  const handleUpgrade = useCallback(async () => {
+  // Premium 모달 열기
+  const handleUpgrade = useCallback(() => {
+    setShowPremiumModal(true);
+  }, []);
+
+  // 쿠폰 제출 핸들러
+  const handleCouponSubmit = useCallback(async (code: string): Promise<{ success: boolean; error?: string }> => {
+    // TODO: 서버에 쿠폰 검증 요청
+    console.log('[SettingsPanel] Coupon submit:', code);
+    // 임시로 실패 반환 (서버 구현 후 수정)
+    return { success: false, error: 'Coupon validation not yet implemented' };
+  }, []);
+
+  // Stripe Checkout 핸들러
+  const handleStripeCheckout = useCallback(async (): Promise<{ success: boolean; checkoutUrl?: string; error?: string }> => {
     const result = await upgradeToPremium();
-    if (result.success && result.checkoutUrl) {
-      // Stripe Checkout 페이지 열기
-      window.open(result.checkoutUrl, '_blank');
-    }
+    return result;
   }, [upgradeToPremium]);
 
   // Google 연결/해제
@@ -361,23 +373,39 @@ export function SettingsPanel({
 
           <div className="setting-divider" />
 
+          {/* Google Calendar (Premium Feature) */}
           <div className="setting-item">
             <label>
+              <Cloud size={16} />
               Google Calendar
               <span className="setting-hint">
-                {googleConnected ? 'Connected' : 'Sync with Google'}
+                {isPremium ? (googleConnected ? 'Connected' : 'Sync with Google') : 'Premium feature'}
               </span>
             </label>
-            <motion.button
-              className={`google-btn ${googleConnected ? 'connected' : ''}`}
-              onClick={handleGoogleConnect}
-              disabled={googleLoading}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            >
-              {googleLoading ? '...' : googleConnected ? 'Disconnect' : 'Connect'}
-            </motion.button>
+            {isPremium ? (
+              <motion.button
+                className={`google-btn ${googleConnected ? 'connected' : ''}`}
+                onClick={handleGoogleConnect}
+                disabled={googleLoading}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              >
+                {googleLoading ? '...' : googleConnected ? 'Disconnect' : 'Connect'}
+              </motion.button>
+            ) : (
+              <motion.button
+                className="upgrade-btn"
+                onClick={handleUpgrade}
+                disabled={subscriptionLoading}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              >
+                <Crown size={14} />
+                {subscriptionLoading ? '...' : 'Upgrade'}
+              </motion.button>
+            )}
           </div>
 
           <div className="setting-divider" />
@@ -435,6 +463,13 @@ export function SettingsPanel({
           onClose={() => setShowAdvanced(false)}
         />
       )}
+
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onCouponSubmit={handleCouponSubmit}
+        onStripeCheckout={handleStripeCheckout}
+      />
     </div>
   );
 }

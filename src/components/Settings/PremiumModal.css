@@ -1,0 +1,469 @@
+/* Premium Modal Overlay */
+.premium-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+/* Premium Modal - Apple-style glass effect */
+.premium-modal {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: var(--shadow-float);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+/* Header - Clean Apple-style with accent gradient */
+.premium-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-hover) 100%);
+  color: white;
+}
+
+.premium-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+/* Close Button - Simple X button */
+.premium-modal-close {
+  background: none;
+  border: none;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.15s ease;
+  border-radius: 4px;
+}
+
+.premium-modal-close svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.premium-modal-close:hover,
+.premium-modal-close.desktop-hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.premium-modal-close:active,
+.premium-modal-close.desktop-active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.premium-modal-close:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Features - Apple-style pill badges */
+.premium-features {
+  display: flex;
+  gap: 8px;
+  padding: 14px 24px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.premium-feature {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: var(--accent-light);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.premium-feature svg {
+  width: 12px;
+  height: 12px;
+  color: var(--accent-color);
+}
+
+/* Tabs - Apple Segmented Control style */
+.premium-tabs {
+  display: flex;
+  padding: 16px 24px 0;
+  gap: 0;
+  background: var(--bg-secondary);
+}
+
+.premium-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--bg-cell-hover);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.premium-tab:first-child {
+  border-radius: 8px 0 0 8px;
+  border-right: none;
+}
+
+.premium-tab:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.premium-tab svg {
+  width: 14px;
+  height: 14px;
+}
+
+.premium-tab:hover:not(:disabled):not(.active),
+.premium-tab.desktop-hover:not(:disabled):not(.active) {
+  background: var(--bg-secondary);
+  color: var(--text-color);
+}
+
+.premium-tab.active {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+  position: relative;
+  z-index: 1;
+}
+
+.premium-tab.active svg {
+  color: white;
+}
+
+.premium-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Content */
+.premium-content {
+  padding: 24px;
+  min-height: 180px;
+  background: var(--bg-secondary);
+}
+
+/* Stripe Section */
+.premium-stripe {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.stripe-pricing {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Price Cards - Apple-style selection cards */
+.price-option {
+  flex: 1;
+  text-align: center;
+  padding: 16px 12px;
+  border-radius: 12px;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  position: relative;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.price-option:hover {
+  border-color: var(--text-muted);
+}
+
+.price-option.recommended {
+  border-color: var(--accent-color);
+  background: var(--accent-light);
+}
+
+.price-option.recommended:hover {
+  border-color: var(--accent-color);
+}
+
+.price-badge {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-color);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.price-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.price-amount {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+}
+
+.price-amount .currency {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-right: 1px;
+}
+
+.price-amount .value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-color);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.price-amount .period {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-left: 2px;
+}
+
+.price-divider {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Checkout Button - Apple-style prominent button */
+.premium-checkout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: var(--accent-color);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: -0.2px;
+}
+
+.premium-checkout-btn:hover:not(:disabled),
+.premium-checkout-btn.desktop-hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: scale(1.01);
+}
+
+.premium-checkout-btn:active:not(:disabled),
+.premium-checkout-btn.desktop-active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.premium-checkout-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.stripe-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0;
+}
+
+/* Coupon Section */
+.premium-coupon {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.coupon-description {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.coupon-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+/* Coupon Input - Apple-style text field */
+.coupon-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-color);
+  font-size: 15px;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+  letter-spacing: 2px;
+  text-align: center;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.coupon-input::placeholder {
+  color: var(--text-muted);
+  letter-spacing: 2px;
+}
+
+.coupon-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.coupon-input:disabled {
+  opacity: 0.5;
+}
+
+/* Coupon Submit Button */
+.coupon-submit-btn {
+  padding: 12px 20px;
+  background: var(--accent-color);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+}
+
+.coupon-submit-btn:hover:not(:disabled),
+.coupon-submit-btn.desktop-hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.coupon-submit-btn:active:not(:disabled),
+.coupon-submit-btn.desktop-active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.coupon-submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Success State - Apple-style success feedback */
+.premium-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.success-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #34c759 0%, #30d158 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+}
+
+.success-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.premium-success h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+  letter-spacing: -0.3px;
+}
+
+.premium-success p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Error Message - Apple-style inline error */
+.premium-error {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: rgba(255, 59, 48, 0.1);
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  border-radius: 10px;
+  color: #ff3b30;
+  font-size: 13px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Loading Spinner - Apple-style */
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
