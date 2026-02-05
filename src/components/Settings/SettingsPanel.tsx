@@ -52,10 +52,13 @@ export function SettingsPanel({
   const handleLogout = useCallback(async () => {
     try {
       await logout();
+      // Google 연결 상태도 초기화 (logout이 googleAuthLogout을 호출함)
+      setGoogleConnected(false);
+      onGoogleConnectionChange?.(false);
     } catch {
       // Logout failed silently
     }
-  }, [logout]);
+  }, [logout, onGoogleConnectionChange]);
 
   // Premium 모달 열기
   const handleUpgrade = useCallback(() => {

@@ -31,8 +31,9 @@ export function useCloudSync(): UseCloudSyncReturn {
   const [pendingChanges, setPendingChanges] = useState(0);
   const autoSyncRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Premium 사용자인지 확인
-  const isPremium = user?.subscriptionTier === 'premium';
+  // Premium 사용자인지 확인 (만료일 체크 포함)
+  const isPremium = user?.subscriptionTier === 'premium' &&
+    (!user?.subscriptionExpiresAt || new Date(user.subscriptionExpiresAt) > new Date());
 
   // API 요청 헬퍼
   const apiRequest = useCallback(async (
