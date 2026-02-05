@@ -28,7 +28,7 @@ export function SettingsPanel({
 }: SettingsPanelProps) {
   const { position, isDragging, handleDragStart } = useDraggableModal();
   const { isAuthenticated, isLoading: authLoading, user, login, logout } = useAuth();
-  const { isPremium, upgradeToPremium, isLoading: subscriptionLoading } = useSubscription();
+  const { isPremium, upgradeToPremium, redeemCoupon, isLoading: subscriptionLoading } = useSubscription();
   const [googleConnected, setGoogleConnected] = useState(initialGoogleConnected);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -64,11 +64,12 @@ export function SettingsPanel({
 
   // 쿠폰 제출 핸들러
   const handleCouponSubmit = useCallback(async (code: string): Promise<{ success: boolean; error?: string }> => {
-    // TODO: 서버에 쿠폰 검증 요청
-    console.log('[SettingsPanel] Coupon submit:', code);
-    // 임시로 실패 반환 (서버 구현 후 수정)
-    return { success: false, error: 'Coupon validation not yet implemented' };
-  }, []);
+    if (!isAuthenticated) {
+      return { success: false, error: 'Please sign in to use a coupon' };
+    }
+    const result = await redeemCoupon(code);
+    return result;
+  }, [isAuthenticated, redeemCoupon]);
 
   // Stripe Checkout 핸들러
   const handleStripeCheckout = useCallback(async (): Promise<{ success: boolean; checkoutUrl?: string; error?: string }> => {

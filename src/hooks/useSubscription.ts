@@ -8,6 +8,7 @@ const API_BASE_URL = 'http://localhost:3001';
 interface UseSubscriptionReturn extends SubscriptionState {
   checkSubscription: () => Promise<void>;
   upgradeToPremium: () => Promise<{ success: boolean; checkoutUrl?: string; error?: string }>;
+  redeemCoupon: (code: string) => Promise<{ success: boolean; error?: string }>;
   cancelSubscription: () => Promise<{ success: boolean; error?: string }>;
   isPremium: boolean;
 }
@@ -93,6 +94,47 @@ export function useSubscription(): UseSubscriptionReturn {
     }
   }, [isAuthenticated, sessionToken]);
 
+  // 쿠폰 사용
+  const redeemCoupon = useCallback(async (code: string): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
+    if (!isAuthenticated || !sessionToken) {
+      return { success: false, error: 'Please sign in to use a coupon' };
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/coupon/redeem`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${sessionToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { success: false, error: data.error || 'Failed to redeem coupon' };
+      }
+
+      // 유저 정보 새로고침
+      await refreshUser();
+      setTier('premium');
+      if (data.subscription?.expires_at) {
+        setExpiresAt(data.subscription.expires_at);
+      }
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to redeem coupon';
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, sessionToken, refreshUser]);
+
   // 구독 취소
   const cancelSubscription = useCallback(async (): Promise<{
     success: boolean;
@@ -137,6 +179,7 @@ export function useSubscription(): UseSubscriptionReturn {
     isPremium,
     checkSubscription,
     upgradeToPremium,
+    redeemCoupon,
     cancelSubscription,
   };
 }

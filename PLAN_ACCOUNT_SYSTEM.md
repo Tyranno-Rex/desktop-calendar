@@ -334,6 +334,52 @@ CREATE TRIGGER user_settings_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 ```
 
+#### coupons 테이블 (Limited-use 쿠폰 시스템)
+```sql
+-- 쿠폰 테이블
+CREATE TABLE coupons (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT UNIQUE NOT NULL, -- 20자리 (XXXX-XXXX-XXXX-XXXX-XXXX)
+  description TEXT,
+
+  -- 사용 제한
+  max_uses INT, -- NULL이면 무제한
+  used_count INT NOT NULL DEFAULT 0,
+
+  -- 혜택
+  duration_days INT NOT NULL DEFAULT 365, -- Premium 기간 (일)
+
+  -- 유효 기간
+  expires_at TIMESTAMPTZ, -- NULL이면 만료 없음
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+  -- 타임스탬프
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_coupons_code ON coupons(code);
+CREATE INDEX idx_coupons_active ON coupons(is_active) WHERE is_active = TRUE;
+
+CREATE TRIGGER coupons_updated_at
+  BEFORE UPDATE ON coupons
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- 쿠폰 사용 기록 테이블
+CREATE TABLE coupon_redemptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  coupon_id UUID NOT NULL REFERENCES coupons(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  redeemed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  -- 한 유저가 같은 쿠폰을 여러 번 사용 못하도록
+  CONSTRAINT unique_coupon_user UNIQUE (coupon_id, user_id)
+);
+
+CREATE INDEX idx_redemptions_coupon ON coupon_redemptions(coupon_id);
+CREATE INDEX idx_redemptions_user ON coupon_redemptions(user_id);
+```
+
 ### 4.3 RLS (Row Level Security) 정책
 ```sql
 -- 모든 테이블에 RLS 활성화
