@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { motion } from 'motion/react';
 import { Clock, Trash2, Check, X, Repeat, ChevronDown, ChevronRight, AlertCircle } from 'lucide-react';
 import type { CalendarEvent } from '../../types';
-import { getLocalDateString, getEventsForDateString, sortEventsByCompletion, getDDay, getTodayString } from '../../utils/date';
+import { sortEventsByCompletion, getDDay, getTodayString } from '../../utils/date';
 import './SchedulePanel.css';
 
 // 메모이제이션된 스케줄 아이템 컴포넌트
@@ -107,6 +107,7 @@ const ScheduleItem = memo(function ScheduleItem({
 interface SchedulePanelProps {
   selectedDate: Date | null;
   events: CalendarEvent[];
+  getEventsForDate: (date: Date) => CalendarEvent[];
   onAddEvent: (event: Omit<CalendarEvent, 'id'>) => void;
   onEditEvent: (event: CalendarEvent) => void;
   onDeleteEvent: (id: string) => void;
@@ -119,6 +120,7 @@ interface SchedulePanelProps {
 const SchedulePanelInner = ({
   selectedDate,
   events,
+  getEventsForDate,
   onAddEvent: _onAddEvent,
   onEditEvent,
   onDeleteEvent,
@@ -133,12 +135,12 @@ const SchedulePanelInner = ({
   // 오늘 날짜 문자열 (세션 동안 고정)
   const todayStr = useMemo(getTodayString, []);
 
+  // getEventsForDate 사용 (반복 인스턴스 완료 상태 포함)
   const filteredEvents = useMemo(() => {
     if (!selectedDate) return [];
-    const dateStr = getLocalDateString(selectedDate);
-    const eventsForDate = getEventsForDateString(dateStr, events);
+    const eventsForDate = getEventsForDate(selectedDate);
     return sortEventsByCompletion(eventsForDate);
-  }, [selectedDate, events]);
+  }, [selectedDate, getEventsForDate]);
 
   // 미완료 과거 일정 (오늘 이전, completed=false, 반복 일정 제외)
   const overdueEvents = useMemo(() => {

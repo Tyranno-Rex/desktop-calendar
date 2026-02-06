@@ -1,7 +1,31 @@
-import { app, BrowserWindow, Tray, Menu, screen, nativeImage, safeStorage, ipcMain } from 'electron';
+import { app, BrowserWindow, Tray, Menu, screen, nativeImage, safeStorage, ipcMain, session } from 'electron';
 import type { NativeImage } from 'electron';
 import path from 'path';
 import fs from 'fs';
+
+// CSP 헤더 설정 (프로덕션용)
+const CSP_HEADER_PROD = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline'",
+  "connect-src 'self' http://localhost:3001 https://oauth2.googleapis.com",
+  "img-src 'self' data: https://*.googleusercontent.com",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "base-uri 'self'",
+].join('; ');
+
+// CSP 헤더 설정 (개발용 - Vite HMR/React Refresh 지원)
+const CSP_HEADER_DEV = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "style-src 'self' 'unsafe-inline'",
+  "connect-src 'self' http://localhost:3001 http://localhost:5173 ws://localhost:5173 https://oauth2.googleapis.com",
+  "img-src 'self' data: https://*.googleusercontent.com",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "base-uri 'self'",
+].join('; ');
 
 // Modularized imports
 import { SimpleStore, type CalendarEvent } from './store';
@@ -398,6 +422,18 @@ function registerGoogleIpcHandlers(): void {
 
 // ==================== App Lifecycle ====================
 app.whenReady().then(async () => {
+  // CSP 헤더 설정 (HTTP 헤더로 전송하여 frame-ancestors 등 적용)
+  // 개발 환경에서는 Vite HMR/React Refresh를 위해 완화된 정책 사용
+  const cspHeader = getIsDev() ? CSP_HEADER_DEV : CSP_HEADER_PROD;
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [cspHeader],
+      },
+    });
+  });
+
   initDesktopMode();
   store = new SimpleStore();
 

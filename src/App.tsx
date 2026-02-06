@@ -268,6 +268,7 @@ function App() {
               <SchedulePanel
                 selectedDate={selectedDate}
                 events={events}
+                getEventsForDate={getEventsForDate}
                 onAddEvent={addEvent}
                 onEditEvent={handleEditEvent}
                 onDeleteEvent={deleteEvent}
@@ -304,6 +305,7 @@ function App() {
               <SchedulePanel
                 selectedDate={selectedDate}
                 events={events}
+                getEventsForDate={getEventsForDate}
                 onAddEvent={addEvent}
                 onEditEvent={handleEditEvent}
                 onDeleteEvent={deleteEvent}

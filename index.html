@@ -5,7 +5,8 @@
     <link rel="icon" type="image/png" href="/icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Desktop Calendar</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3001 https://oauth2.googleapis.com; img-src 'self' data: https://*.googleusercontent.com; frame-ancestors 'none'; form-action 'self'">
+    <!-- CSP는 Electron의 session.webRequest.onHeadersReceived에서 HTTP 헤더로 설정됨 -->
+    <!-- 개발: unsafe-inline/unsafe-eval 허용 (Vite HMR), 프로덕션: 엄격한 정책 -->
   </head>
   <body>
     <div id="root"></div>
