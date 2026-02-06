@@ -93,9 +93,10 @@ export function useCloudSync(): UseCloudSyncReturn {
   const autoSyncRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pendingChangesRef = useRef<PendingChanges>(loadPendingChanges());
 
-  // Premium 사용자인지 확인 (만료일 체크 포함)
-  const isPremium = user?.subscriptionTier === 'premium' &&
-    (!user?.subscriptionExpiresAt || new Date(user.subscriptionExpiresAt) > new Date());
+  // Premium 사용자인지 확인 (클라이언트 측 UI 표시용)
+  // 실제 동기화 권한은 서버에서 검증하므로, 여기서는 단순 체크만 수행
+  // 시간 변조 공격 방지를 위해 서버 응답에 의존
+  const isPremium = user?.subscriptionTier === 'premium';
 
   // lastSyncAt 저장
   const updateLastSyncAt = useCallback((timestamp: string) => {
