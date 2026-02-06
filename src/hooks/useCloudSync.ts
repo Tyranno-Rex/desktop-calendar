@@ -8,9 +8,14 @@ const API_BASE_URL = 'http://localhost:3001';
 // 동기화 간격 (5분)
 const SYNC_INTERVAL = 5 * 60 * 1000;
 
+// 로컬 스토리지 키
+const LAST_SYNC_KEY = 'cloud_last_sync_at';
+const PENDING_CHANGES_KEY = 'cloud_pending_changes';
+
 interface SyncResult {
   success: boolean;
   error?: string;
+  retryAfterMs?: number;  // 429 에러 시 재시도 대기 시간
 }
 
 interface FetchResult {
@@ -19,6 +24,46 @@ interface FetchResult {
   memos?: Memo[];
   settings?: Settings;
   error?: string;
+}
+
+// 변경된 항목만 추출하는 헬퍼
+interface PendingChanges {
+  events: Set<string>;  // 변경된 이벤트 ID
+  memos: Set<string>;   // 변경된 메모 ID
+  settings: boolean;    // 설정 변경 여부
+}
+
+function loadPendingChanges(): PendingChanges {
+  try {
+    const saved = localStorage.getItem(PENDING_CHANGES_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        events: new Set(parsed.events || []),
+        memos: new Set(parsed.memos || []),
+        settings: parsed.settings || false,
+      };
+    }
+  } catch (e) {
+    console.error('[useCloudSync] Failed to load pending changes:', e);
+  }
+  return { events: new Set(), memos: new Set(), settings: false };
+}
+
+function savePendingChanges(changes: PendingChanges): void {
+  try {
+    localStorage.setItem(PENDING_CHANGES_KEY, JSON.stringify({
+      events: Array.from(changes.events),
+      memos: Array.from(changes.memos),
+      settings: changes.settings,
+    }));
+  } catch (e) {
+    console.error('[useCloudSync] Failed to save pending changes:', e);
+  }
+}
+
+function clearPendingChanges(): void {
+  localStorage.removeItem(PENDING_CHANGES_KEY);
 }
 
 interface UseCloudSyncReturn extends SyncState {
@@ -30,26 +75,68 @@ interface UseCloudSyncReturn extends SyncState {
   fetchSyncStatus: () => Promise<void>;
   startAutoSync: () => void;
   stopAutoSync: () => void;
+  // Delta Sync: 변경 추적 함수
+  markEventChanged: (eventId: string) => void;
+  markMemoChanged: (memoId: string) => void;
+  markSettingsChanged: () => void;
 }
 
 export function useCloudSync(): UseCloudSyncReturn {
   const { sessionToken, isAuthenticated, user } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
+  const [lastSyncAt, setLastSyncAt] = useState<string | null>(() => {
+    // 로컬 스토리지에서 마지막 동기화 시간 복원
+    return localStorage.getItem(LAST_SYNC_KEY);
+  });
   const [syncError, setSyncError] = useState<string | null>(null);
   const [pendingChanges, setPendingChanges] = useState(0);
   const autoSyncRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pendingChangesRef = useRef<PendingChanges>(loadPendingChanges());
 
   // Premium 사용자인지 확인 (만료일 체크 포함)
   const isPremium = user?.subscriptionTier === 'premium' &&
     (!user?.subscriptionExpiresAt || new Date(user.subscriptionExpiresAt) > new Date());
 
-  // API 요청 헬퍼
+  // lastSyncAt 저장
+  const updateLastSyncAt = useCallback((timestamp: string) => {
+    setLastSyncAt(timestamp);
+    localStorage.setItem(LAST_SYNC_KEY, timestamp);
+  }, []);
+
+  // 변경 추적: 이벤트 변경 시 호출
+  const markEventChanged = useCallback((eventId: string) => {
+    pendingChangesRef.current.events.add(eventId);
+    savePendingChanges(pendingChangesRef.current);
+    setPendingChanges(pendingChangesRef.current.events.size + pendingChangesRef.current.memos.size);
+  }, []);
+
+  // 변경 추적: 메모 변경 시 호출
+  const markMemoChanged = useCallback((memoId: string) => {
+    pendingChangesRef.current.memos.add(memoId);
+    savePendingChanges(pendingChangesRef.current);
+    setPendingChanges(pendingChangesRef.current.events.size + pendingChangesRef.current.memos.size);
+  }, []);
+
+  // 변경 추적: 설정 변경 시 호출
+  const markSettingsChanged = useCallback(() => {
+    pendingChangesRef.current.settings = true;
+    savePendingChanges(pendingChangesRef.current);
+    setPendingChanges(prev => prev + 1);
+  }, []);
+
+  // 동기화 성공 후 변경 추적 초기화
+  const clearChanges = useCallback(() => {
+    pendingChangesRef.current = { events: new Set(), memos: new Set(), settings: false };
+    clearPendingChanges();
+    setPendingChanges(0);
+  }, []);
+
+  // API 요청 헬퍼 (429 에러 처리 포함)
   const apiRequest = useCallback(async (
     endpoint: string,
     method: 'GET' | 'POST' | 'PATCH' = 'GET',
     body?: unknown
-  ) => {
+  ): Promise<{ data?: unknown; rateLimited?: boolean; retryAfterMs?: number }> => {
     if (!sessionToken) {
       throw new Error('Not authenticated');
     }
@@ -63,12 +150,21 @@ export function useCloudSync(): UseCloudSyncReturn {
       body: body ? JSON.stringify(body) : undefined,
     });
 
+    // 429 Rate Limit 처리
+    if (response.status === 429) {
+      const errorData = await response.json().catch(() => ({}));
+      // 에러 메시지에서 초 추출: "Rate limit exceeded. Try again in Xs"
+      const match = errorData.error?.match(/in (\d+)s/);
+      const retryAfterMs = match ? parseInt(match[1], 10) * 1000 : 10000;
+      return { rateLimited: true, retryAfterMs };
+    }
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `Request failed: ${response.status}`);
     }
 
-    return response.json();
+    return { data: await response.json() };
   }, [sessionToken]);
 
   // 동기화 상태 조회
@@ -76,15 +172,17 @@ export function useCloudSync(): UseCloudSyncReturn {
     if (!isAuthenticated || !isPremium) return;
 
     try {
-      const data = await apiRequest('/sync/status');
-      setLastSyncAt(data.lastSyncAt);
-      setPendingChanges(data.pendingChanges || 0);
+      const result = await apiRequest('/sync/status');
+      if (result.data) {
+        const data = result.data as { lastSyncAt?: string; pendingChanges?: number };
+        if (data.lastSyncAt) updateLastSyncAt(data.lastSyncAt);
+      }
     } catch (error) {
       console.error('[useCloudSync] Failed to fetch sync status:', error);
     }
-  }, [isAuthenticated, isPremium, apiRequest]);
+  }, [isAuthenticated, isPremium, apiRequest, updateLastSyncAt]);
 
-  // 이벤트 동기화
+  // 이벤트 동기화 (Delta: 변경된 이벤트만)
   const syncEvents = useCallback(async (events: CalendarEvent[]): Promise<SyncResult> => {
     if (!isAuthenticated || !isPremium) {
       return { success: false, error: 'Premium subscription required' };
@@ -94,8 +192,26 @@ export function useCloudSync(): UseCloudSyncReturn {
     setSyncError(null);
 
     try {
-      await apiRequest('/sync/events', 'POST', { events });
-      setLastSyncAt(new Date().toISOString());
+      // Delta Sync: 변경된 이벤트만 필터링
+      const changedIds = pendingChangesRef.current.events;
+      const eventsToSync = changedIds.size > 0
+        ? events.filter(e => changedIds.has(e.id))
+        : events;  // 변경 추적이 없으면 전체 (초기 동기화)
+
+      const result = await apiRequest('/sync/events', 'POST', {
+        events: eventsToSync,
+        last_sync_at: lastSyncAt,
+      });
+
+      if (result.rateLimited) {
+        setSyncError(`Rate limited. Retry in ${Math.ceil((result.retryAfterMs || 10000) / 1000)}s`);
+        return { success: false, error: 'Rate limited', retryAfterMs: result.retryAfterMs };
+      }
+
+      const timestamp = new Date().toISOString();
+      updateLastSyncAt(timestamp);
+      pendingChangesRef.current.events.clear();
+      savePendingChanges(pendingChangesRef.current);
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Sync failed';
@@ -104,9 +220,9 @@ export function useCloudSync(): UseCloudSyncReturn {
     } finally {
       setIsSyncing(false);
     }
-  }, [isAuthenticated, isPremium, apiRequest]);
+  }, [isAuthenticated, isPremium, apiRequest, lastSyncAt, updateLastSyncAt]);
 
-  // 메모 동기화
+  // 메모 동기화 (Delta: 변경된 메모만)
   const syncMemos = useCallback(async (memos: Memo[]): Promise<SyncResult> => {
     if (!isAuthenticated || !isPremium) {
       return { success: false, error: 'Premium subscription required' };
@@ -116,8 +232,26 @@ export function useCloudSync(): UseCloudSyncReturn {
     setSyncError(null);
 
     try {
-      await apiRequest('/sync/memos', 'POST', { memos });
-      setLastSyncAt(new Date().toISOString());
+      // Delta Sync: 변경된 메모만 필터링
+      const changedIds = pendingChangesRef.current.memos;
+      const memosToSync = changedIds.size > 0
+        ? memos.filter(m => changedIds.has(m.id))
+        : memos;  // 변경 추적이 없으면 전체 (초기 동기화)
+
+      const result = await apiRequest('/sync/memos', 'POST', {
+        memos: memosToSync,
+        last_sync_at: lastSyncAt,
+      });
+
+      if (result.rateLimited) {
+        setSyncError(`Rate limited. Retry in ${Math.ceil((result.retryAfterMs || 10000) / 1000)}s`);
+        return { success: false, error: 'Rate limited', retryAfterMs: result.retryAfterMs };
+      }
+
+      const timestamp = new Date().toISOString();
+      updateLastSyncAt(timestamp);
+      pendingChangesRef.current.memos.clear();
+      savePendingChanges(pendingChangesRef.current);
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Sync failed';
@@ -126,7 +260,7 @@ export function useCloudSync(): UseCloudSyncReturn {
     } finally {
       setIsSyncing(false);
     }
-  }, [isAuthenticated, isPremium, apiRequest]);
+  }, [isAuthenticated, isPremium, apiRequest, lastSyncAt, updateLastSyncAt]);
 
   // 설정 동기화
   const syncSettings = useCallback(async (settings: Settings): Promise<SyncResult> => {
@@ -138,8 +272,17 @@ export function useCloudSync(): UseCloudSyncReturn {
     setSyncError(null);
 
     try {
-      await apiRequest('/sync/settings', 'POST', { settings });
-      setLastSyncAt(new Date().toISOString());
+      const result = await apiRequest('/sync/settings', 'POST', { settings });
+
+      if (result.rateLimited) {
+        setSyncError(`Rate limited. Retry in ${Math.ceil((result.retryAfterMs || 10000) / 1000)}s`);
+        return { success: false, error: 'Rate limited', retryAfterMs: result.retryAfterMs };
+      }
+
+      const timestamp = new Date().toISOString();
+      updateLastSyncAt(timestamp);
+      pendingChangesRef.current.settings = false;
+      savePendingChanges(pendingChangesRef.current);
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Sync failed';
@@ -148,9 +291,9 @@ export function useCloudSync(): UseCloudSyncReturn {
     } finally {
       setIsSyncing(false);
     }
-  }, [isAuthenticated, isPremium, apiRequest]);
+  }, [isAuthenticated, isPremium, apiRequest, updateLastSyncAt]);
 
-  // 전체 동기화 (로컬 → 서버, 서버 변경분 반환)
+  // 전체 동기화 (Delta Sync: 변경된 항목만 전송)
   const syncAll = useCallback(async (data: {
     events: CalendarEvent[];
     memos: Memo[];
@@ -164,8 +307,49 @@ export function useCloudSync(): UseCloudSyncReturn {
     setSyncError(null);
 
     try {
-      await apiRequest('/sync/all', 'POST', data);
-      setLastSyncAt(new Date().toISOString());
+      const pending = pendingChangesRef.current;
+
+      // Delta Sync: 변경된 항목만 필터링
+      // 첫 동기화(lastSyncAt 없음) 시에는 전체 전송
+      const isInitialSync = !lastSyncAt;
+
+      const eventsToSync = isInitialSync
+        ? data.events
+        : (pending.events.size > 0
+            ? data.events.filter(e => pending.events.has(e.id))
+            : []);
+
+      const memosToSync = isInitialSync
+        ? data.memos
+        : (pending.memos.size > 0
+            ? data.memos.filter(m => pending.memos.has(m.id))
+            : []);
+
+      const settingsToSync = isInitialSync || pending.settings ? data.settings : null;
+
+      console.log('[useCloudSync] Delta Sync:', {
+        isInitialSync,
+        events: `${eventsToSync.length}/${data.events.length}`,
+        memos: `${memosToSync.length}/${data.memos.length}`,
+        settings: settingsToSync ? 'yes' : 'no',
+      });
+
+      const result = await apiRequest('/sync/all', 'POST', {
+        events: eventsToSync,
+        memos: memosToSync,
+        settings: settingsToSync,
+        last_sync_at: lastSyncAt,
+      });
+
+      if (result.rateLimited) {
+        const retryAfterSec = Math.ceil((result.retryAfterMs || 10000) / 1000);
+        setSyncError(`Rate limited. Retry in ${retryAfterSec}s`);
+        return { success: false, error: 'Rate limited', retryAfterMs: result.retryAfterMs };
+      }
+
+      const timestamp = new Date().toISOString();
+      updateLastSyncAt(timestamp);
+      clearChanges();
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Sync failed';
@@ -174,9 +358,9 @@ export function useCloudSync(): UseCloudSyncReturn {
     } finally {
       setIsSyncing(false);
     }
-  }, [isAuthenticated, isPremium, apiRequest]);
+  }, [isAuthenticated, isPremium, apiRequest, lastSyncAt, updateLastSyncAt, clearChanges]);
 
-  // 서버에서 데이터 가져오기 (앱 시작 시 사용)
+  // 서버에서 데이터 가져오기 (앱 시작 시 사용, last_sync_at 이후 변경분만)
   const fetchFromCloud = useCallback(async (): Promise<FetchResult> => {
     if (!isAuthenticated || !isPremium) {
       return { success: false, error: 'Premium subscription required' };
@@ -186,19 +370,35 @@ export function useCloudSync(): UseCloudSyncReturn {
     setSyncError(null);
 
     try {
-      // 빈 데이터로 동기화 요청하면 서버 데이터만 반환됨
+      // last_sync_at 이후 변경된 데이터만 요청
       const result = await apiRequest('/sync/all', 'POST', {
         events: [],
         memos: [],
         settings: null,
+        last_sync_at: lastSyncAt,  // Delta fetch
       });
 
-      setLastSyncAt(new Date().toISOString());
+      if (result.rateLimited) {
+        const retryAfterSec = Math.ceil((result.retryAfterMs || 10000) / 1000);
+        setSyncError(`Rate limited. Retry in ${retryAfterSec}s`);
+        return { success: false, error: 'Rate limited' };
+      }
+
+      const data = result.data as {
+        events?: CalendarEvent[];
+        memos?: Memo[];
+        settings?: Settings;
+        synced_at?: string;
+      };
+
+      const timestamp = data.synced_at || new Date().toISOString();
+      updateLastSyncAt(timestamp);
+
       return {
         success: true,
-        events: result.events || [],
-        memos: result.memos || [],
-        settings: result.settings || null,
+        events: data.events || [],
+        memos: data.memos || [],
+        settings: data.settings || undefined,
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Fetch failed';
@@ -207,7 +407,7 @@ export function useCloudSync(): UseCloudSyncReturn {
     } finally {
       setIsSyncing(false);
     }
-  }, [isAuthenticated, isPremium, apiRequest]);
+  }, [isAuthenticated, isPremium, apiRequest, lastSyncAt, updateLastSyncAt]);
 
   // 자동 동기화 시작
   const startAutoSync = useCallback(() => {
@@ -257,5 +457,9 @@ export function useCloudSync(): UseCloudSyncReturn {
     fetchSyncStatus,
     startAutoSync,
     stopAutoSync,
+    // Delta Sync: 변경 추적 함수
+    markEventChanged,
+    markMemoChanged,
+    markSettingsChanged,
   };
 }
