@@ -108,6 +108,7 @@ export function MemoPanel({ onClose, position = 'right' }: MemoPanelProps) {
           onChange={handleContentChange}
           onClick={() => textareaRef.current?.focus()}
           placeholder="Write your memo here..."
+          maxLength={5000}
           autoFocus
         />
       </div>

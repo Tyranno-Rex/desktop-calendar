@@ -155,6 +155,7 @@ export function EventModal({
               value={state.title}
               onChange={(e) => actions.setTitle(e.target.value)}
               className="popup-input"
+              maxLength={50}
               autoFocus
             />
           </div>
@@ -213,6 +214,7 @@ export function EventModal({
               value={state.description}
               onChange={(e) => actions.setDescription(e.target.value)}
               className="popup-textarea"
+              maxLength={1000}
               rows={4}
             />
           </div>

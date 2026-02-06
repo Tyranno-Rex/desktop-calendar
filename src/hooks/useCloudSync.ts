@@ -307,30 +307,15 @@ export function useCloudSync(): UseCloudSyncReturn {
     setSyncError(null);
 
     try {
-      const pending = pendingChangesRef.current;
+      // 전체 동기화: 항상 모든 데이터 전송
+      // (Delta Sync는 markEventChanged 연동 후 활성화)
+      const eventsToSync = data.events;
+      const memosToSync = data.memos;
+      const settingsToSync = data.settings;
 
-      // Delta Sync: 변경된 항목만 필터링
-      // 첫 동기화(lastSyncAt 없음) 시에는 전체 전송
-      const isInitialSync = !lastSyncAt;
-
-      const eventsToSync = isInitialSync
-        ? data.events
-        : (pending.events.size > 0
-            ? data.events.filter(e => pending.events.has(e.id))
-            : []);
-
-      const memosToSync = isInitialSync
-        ? data.memos
-        : (pending.memos.size > 0
-            ? data.memos.filter(m => pending.memos.has(m.id))
-            : []);
-
-      const settingsToSync = isInitialSync || pending.settings ? data.settings : null;
-
-      console.log('[useCloudSync] Delta Sync:', {
-        isInitialSync,
-        events: `${eventsToSync.length}/${data.events.length}`,
-        memos: `${memosToSync.length}/${data.memos.length}`,
+      console.log('[useCloudSync] Full Sync:', {
+        events: eventsToSync.length,
+        memos: memosToSync.length,
         settings: settingsToSync ? 'yes' : 'no',
       });
 

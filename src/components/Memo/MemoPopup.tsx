@@ -177,6 +177,7 @@ export function MemoPopup() {
             value={content}
             onChange={handleContentChange}
             placeholder="Write your memo here..."
+            maxLength={5000}
             autoFocus
           />
         )}
