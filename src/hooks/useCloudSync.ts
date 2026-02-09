@@ -8,6 +8,28 @@ const API_BASE_URL = 'http://localhost:3001';
 // 동기화 간격 (5분)
 const SYNC_INTERVAL = 5 * 60 * 1000;
 
+// 클라이언트 Rate Limit (초당 5회 허용)
+const CLIENT_RATE_LIMIT_MAX_REQUESTS = 5;
+const CLIENT_RATE_LIMIT_WINDOW_MS = 1000; // 1초 윈도우
+
+// Rate limit 추적 (모듈 레벨)
+const requestTimestamps: number[] = [];
+
+function checkClientRateLimit(): { allowed: boolean; message?: string } {
+  const now = Date.now();
+  // 윈도우 밖의 타임스탬프 제거
+  while (requestTimestamps.length > 0 && requestTimestamps[0] < now - CLIENT_RATE_LIMIT_WINDOW_MS) {
+    requestTimestamps.shift();
+  }
+  // 요청 수 체크
+  if (requestTimestamps.length >= CLIENT_RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, message: 'Too many requests. Please slow down.' };
+  }
+  // 현재 요청 추가
+  requestTimestamps.push(now);
+  return { allowed: true };
+}
+
 // 로컬 스토리지 키
 const LAST_SYNC_KEY = 'cloud_last_sync_at';
 const PENDING_CHANGES_KEY = 'cloud_pending_changes';
@@ -16,6 +38,7 @@ interface SyncResult {
   success: boolean;
   error?: string;
   retryAfterMs?: number;  // 429 에러 시 재시도 대기 시간
+  clientRateLimited?: boolean;  // 클라이언트 rate limit에 걸림 (원복 필요)
 }
 
 interface FetchResult {
@@ -66,11 +89,14 @@ function clearPendingChanges(): void {
   localStorage.removeItem(PENDING_CHANGES_KEY);
 }
 
+// 동기화용 이벤트 타입 (deleted 플래그 포함 가능)
+type SyncableEvent = CalendarEvent & { deleted?: boolean };
+
 interface UseCloudSyncReturn extends SyncState {
-  syncEvents: (events: CalendarEvent[]) => Promise<SyncResult>;
+  syncEvents: (events: SyncableEvent[]) => Promise<SyncResult>;
   syncMemos: (memos: Memo[]) => Promise<SyncResult>;
   syncSettings: (settings: Settings) => Promise<SyncResult>;
-  syncAll: (data: { events: CalendarEvent[]; memos: Memo[]; settings: Settings }) => Promise<SyncResult>;
+  syncAll: (data: { events: SyncableEvent[]; memos: Memo[]; settings: Settings }) => Promise<SyncResult>;
   fetchFromCloud: () => Promise<FetchResult>;
   fetchSyncStatus: () => Promise<void>;
   startAutoSync: () => void;
@@ -184,7 +210,7 @@ export function useCloudSync(): UseCloudSyncReturn {
   }, [isAuthenticated, isPremium, apiRequest, updateLastSyncAt]);
 
   // 이벤트 동기화 (Delta: 변경된 이벤트만)
-  const syncEvents = useCallback(async (events: CalendarEvent[]): Promise<SyncResult> => {
+  const syncEvents = useCallback(async (events: SyncableEvent[]): Promise<SyncResult> => {
     if (!isAuthenticated || !isPremium) {
       return { success: false, error: 'Premium subscription required' };
     }
@@ -296,12 +322,23 @@ export function useCloudSync(): UseCloudSyncReturn {
 
   // 전체 동기화 (Delta Sync: 변경된 항목만 전송)
   const syncAll = useCallback(async (data: {
-    events: CalendarEvent[];
+    events: SyncableEvent[];
     memos: Memo[];
     settings: Settings;
   }): Promise<SyncResult> => {
     if (!isAuthenticated || !isPremium) {
       return { success: false, error: 'Premium subscription required' };
+    }
+
+    // 클라이언트 Rate Limit 체크
+    const rateLimitCheck = checkClientRateLimit();
+    if (!rateLimitCheck.allowed) {
+      setSyncError(rateLimitCheck.message || 'Too many requests');
+      return {
+        success: false,
+        error: rateLimitCheck.message,
+        clientRateLimited: true,  // 클라이언트에서 막힘 - 원복 필요
+      };
     }
 
     setIsSyncing(true);

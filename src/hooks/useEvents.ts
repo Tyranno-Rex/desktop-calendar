@@ -22,6 +22,8 @@ export function useEvents() {
   const [googleConnected, setGoogleConnected] = useState(false);
   // 반복 인스턴스별 완료 상태
   const [repeatInstanceStates, setRepeatInstanceStates] = useState<RepeatInstanceState[]>([]);
+  // 삭제된 이벤트 ID 추적 (클라우드 동기화용)
+  const [deletedEventIds, setDeletedEventIds] = useState<string[]>([]);
 
   // 중복 방지 refs
   const syncInProgressRef = useRef(false);
@@ -281,13 +283,20 @@ export function useEvents() {
 
   // 이벤트 삭제 (함수형 업데이트로 events 의존성 제거)
   const deleteEvent = useCallback(async (id: string) => {
+    console.log('[useEvents] deleteEvent called with id:', id);
+
     // 반복 인스턴스 ID 처리 (단, 구글 이벤트 ID는 제외)
     const actualId = (id.includes('_') && !id.startsWith('google_'))
       ? id.split('_')[0]
       : id;
 
+    console.log('[useEvents] actualId:', actualId);
+
     // 중복 삭제 방지
-    if (deletingEventsRef.current.has(actualId)) return;
+    if (deletingEventsRef.current.has(actualId)) {
+      console.log('[useEvents] Duplicate delete prevented for:', actualId);
+      return;
+    }
     deletingEventsRef.current.add(actualId);
 
     try {
@@ -296,6 +305,7 @@ export function useEvents() {
 
       setEvents(prev => {
         const eventToDelete = prev.find(e => e.id === actualId);
+        console.log('[useEvents] Event to delete:', eventToDelete);
 
         // Google 삭제 (첫 번째 실행에서만)
         if (eventToDelete?.googleEventId && !googleDeleteTriggered) {
@@ -305,8 +315,17 @@ export function useEvents() {
         }
 
         const newEvents = prev.filter(event => event.id !== actualId);
+        console.log('[useEvents] Events after delete:', newEvents.length);
         persistEvents(newEvents);
         return newEvents;
+      });
+
+      // 삭제된 이벤트 ID 추적 (클라우드 동기화용)
+      console.log('[useEvents] Adding to deletedEventIds:', actualId);
+      setDeletedEventIds(prev => {
+        const newIds = [...prev, actualId];
+        console.log('[useEvents] deletedEventIds now:', newIds);
+        return newIds;
       });
 
       // 반복 인스턴스 상태도 삭제
@@ -359,6 +378,20 @@ export function useEvents() {
     return result;
   }, [events, repeatInstanceStates]);
 
+  // 삭제된 이벤트 ID 초기화 (동기화 완료 후 호출)
+  const clearDeletedEventIds = useCallback(() => {
+    setDeletedEventIds([]);
+  }, []);
+
+  // 삭제된 이벤트 원복 (rate limit 시 호출)
+  const restoreDeletedEvents = useCallback(async () => {
+    console.log('[useEvents] Restoring deleted events - reloading from storage');
+    // 로컬 스토리지에서 이벤트 다시 로드 (삭제 전 상태로 복원)
+    await loadEvents();
+    // 삭제 추적 초기화
+    setDeletedEventIds([]);
+  }, [loadEvents]);
+
   return {
     events,
     loading,
@@ -374,5 +407,9 @@ export function useEvents() {
     // 반복 인스턴스 완료 상태 관리
     toggleRepeatInstanceComplete,
     getRepeatInstanceCompleted,
+    // 삭제된 이벤트 추적 (클라우드 동기화용)
+    deletedEventIds,
+    clearDeletedEventIds,
+    restoreDeletedEvents,
   };
 }

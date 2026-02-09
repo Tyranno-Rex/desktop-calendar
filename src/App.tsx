@@ -35,6 +35,9 @@ function App() {
     setGoogleConnected,
     loading: eventsLoading,
     toggleRepeatInstanceComplete,
+    deletedEventIds,
+    clearDeletedEventIds,
+    restoreDeletedEvents,
   } = useEvents();
 
   const { settings, updateSettings, loading: settingsLoading } = useSettings();
@@ -78,6 +81,10 @@ function App() {
   }, [isAuthenticated, eventsLoading, fetchFromCloud, mergeFromCloud, startAutoSync, stopAutoSync]);
 
   // Cloud Sync: 이벤트 변경 시 서버에 동기화 (debounce 3초)
+  // deletedEventIds를 ref로 추적 (closure 문제 해결)
+  const deletedEventIdsRef = useRef<string[]>([]);
+  deletedEventIdsRef.current = deletedEventIds;
+
   useEffect(() => {
     // 초기 로딩 시에는 스킵
     if (eventsLoading || events.length === 0 && prevEventsRef.current.length === 0) {
@@ -105,7 +112,29 @@ function App() {
         ? await window.electronAPI.getMemos()
         : [];
 
-      await syncAll({ events, memos, settings });
+      // 삭제된 이벤트를 deleted: true 플래그와 함께 추가 (ref에서 최신값 가져오기)
+      const currentDeletedIds = deletedEventIdsRef.current;
+      const deletedEvents = currentDeletedIds.map(id => ({ id, title: '', date: '', deleted: true }));
+      const eventsWithDeleted = [
+        ...events,
+        ...deletedEvents,
+      ];
+
+      console.log('[App.tsx] Sync - deletedEventIds:', currentDeletedIds);
+      console.log('[App.tsx] Sync - deletedEvents to send:', deletedEvents);
+      console.log('[App.tsx] Sync - total events:', eventsWithDeleted.length, '(normal:', events.length, ', deleted:', deletedEvents.length, ')');
+
+      const result = await syncAll({ events: eventsWithDeleted, memos, settings });
+      console.log('[App.tsx] Sync result:', result);
+      if (result.success) {
+        console.log('[App.tsx] Clearing deletedEventIds');
+        clearDeletedEventIds();
+      } else if (result.clientRateLimited) {
+        // 클라이언트 rate limit에 걸린 경우: 삭제 원복 + 알림
+        console.log('[App.tsx] Client rate limited - restoring deleted events');
+        await restoreDeletedEvents();
+        alert('Too many requests. Please slow down.');
+      }
     }, 3000);
 
     return () => {
@@ -113,7 +142,7 @@ function App() {
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [events, eventsLoading, isAuthenticated, syncAll, settings]);
+  }, [events, eventsLoading, isAuthenticated, syncAll, settings, clearDeletedEventIds, restoreDeletedEvents]);
 
   // 메모 팝업 열기
   const handleOpenMemo = useCallback((id?: string) => {
