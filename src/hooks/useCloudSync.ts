@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import pako from 'pako';
 import type { CalendarEvent, Memo, Settings, SyncState } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -158,7 +159,7 @@ export function useCloudSync(): UseCloudSyncReturn {
     setPendingChanges(0);
   }, []);
 
-  // API 요청 헬퍼 (429 에러 처리 포함)
+  // API 요청 헬퍼 (429 에러 처리 + gzip 압축)
   const apiRequest = useCallback(async (
     endpoint: string,
     method: 'GET' | 'POST' | 'PATCH' = 'GET',
@@ -168,13 +169,24 @@ export function useCloudSync(): UseCloudSyncReturn {
       throw new Error('Not authenticated');
     }
 
+    // POST/PATCH 요청 시 gzip 압축
+    let requestBody: BodyInit | undefined;
+    const headers: Record<string, string> = {
+      'Authorization': `Bearer ${sessionToken}`,
+    };
+
+    if (body && (method === 'POST' || method === 'PATCH')) {
+      const jsonString = JSON.stringify(body);
+      const compressed = pako.gzip(jsonString);
+      requestBody = compressed;
+      headers['Content-Type'] = 'application/json';
+      headers['Content-Encoding'] = 'gzip';
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method,
-      headers: {
-        'Authorization': `Bearer ${sessionToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: body ? JSON.stringify(body) : undefined,
+      headers,
+      body: requestBody,
     });
 
     // 429 Rate Limit 처리
