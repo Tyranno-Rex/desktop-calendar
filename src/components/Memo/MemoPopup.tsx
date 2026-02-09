@@ -1,18 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, StickyNote, Pin, PinOff } from 'lucide-react';
-import type { Memo } from '../../types';
+import { useMemoSave } from '../../hooks/useMemoSave';
 import { loadPopupSettings } from '../../hooks/useSettings';
 import './MemoPopup.css';
 
 export function MemoPopup() {
-  const [memo, setMemo] = useState<Memo | null>(null);
-  const [content, setContent] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
+  const { memo, content, isSaving, handleContentChange, setMemo, setContent } = useMemoSave();
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [accentColor, setAccentColor] = useState<'blue' | 'orange'>('blue');
   const [memoId, setMemoId] = useState<string | null>(null);
   const [isPinned, setIsPinned] = useState(false);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // URL에서 메모 ID 파싱
@@ -42,7 +39,7 @@ export function MemoPopup() {
       // memoId가 null이면 새 메모 (빈 상태 유지)
     };
     loadData();
-  }, [memoId]);
+  }, [memoId, setMemo, setContent]);
 
   // 패널 열릴 때 textarea에 포커스
   useEffect(() => {
@@ -50,47 +47,6 @@ export function MemoPopup() {
       textareaRef.current?.focus();
     }, 100);
     return () => clearTimeout(timer);
-  }, []);
-
-  // 자동 저장 (디바운스)
-  const saveMemo = useCallback(async (newContent: string) => {
-    if (!window.electronAPI?.saveMemo) return;
-
-    setIsSaving(true);
-    const now = new Date().toISOString();
-    const newMemo: Memo = {
-      id: memo?.id || crypto.randomUUID(),
-      content: newContent,
-      createdAt: memo?.createdAt || now,
-      updatedAt: now,
-    };
-
-    await window.electronAPI.saveMemo(newMemo);
-    setMemo(newMemo);
-    setIsSaving(false);
-  }, [memo]);
-
-  // 내용 변경 시 자동 저장 (500ms 디바운스)
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value;
-    setContent(newContent);
-
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-
-    saveTimeoutRef.current = setTimeout(() => {
-      saveMemo(newContent);
-    }, 500);
-  };
-
-  // 컴포넌트 언마운트 시 저장
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
   }, []);
 
   const handleClose = () => {

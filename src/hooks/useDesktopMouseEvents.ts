@@ -133,18 +133,34 @@ export function useDesktopMouseEvents() {
       }
     };
 
-    // 이벤트 리스너 등록
-    api.onDesktopClick?.(handleClick);
-    api.onDesktopMouseDown?.(handleMouseDown);
-    api.onDesktopMouseMove?.(handleMouseMove);
-    api.onDesktopMouseUp?.(handleMouseUp);
-    api.onDesktopDblClick?.(handleDblClick);
-    api.onDesktopHover?.(handleHover);
-    api.onDesktopMouseLeave?.(handleMouseLeave);
+    // 이벤트 리스너 등록 (cleanup 함수들 수집)
+    const cleanups: (() => void)[] = [];
 
-    // Cleanup: Electron IPC 리스너는 컴포넌트 생명주기와 무관하게
-    // 앱 전체에서 한 번만 등록되므로 별도 cleanup 불필요
-    // (window.electronAPI.on* 함수들은 등록만 하고 해제 함수를 반환하지 않음)
+    const unsubClick = api.onDesktopClick?.(handleClick);
+    if (unsubClick) cleanups.push(unsubClick);
+
+    const unsubMouseDown = api.onDesktopMouseDown?.(handleMouseDown);
+    if (unsubMouseDown) cleanups.push(unsubMouseDown);
+
+    const unsubMouseMove = api.onDesktopMouseMove?.(handleMouseMove);
+    if (unsubMouseMove) cleanups.push(unsubMouseMove);
+
+    const unsubMouseUp = api.onDesktopMouseUp?.(handleMouseUp);
+    if (unsubMouseUp) cleanups.push(unsubMouseUp);
+
+    const unsubDblClick = api.onDesktopDblClick?.(handleDblClick);
+    if (unsubDblClick) cleanups.push(unsubDblClick);
+
+    const unsubHover = api.onDesktopHover?.(handleHover);
+    if (unsubHover) cleanups.push(unsubHover);
+
+    const unsubMouseLeave = api.onDesktopMouseLeave?.(handleMouseLeave);
+    if (unsubMouseLeave) cleanups.push(unsubMouseLeave);
+
+    // Cleanup: 컴포넌트 언마운트 또는 리렌더 시 리스너 해제
+    return () => {
+      cleanups.forEach(cleanup => cleanup());
+    };
   }, []);
 }
 

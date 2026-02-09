@@ -86,30 +86,46 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onPopupData: (callback: (data: { type: string; date: string; event?: CalendarEvent; x: number; y: number }) => void): void => {
     ipcRenderer.on('popup-data', (_, data) => callback(data));
   },
-  // Desktop Mode 마우스 이벤트
-  onDesktopClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
-    ipcRenderer.on('desktop-click', (_, data) => callback(data));
+  // Desktop Mode 마우스 이벤트 (cleanup 함수 반환)
+  onDesktopClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): (() => void) => {
+    const handler = (_: unknown, data: { x: number; y: number; screenX: number; screenY: number }) => callback(data);
+    ipcRenderer.on('desktop-click', handler);
+    return () => ipcRenderer.off('desktop-click', handler);
   },
-  onDesktopMouseDown: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
-    ipcRenderer.on('desktop-mousedown', (_, data) => callback(data));
+  onDesktopMouseDown: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): (() => void) => {
+    const handler = (_: unknown, data: { x: number; y: number; screenX: number; screenY: number }) => callback(data);
+    ipcRenderer.on('desktop-mousedown', handler);
+    return () => ipcRenderer.off('desktop-mousedown', handler);
   },
-  onDesktopMouseMove: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
-    ipcRenderer.on('desktop-mousemove', (_, data) => callback(data));
+  onDesktopMouseMove: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): (() => void) => {
+    const handler = (_: unknown, data: { x: number; y: number; screenX: number; screenY: number }) => callback(data);
+    ipcRenderer.on('desktop-mousemove', handler);
+    return () => ipcRenderer.off('desktop-mousemove', handler);
   },
-  onDesktopMouseUp: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
-    ipcRenderer.on('desktop-mouseup', (_, data) => callback(data));
+  onDesktopMouseUp: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): (() => void) => {
+    const handler = (_: unknown, data: { x: number; y: number; screenX: number; screenY: number }) => callback(data);
+    ipcRenderer.on('desktop-mouseup', handler);
+    return () => ipcRenderer.off('desktop-mouseup', handler);
   },
-  onDesktopDblClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
-    ipcRenderer.on('desktop-dblclick', (_, data) => callback(data));
+  onDesktopDblClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): (() => void) => {
+    const handler = (_: unknown, data: { x: number; y: number; screenX: number; screenY: number }) => callback(data);
+    ipcRenderer.on('desktop-dblclick', handler);
+    return () => ipcRenderer.off('desktop-dblclick', handler);
   },
-  onDesktopHover: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
-    ipcRenderer.on('desktop-hover', (_, data) => callback(data));
+  onDesktopHover: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): (() => void) => {
+    const handler = (_: unknown, data: { x: number; y: number; screenX: number; screenY: number }) => callback(data);
+    ipcRenderer.on('desktop-hover', handler);
+    return () => ipcRenderer.off('desktop-hover', handler);
   },
-  onDesktopMouseEnter: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
-    ipcRenderer.on('desktop-mouseenter', (_, data) => callback(data));
+  onDesktopMouseEnter: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): (() => void) => {
+    const handler = (_: unknown, data: { x: number; y: number; screenX: number; screenY: number }) => callback(data);
+    ipcRenderer.on('desktop-mouseenter', handler);
+    return () => ipcRenderer.off('desktop-mouseenter', handler);
   },
-  onDesktopMouseLeave: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): void => {
-    ipcRenderer.on('desktop-mouseleave', (_, data) => callback(data));
+  onDesktopMouseLeave: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void): (() => void) => {
+    const handler = (_: unknown, data: { x: number; y: number; screenX: number; screenY: number }) => callback(data);
+    ipcRenderer.on('desktop-mouseleave', handler);
+    return () => ipcRenderer.off('desktop-mouseleave', handler);
   },
 
   // Google Calendar API

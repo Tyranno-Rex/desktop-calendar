@@ -217,18 +217,13 @@ export function useEvents() {
     updatingEventsRef.current.add(id);
 
     try {
-      // Google 업데이트 (completed 제외)
+      // 먼저 이벤트 정보를 가져와서 Google 업데이트 필요 여부 확인
+      let googleEventId: string | undefined;
+
       setEvents(prev => {
         const eventToUpdate = prev.find(e => e.id === id);
-
-        if (eventToUpdate?.googleEventId && window.electronAPI?.googleCalendarUpdateEvent) {
-          const { completed, ...googleUpdates } = updates;
-          if (Object.keys(googleUpdates).length > 0) {
-            window.electronAPI.googleCalendarUpdateEvent(
-              eventToUpdate.googleEventId,
-              googleUpdates
-            ).catch(error => console.error('Failed to update Google event:', error));
-          }
+        if (eventToUpdate?.googleEventId) {
+          googleEventId = eventToUpdate.googleEventId;
         }
 
         const newEvents = prev.map(event =>
@@ -237,6 +232,18 @@ export function useEvents() {
         persistEvents(newEvents);
         return newEvents;
       });
+
+      // Google 업데이트는 setEvents 외부에서 비동기로 처리 (completed 제외)
+      if (googleEventId && window.electronAPI?.googleCalendarUpdateEvent) {
+        const { completed, ...googleUpdates } = updates;
+        if (Object.keys(googleUpdates).length > 0) {
+          try {
+            await window.electronAPI.googleCalendarUpdateEvent(googleEventId, googleUpdates);
+          } catch (error) {
+            console.error('Failed to update Google event:', error);
+          }
+        }
+      }
     } finally {
       updatingEventsRef.current.delete(id);
     }

@@ -176,15 +176,15 @@ export interface ElectronAPI {
   onEventsUpdated: (callback: (events: CalendarEvent[]) => void) => void;
   // 팝업 데이터 수신 (미리 로드된 팝업용)
   onPopupData: (callback: (data: PopupData) => void) => void;
-  // Desktop Mode 마우스 이벤트
-  onDesktopClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
-  onDesktopMouseDown: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
-  onDesktopMouseMove: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
-  onDesktopMouseUp: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
-  onDesktopDblClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
-  onDesktopHover: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
-  onDesktopMouseEnter: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
-  onDesktopMouseLeave: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => void;
+  // Desktop Mode 마우스 이벤트 (cleanup 함수 반환)
+  onDesktopClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => (() => void);
+  onDesktopMouseDown: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => (() => void);
+  onDesktopMouseMove: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => (() => void);
+  onDesktopMouseUp: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => (() => void);
+  onDesktopDblClick: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => (() => void);
+  onDesktopHover: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => (() => void);
+  onDesktopMouseEnter: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => (() => void);
+  onDesktopMouseLeave: (callback: (data: { x: number; y: number; screenX: number; screenY: number }) => void) => (() => void);
   // Google Calendar API
   googleAuthStatus: () => Promise<boolean>;
   googleAuthLogin: () => Promise<{ success: boolean; error?: string }>;

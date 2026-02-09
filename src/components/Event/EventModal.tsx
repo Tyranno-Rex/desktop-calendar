@@ -35,6 +35,8 @@ export function EventModal({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef({ startX: 0, startY: 0, initialX: 0, initialY: 0 });
+  const positionRef = useRef(position);
+  positionRef.current = position;  // 항상 최신 position 추적
 
   // 반복 인스턴스인 경우 원본 ID 사용
   const originalEventId = event?.isRepeatInstance && event?.repeatGroupId
@@ -87,15 +89,15 @@ export function EventModal({
     }
   };
 
-  // 드래그 시작
+  // 드래그 시작 (positionRef를 사용하여 의존성 제거)
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(true);
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
-      initialX: position.x,
-      initialY: position.y,
+      initialX: positionRef.current.x,
+      initialY: positionRef.current.y,
     };
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
@@ -115,7 +117,7 @@ export function EventModal({
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [position]);
+  }, []);
 
   return (
     <div className="modal-backdrop" onClick={handleBackdropClick}>

@@ -22,6 +22,10 @@ function checkClientRateLimit(): { allowed: boolean; message?: string } {
   while (requestTimestamps.length > 0 && requestTimestamps[0] < now - CLIENT_RATE_LIMIT_WINDOW_MS) {
     requestTimestamps.shift();
   }
+  // 안전장치: 배열 크기 제한 (메모리 누수 방지)
+  if (requestTimestamps.length > 100) {
+    requestTimestamps.splice(0, requestTimestamps.length - 10);
+  }
   // 요청 수 체크
   if (requestTimestamps.length >= CLIENT_RATE_LIMIT_MAX_REQUESTS) {
     return { allowed: false, message: 'Too many requests. Please slow down.' };
@@ -159,11 +163,12 @@ export function useCloudSync(): UseCloudSyncReturn {
     setPendingChanges(0);
   }, []);
 
-  // API 요청 헬퍼 (429 에러 처리 + gzip 압축)
+  // API 요청 헬퍼 (429 에러 처리 + gzip 압축 + 타임아웃)
   const apiRequest = useCallback(async (
     endpoint: string,
     method: 'GET' | 'POST' | 'PATCH' = 'GET',
-    body?: unknown
+    body?: unknown,
+    timeoutMs = 30000  // 기본 30초 타임아웃
   ): Promise<{ data?: unknown; rateLimited?: boolean; retryAfterMs?: number }> => {
     if (!sessionToken) {
       throw new Error('Not authenticated');
@@ -183,27 +188,42 @@ export function useCloudSync(): UseCloudSyncReturn {
       headers['Content-Encoding'] = 'gzip';
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      method,
-      headers,
-      body: requestBody,
-    });
+    // AbortController로 타임아웃 구현
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    // 429 Rate Limit 처리
-    if (response.status === 429) {
-      const errorData = await response.json().catch(() => ({}));
-      // 에러 메시지에서 초 추출: "Rate limit exceeded. Try again in Xs"
-      const match = errorData.error?.match(/in (\d+)s/);
-      const retryAfterMs = match ? parseInt(match[1], 10) * 1000 : 10000;
-      return { rateLimited: true, retryAfterMs };
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method,
+        headers,
+        body: requestBody,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      // 429 Rate Limit 처리
+      if (response.status === 429) {
+        const errorData = await response.json().catch(() => ({}));
+        // 에러 메시지에서 초 추출: "Rate limit exceeded. Try again in Xs"
+        const match = errorData.error?.match(/in (\d+)s/);
+        const retryAfterMs = match ? parseInt(match[1], 10) * 1000 : 10000;
+        return { rateLimited: true, retryAfterMs };
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Request failed: ${response.status}`);
+      }
+
+      return { data: await response.json() };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout');
+      }
+      throw error;
     }
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `Request failed: ${response.status}`);
-    }
-
-    return { data: await response.json() };
   }, [sessionToken]);
 
   // 동기화 상태 조회
